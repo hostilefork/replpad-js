@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Asynchronous DOM Modification</title>
+    <script src="pump.js"></script>
+    <script>
+      // This will process a request that comes back from _c_on_event().
+      // The event id is in the first byte, and the rest of the array is
+      // the data to process.
+      //
+      // (A more complex system would be like WaitOnMultipleObjects(),
+      // so that _c_on_event() could send back a list of requests and then
+      // be notified if any of them were active.  The focus of this demo
+      // is proof-of-concept on suspending a JavaScript interpreter that
+      // is written in JavaScript, however.)
+      //
+      var typing;
+      var prompt;
+      var result;
+
+      // Regarding access of the C emscripten memory heap from JavaScript:
+      //
+      // http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-access-memory
+      //
+      // The `halt_ptr` is a memory location that the C code polls to see
+      // if it is set.  Make it easy to write to it via JavaScript.
+      // 
+      var halt_ptr = _c_get_halt_ptr();
+
+      function queueEvent(id, data) {
+          prompt.innerHTML = "Running C code...";
+
+          function afterDomSync() {
+            var req = _c_on_event(id, data);
+            prompt.innerHTML = "In Browser loop...";
+            pump(req);
+          }
+          setTimeout(afterDomSync, 0); // yield to main loop before running
+      }
+
+      function pump(req) {
+        var id = getValue(req + 0, 'i8'); // e.g. byte at req [0]
+        console.log("test.js pump(", id, ")");
+        
+        switch (id) {
+        case 1: { // REQUEST 1 => show output string
+          //
+          // The first byte out was the request type, but by the convention
+          // of _c_on_event()'s return result, the rest of the data is a
+          // null-terminated message.  We output it only long enough to go
+          // back into the C processing.
+          //
+          result.innerHTML += "<tt>" + Pointer_stringify(req + 1) + "</tt><br>";
+          queueEvent(1, null); // EVENT 1: output performed and updated
+          break; }
+
+        case 2: { // REQUEST 2 => fetch input from user
+          typing.disabled = false;
+          typing.style = null;
+          prompt.innerHTML = "Enter a String";
+          break; } // fall through, wait for onTypingEnter() to happen
+
+        case 3: { // REQUEST 3 => sleep some number of seconds
+
+          break; }
+
+        default: {
+          alert(id);
+          alert("Test only does output (1) and input (2) events");
+          break; }
+        }
+
+        _free(req);
+      }
+
+      function onHalt() {
+        setValue(halt_ptr, 1, 'i32');
+      }
+
+      function onTypingEnter() {
+        //
+        // As a sample visual change we might like to take care of before
+        // calling back into C, just disable the typed input.  Turn it gray
+        // to make it look disabled, then actually disable it.
+        //
+        typing.style = "color: grey; background-color: #F0F0F0;";
+        typing.disabled = true; // ^-- now looks disabled...actually disable it
+
+        // Turn JavaScript string of the text input into an emscripten-ified
+        // representation of what a transpiled C string looks like (e.g. a
+        // JavaScript byte array)
+        //
+        // https://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html#intArrayFromString
+        //
+        // This is effectively a "malloc()", so it can be freed on the C side
+        // by free(), or on the JavaScript side by free().  We let _c_on_event()
+        // free it in this case.
+        //
+        var cstr = allocate(
+            intArrayFromString(typing.value),
+            "i8",
+            ALLOC_NORMAL
+        );
+
+        queueEvent(2, cstr); // EVENT 2: Input received
+      }
+
+      // EVENT 0 => "DOM on Page is set up, start running the C"
+      //
+      // This will kick off the C code, so that it can run for a while
+      // and then--when it decides to--return a request to the pump to
+      // be processed.
+      //
+      document.addEventListener('DOMContentLoaded', function () {
+        typing = document.getElementById('typing');
+        prompt = document.getElementById('prompt');
+        result = document.getElementById('result');
+
+        var req = _c_on_event(0, null);
+        result.innerHTML = ""; 
+        pump(req);
+      });
+    </script>
+  </head>
+  <body>
+    <button onclick="onHalt()">Halt</button>
+    <div id='prompt'>Initializing</div>
+    <div id='result'><tt><b>(...)</b></tt></div>
+    <input
+      type='TEXT'
+      id='typing'
+      value='abc'
+      style='color: grey; background-color: #F0F0F0;'
+      disabled=true
+      onkeydown='if (event.key === "Enter") onTypingEnter();'
+    >
+  </body>
+</html>
