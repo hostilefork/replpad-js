@@ -1,3 +1,7 @@
+//
+// c-pump.c
+//
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -5,13 +9,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
-//================================================================
-
-// Emscripten builds a .js file that contains some amount of code
-// for detecting what kind of environment that JS is running in.
-// printf("...\n") knows enough to go to console.log, hence is
-// useful for debugging--but not for normal user interaction.
+// Emscripten builds a .js file that contains some amount of code for detecting
+// what kind of environment that JS is running in.  `printf("...\n")` is set
+// up to go to console.log, hence is useful for debugging--but not for normal
+// user interaction.
 //
 #include <stdio.h>
 
@@ -22,21 +23,6 @@ EMSCRIPTEN_KEEPALIVE int32_t *c_get_halt_ptr(void) {
     return &PG_Halted;
 }
 
-// The c_on_input event is called by JavaScript when an interesting
-// event happens.  The Rebol code will run arbitrarily long to
-// deal with this--but so long as it is running, there will be no
-// updates to the DOM or browser UI.  Only alert() boxes and the
-// console.log() will work.
-//
-// If the Rebol code wants to have an effect on the UI, but is not
-// actually finished running--it puts itself into a state of 
-// "suspended animation".  Whatever state the evaluator is in at
-// the time of the UI update request is preserved, but mechanically
-// it has to unwind the emscripten stack to return from this
-// function.  What gets returned are the events to pump, which will
-// then hopefully retrigger this function so the Rebol can resume
-// the suspended animation state.
-
 #define C_REQUEST_OUTPUT 0
 #define C_REQUEST_INPUT 1
 #define C_REQUEST_SLEEP 2
@@ -44,7 +30,32 @@ EMSCRIPTEN_KEEPALIVE int32_t *c_get_halt_ptr(void) {
 #define JS_EVENT_DOM_CONTENT_LOADED 0
 #define JS_EVENT_OUTPUT_DONE 1
 #define JS_EVENT_GOT_INPUT 2
+/* JS_EVENT_HALTED is not actually passed to the C code */
 
+
+// c_on_event() is exported as the JavaScript function `_c_on_event()` by
+// Emscripten.
+//
+// It is called by the Web Worker code in %js-pump.js whenever it gets an event
+// posted to it by the GUI thread, regarding something happening in the
+// web browser.  What it will be called with is one of the JS_EVENT_XXX codes
+// and its accompanying data (which may be null).
+//
+// While c_on_event() is running, the browser will continue to be responsive...
+// because it is on a separate thread in the worker.  However, there can be
+// no communication between the running C code and the JavaScript code other
+// than through a returned result, and getting back another event.
+//
+// The current simple protocol for the return value is that it returns a
+// malloc()'d block of memory, whose first bte is a C_REQUEST_XXX constant.
+// The following bytes represent a UTF-8 string, or the invalid UTF-8 byte
+// 255 if the result is null.  The JavaScript code is responsible for freeing
+// the allocated return result.
+//
+// NOTE: The EMSCRIPTEN_KEEPALIVE annotation tells the compiler that although
+// the function is never called from the C, it is expected to be available
+// to be called from JavaScript...so it shouldn't be GC'd by the build.
+//
 EMSCRIPTEN_KEEPALIVE char *c_on_event(int id, char *data) {
     printf("enter _c_on_event(%d) halted=%d\n", id, PG_Halted);
 
@@ -54,7 +65,7 @@ EMSCRIPTEN_KEEPALIVE char *c_on_event(int id, char *data) {
     case JS_EVENT_DOM_CONTENT_LOADED: // startup
         req = malloc(2);
         req[0] = C_REQUEST_INPUT;
-        req[1] = '\0'; // no data
+        req[1] = '\xFF'; // invalid UTF-8 byte, signals null data
 
         // !!! The goal for this table is to get rid of the redundancy, and
         // make it so the constants are defined in one place in the C and
@@ -62,19 +73,27 @@ EMSCRIPTEN_KEEPALIVE char *c_on_event(int id, char *data) {
         // will require token pasting or some other figuring, it's a work
         // in progress...but at least the JS file doesn't hardcode numbers.
         //
-        // v-- apostrophe not double QUOTES! parenthesize COMMAS!
-        EM_ASM_({
-            num_to_request_id_map = ([
+        // NOTE: self seems to be required here when using with a Web Worker.
+        // It doesn't seem to be required when using in just a plain "window"
+        // context, and it doesn't appear needed for variables in `pump.js`.
+        // So the need for it has something to do in particular with the
+        // scope in effect set up by all the emscripten wrapper code.  The
+        // "right" way to do this in emscripten should be researched.
+        //
+        // NOTE: "EM_ASM_" here *actually* means "EMBEDDED_JAVASCRIPT_"
+        //
+        EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
+            self.num_to_request_id_map = ([ // see note on `self`
                 'C_REQUEST_OUTPUT',
                 'C_REQUEST_INPUT',
                 'C_REQUEST_SLEEP'
             ]);
-            event_id_to_num_map = ({
+            self.event_id_to_num_map = ({ // see note on `self`
                 'JS_EVENT_DOM_CONTENT_LOADED': $0,
                 'JS_EVENT_OUTPUT_DONE': $1,
                 'JS_EVENT_GOT_INPUT': $2
             });
-        },
+        }, // v-- C parameters substituted in order, $0, $1, $2...
             JS_EVENT_DOM_CONTENT_LOADED,
             JS_EVENT_OUTPUT_DONE,
             JS_EVENT_GOT_INPUT
@@ -85,7 +104,7 @@ EMSCRIPTEN_KEEPALIVE char *c_on_event(int id, char *data) {
         assert(not data);
         req = malloc(2);
         req[0] = C_REQUEST_INPUT;
-        req[1] = '\0';
+        req[1] = '\xFF'; // invalid UTF-8 byte, signals null data
         break; }
 
     case JS_EVENT_GOT_INPUT: {

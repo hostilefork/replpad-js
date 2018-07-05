@@ -4,39 +4,48 @@
     <meta charset="utf-8">
     <title>Asynchronous DOM Modification</title>
 
-    <!-- Built with `emcc c-pump.c`: _c_on_event(), _c_get_halt_ptr() --> 
-    <script src="c-pump.o.js"></script>
-
-    <!-- Interaction with C pump: queueEventToC(), onRequestFromC()... -->
-    <script src="js-pump.js"></script>
-
     <script>
       var typing;
       var prompt;
       var result;
 
-      function onRequestFromC(id, data) {
-        switch (id) {
-        case 'C_REQUEST_OUTPUT': {
-          result.innerHTML += "<tt>" + data + "</tt><br>";
+      // %js-pump.js includes the build product of %c-pump.js, as well as the
+      // emscripten heap, other C code, and emscripten APIs for exchanging
+      // data between C and JavaScript.  But note that *all* of that is
+      // isolated into the web worker--none of the variables can be directly
+      // accessed.  The pump is the only way to interact with it.
+      //
+      // See small helper routine queueEventToC() for posting to the pump.
+      //
+      var pump = new Worker('js-pump.js');
 
-          // Though a DOM modification was made, the user won't see a change
-          // until control is returned to the browser.  Hence we *queue* the
-          // notification to C, so no C code runs until after the browser has
-          // a chance to run.
-          // 
-          queueEventToC('JS_EVENT_OUTPUT_DONE', null);
+      pump.onmessage = function (e) {
+        id = e.data[0];
+        str = e.data[1];
+
+        switch (id) {
+
+        // Getting a JS_EVENT_XXX signal back from the pump just means that
+        // the C code returned from processing that event.  No data is passed
+        // back from the C here--it would do that with an ensuing C_REQUEST.
+        // 
+        case 'JS_EVENT_DOM_CONTENT_LOADED': // startup handled
+          result.innerHTML = "";
+        case 'JS_EVENT_OUTPUT_DONE':
+        case 'JS_EVENT_GOT_INPUT':
+          prompt.innerHTML = "(...running browser events...)";
+          break;
+
+        case 'C_REQUEST_OUTPUT': {
+          result.innerHTML += "<tt>" + str + "</tt><br>";
+          queueEventToC('JS_EVENT_OUTPUT_DONE');
           break; }
 
         case 'C_REQUEST_INPUT': {
           typing.disabled = false;
           typing.style = null;
           prompt.innerHTML = "Enter a String";
-
-          // It could be an indefinite amount of time before the string input
-          // is provided via the onTypingEnter() event.
-          //
-          break; }
+          break; } // JS_EVENT_GOT_INPUT will be sent later via onTypingEnter()
 
         case 'C_REQUEST_SLEEP': {
           //
@@ -53,21 +62,15 @@
         }
       }
 
-      function onQueueEventToC(id, data) {
+      function queueEventToC(id, str) { // str `undefined` if not passed in
+        if (str === undefined)
+            str = null; // although `undefined == null`, canonize to null
         prompt.innerHTML = "(...running C code...)";
-      }
-
-      function onFinishEventInC(id) {
-        switch (id) {
-        case 'JS_EVENT_DOM_CONTENT_LOADED': // startup handled
-          result.innerHTML = ""; 
-          break;
-        }
-        prompt.innerHTML = "(...running browser events...)";
+        pump.postMessage([id, str]); // argument will be e.data in onmessage(e)
       }
 
       function onHalt() {
-        queueHaltOfC();
+        queueEventToC('JS_EVENT_HALTED');
       }
 
       function onTypingEnter() {
@@ -82,17 +85,16 @@
         queueEventToC('JS_EVENT_GOT_INPUT', typing.value);
       }
 
-      // EVENT 0 => "DOM on Page is set up, start running the C"
-      //
-      // This will kick off the C code, so that it can run for a while
-      // and then--when it decides to--return a request to the pump to
-      // be processed.
-      //
       document.addEventListener('DOMContentLoaded', function () {
         typing = document.getElementById('typing');
         prompt = document.getElementById('prompt');
         result = document.getElementById('result');
-        queueEventToC('JS_EVENT_DOM_CONTENT_LOADED', null);
+
+        // This will kick off the C code, so that it can run for a while
+        // and then--when it decides to--return a request to the pump to
+        // be processed.
+        //
+        queueEventToC('JS_EVENT_DOM_CONTENT_LOADED');
       });
     </script>
   </head>
