@@ -37,29 +37,62 @@ EMSCRIPTEN_KEEPALIVE int32_t *c_get_halt_ptr(void) {
 // then hopefully retrigger this function so the Rebol can resume
 // the suspended animation state.
 
+#define C_REQUEST_OUTPUT 0
+#define C_REQUEST_INPUT 1
+#define C_REQUEST_SLEEP 2
+
+#define JS_EVENT_DOM_CONTENT_LOADED 0
+#define JS_EVENT_OUTPUT_DONE 1
+#define JS_EVENT_GOT_INPUT 2
+
 EMSCRIPTEN_KEEPALIVE char *c_on_event(int id, char *data) {
     printf("enter _c_on_event(%d) halted=%d\n", id, PG_Halted);
 
     char *req;
 
     switch (id) {
-    case 0: // startup
-        req = malloc(1);
-        req[0] = 2; // just request input, for now
+    case JS_EVENT_DOM_CONTENT_LOADED: // startup
+        req = malloc(2);
+        req[0] = C_REQUEST_INPUT;
+        req[1] = '\0'; // no data
+
+        // !!! The goal for this table is to get rid of the redundancy, and
+        // make it so the constants are defined in one place in the C and
+        // then the JavaScript picks them up.  Truly excising the redundancy
+        // will require token pasting or some other figuring, it's a work
+        // in progress...but at least the JS file doesn't hardcode numbers.
+        //
+        // v-- apostrophe not double QUOTES! parenthesize COMMAS!
+        EM_ASM_({
+            num_to_request_id_map = ([
+                'C_REQUEST_OUTPUT',
+                'C_REQUEST_INPUT',
+                'C_REQUEST_SLEEP'
+            ]);
+            event_id_to_num_map = ({
+                'JS_EVENT_DOM_CONTENT_LOADED': $0,
+                'JS_EVENT_OUTPUT_DONE': $1,
+                'JS_EVENT_GOT_INPUT': $2
+            });
+        },
+            JS_EVENT_DOM_CONTENT_LOADED,
+            JS_EVENT_OUTPUT_DONE,
+            JS_EVENT_GOT_INPUT
+        );
         break;
 
-    case 1: { // output successfully printed
+    case JS_EVENT_OUTPUT_DONE: {
         assert(not data);
-        req = malloc(1);
-        req[0] = 2; // just request input, for now
+        req = malloc(2);
+        req[0] = C_REQUEST_INPUT;
+        req[1] = '\0';
         break; }
 
-    case 2: { // got input
+    case JS_EVENT_GOT_INPUT: {
         req = malloc(3);
-        req[0] = 1;
-        req[1] = data[0]; // just return first letter
+        req[0] = C_REQUEST_OUTPUT;
+        req[1] = data[0]; // !!! simplest of feedback, just return first letter
         req[2] = '\0';
-        free(data);
         break; }
 
     default:

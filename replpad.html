@@ -3,79 +3,71 @@
   <head>
     <meta charset="utf-8">
     <title>Asynchronous DOM Modification</title>
-    <script src="pump.js"></script>
+
+    <!-- Built with `emcc c-pump.c`: _c_on_event(), _c_get_halt_ptr() --> 
+    <script src="c-pump.o.js"></script>
+
+    <!-- Interaction with C pump: queueEventToC(), onRequestFromC()... -->
+    <script src="js-pump.js"></script>
+
     <script>
-      // This will process a request that comes back from _c_on_event().
-      // The event id is in the first byte, and the rest of the array is
-      // the data to process.
-      //
-      // (A more complex system would be like WaitOnMultipleObjects(),
-      // so that _c_on_event() could send back a list of requests and then
-      // be notified if any of them were active.  The focus of this demo
-      // is proof-of-concept on suspending a JavaScript interpreter that
-      // is written in JavaScript, however.)
-      //
       var typing;
       var prompt;
       var result;
 
-      // Regarding access of the C emscripten memory heap from JavaScript:
-      //
-      // http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-access-memory
-      //
-      // The `halt_ptr` is a memory location that the C code polls to see
-      // if it is set.  Make it easy to write to it via JavaScript.
-      // 
-      var halt_ptr = _c_get_halt_ptr();
-
-      function queueEvent(id, data) {
-          prompt.innerHTML = "Running C code...";
-
-          function afterDomSync() {
-            var req = _c_on_event(id, data);
-            prompt.innerHTML = "In Browser loop...";
-            pump(req);
-          }
-          setTimeout(afterDomSync, 0); // yield to main loop before running
-      }
-
-      function pump(req) {
-        var id = getValue(req + 0, 'i8'); // e.g. byte at req [0]
-        console.log("test.js pump(", id, ")");
-        
+      function onRequestFromC(id, data) {
         switch (id) {
-        case 1: { // REQUEST 1 => show output string
-          //
-          // The first byte out was the request type, but by the convention
-          // of _c_on_event()'s return result, the rest of the data is a
-          // null-terminated message.  We output it only long enough to go
-          // back into the C processing.
-          //
-          result.innerHTML += "<tt>" + Pointer_stringify(req + 1) + "</tt><br>";
-          queueEvent(1, null); // EVENT 1: output performed and updated
+        case 'C_REQUEST_OUTPUT': {
+          result.innerHTML += "<tt>" + data + "</tt><br>";
+
+          // Though a DOM modification was made, the user won't see a change
+          // until control is returned to the browser.  Hence we *queue* the
+          // notification to C, so no C code runs until after the browser has
+          // a chance to run.
+          // 
+          queueEventToC('JS_EVENT_OUTPUT_DONE', null);
           break; }
 
-        case 2: { // REQUEST 2 => fetch input from user
+        case 'C_REQUEST_INPUT': {
           typing.disabled = false;
           typing.style = null;
           prompt.innerHTML = "Enter a String";
-          break; } // fall through, wait for onTypingEnter() to happen
 
-        case 3: { // REQUEST 3 => sleep some number of seconds
+          // It could be an indefinite amount of time before the string input
+          // is provided via the onTypingEnter() event.
+          //
+          break; }
 
+        case 'C_REQUEST_SLEEP': {
+          //
+          // !!! Needs way to have requests parameterized with integers, or
+          // perhaps always strings will be used?
+          //
+          alert("C_REQUEST_SLEEP not implemented yet");
           break; }
 
         default: {
           alert(id);
-          alert("Test only does output (1) and input (2) events");
+          alert("onRequestFromC(" + id + ") : Unknown Request ID");
           break; }
         }
+      }
 
-        _free(req);
+      function onQueueEventToC(id, data) {
+        prompt.innerHTML = "(...running C code...)";
+      }
+
+      function onFinishEventInC(id) {
+        switch (id) {
+        case 'JS_EVENT_DOM_CONTENT_LOADED': // startup handled
+          result.innerHTML = ""; 
+          break;
+        }
+        prompt.innerHTML = "(...running browser events...)";
       }
 
       function onHalt() {
-        setValue(halt_ptr, 1, 'i32');
+        queueHaltOfC();
       }
 
       function onTypingEnter() {
@@ -84,26 +76,10 @@
         // calling back into C, just disable the typed input.  Turn it gray
         // to make it look disabled, then actually disable it.
         //
-        typing.style = "color: grey; background-color: #F0F0F0;";
-        typing.disabled = true; // ^-- now looks disabled...actually disable it
+        typing.style = "color: grey; background-color: #F0F0F0;"; // looks
+        typing.disabled = true; // behavior
 
-        // Turn JavaScript string of the text input into an emscripten-ified
-        // representation of what a transpiled C string looks like (e.g. a
-        // JavaScript byte array)
-        //
-        // https://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html#intArrayFromString
-        //
-        // This is effectively a "malloc()", so it can be freed on the C side
-        // by free(), or on the JavaScript side by free().  We let _c_on_event()
-        // free it in this case.
-        //
-        var cstr = allocate(
-            intArrayFromString(typing.value),
-            "i8",
-            ALLOC_NORMAL
-        );
-
-        queueEvent(2, cstr); // EVENT 2: Input received
+        queueEventToC('JS_EVENT_GOT_INPUT', typing.value);
       }
 
       // EVENT 0 => "DOM on Page is set up, start running the C"
@@ -116,10 +92,7 @@
         typing = document.getElementById('typing');
         prompt = document.getElementById('prompt');
         result = document.getElementById('result');
-
-        var req = _c_on_event(0, null);
-        result.innerHTML = ""; 
-        pump(req);
+        queueEventToC('JS_EVENT_DOM_CONTENT_LOADED', null);
       });
     </script>
   </head>
