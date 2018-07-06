@@ -3,7 +3,7 @@
 //
 // This is the "JavaScript side" of the emscripten-based message pump.  The
 // "C side" is implemented in %c-pump.c, whose build product is included here
-// as `c-pump-o.js` (must be built with `emcc c-pump.js -o c-pump.o.js`).
+// as `c-pump-o.js` (see compile.sh for how this is built)
 //
 // Both pieces of the pump are intended to be run inside a "Web Worker", which
 // has exclusive access to: any compiled C routines, the emscripten heap, and
@@ -24,81 +24,120 @@
 // modify state it could observe, and any requests posted to it from the
 // GUI could stay queued indefinitely.
 //
-// !!! This should be able to change with the use of emterpreter.  If the
-// JavaScript transpilation of C code is being run by a loop of JavaScript
-// that itself simulates JavaScript...that loop could itself interject
-// polls to receive this halt.
+// Because we are using the "emterpreter", it may not be ready yet to call
+// C functions right after the `importScripts()` statement.  We have to
+// wait for a callback from emscripten that the runtime was initialized (?)
 //
 
-importScripts('c-pump.o.js'); // provides _c_on_event(), _c_get_halt_ptr()
+// If one is using Emterpreter, then immediately after the importScripts()
+// for %c-pump.o.js, the C routine exports will not be available yet.  This
+// adds to the usual JavaScript dependency of needing the DOM to have
+// loaded before anything useful can be done.  The GUI will wait until it
+// receives *both* the `DOMContentLoaded` event from the browser *and* the
+// `JS_EVENT_RUNTIME_INITIALIZED` message we send here from the worker
+// before posting the `JS_EVENT_DOM_CONTENT_LOADED` back to the worker.
+//
+var PG_Input_Ptr;
+var PG_Halted_Ptr;
 
-// The `halt_ptr` is an emscripten heap location that the C code polls to see
-// if it is set.  Make it easy to write to it via JavaScript.
-// 
-var halt_ptr = _c_get_halt_ptr();
+var premade_mallocs_hack = []; // !!! see notes on use below
+
+var Module = {
+    memoryInitializerPrefixURL: 'build/', // where %c-pump-o.js.mem is
+
+    onRuntimeInitialized: function() {
+        console.log("Worker: onRuntimeInitialized() event");
+
+        // !!! see notes below on why this is necessary...once repl() starts
+        // running, as long as it won't get off the stack, we can't malloc().
+        //
+        for (var i = 0; i < 100; ++i)
+            premade_mallocs_hack.push(_malloc(100));
+
+        _init_c_pump(); // initializes constant maps, also
+
+        PG_Input_Ptr = _fetch_input_ptr_hack(); // char**, starts at null
+        PG_Halted_Ptr = _fetch_halted_ptr_hack(); // int32_t*, starts at 0
+
+        self.postMessage(['JS_EVENT_RUNTIME_INITIALIZED', null]); // => GUI
+    }
+} 
+importScripts('build/c-pump.o.js'); // _c_on_event(), _c_get_halt_ptr()
 
 onmessage = function (e) { // triggered by queueEventToC
-    event_id = e.data[0];
-    event_str = e.data[1];
-    console.log("JS Event => C: [" + event_id + "," + event_str + "]");
+    id = e.data[0];
+    str = e.data[1];
+    console.log("JS Event => C: [" + id + "," + str + "]");
 
-    // !!! It doesn't make sense to "send a halt event" to the C code, because
-    // if the C code was ready to handle an event it would be idle and not
-    // running--hence no point in sending it a halt.  Where halt makes sense
-    // is if there's something which is simulating or preserving the C stack
-    // and can manipulate a variable that it polls...e.g. emterpreter.  Doing
-    // that is one of the goals of this experiment, but it isn't there yet.
-    //
-    if (event_id == 'JS_EVENT_HALTED') {
-        setValue(halt_ptr, 1, 'i32'); // write to variable C code could observe
-        return; // !!! not useful yet...
+    if (id == 'JS_EVENT_DOM_CONTENT_LOADED') {
+        
+        _repl();
+
+        // The first time repl() yields, it will fall through to here to
+        // return to the main loop.  But after that, it will be continued
+        // by the `resume()` wrapper function that it was re-posted to run
+        // with.  So there's really no way to get a result back from it.
+        //
+        // There's nothing particularly interesting about the first yield
+        // vs any others that come later which you can't respond to, so don't
+        // do anything special--just return.
+        //
+        return;
     }
 
-    // event_str is a JavaScript string object that C can't decipher.  Use an
-    // emscripten API to turn it into a byte array on the emscripten heap.
+    // !!! Currently researching how to be able to run C *during* the suspended
+    // state of an `emscripten_sleep_with_yield()`:
     //
-    var event_c_str;
-    if (event_str == null)
-        event_c_str = null; // some events (like startup) have no arguments
-    else
-        event_c_str = allocateUTF8(event_str); // we must _free() this below
+    // https://stackoverflow.com/questions/51204703/
+    //
+    // Until a more elegant solution is found, _malloc() can't be called during
+    // that callback.  So a premade buffer must be around for pure JavaScript
+    // to fill--but if it can do that, why can't non-emterpreted C do it?!  :-/
+    //
+    if (0) {
+        var event_num = event_id_to_num_map[id];
+        var c_str = str && allocateUTF8(str); // JS string => malloc()'d c_str
+        _c_on_event(event_num, c_str);
 
-    var event_num;
-    if (event_id == 'JS_EVENT_DOM_CONTENT_LOADED')
-        event_num = 0; // C code to create map hasn't been made yet
-    else
-        event_num = event_id_to_num_map[event_id];
+        // don't free c_str(), let _c_on_event() take ownership
+    }
+    else {
+        // !!! Proof-of-concept, just show that the JavaScript data can
+        // make it to influence the repl(), despite it being written in a
+        // synchronous-IO style.  Hack the bytes of the JavaScript string
+        // into a premade buffer (hence no malloc())
+        //
+        switch (id) {
 
-    // This will process a request that comes back from _c_on_event().
-    // The request id is in the first byte, and the rest of the array is
-    // the data to process.
-    //
-    // (A more complex system would be like WaitOnMultipleObjects(),
-    // so that _c_on_event() could send back a list of requests and then
-    // be notified if any of them were active.  The focus of this demo
-    // is proof-of-concept on suspending a JavaScript interpreter that
-    // is written in JavaScript, however.)
-    //
-    var req_buf = _c_on_event(event_num, event_c_str);
-    if (event_c_str)
-        _free(event_c_str) // by convention, JavaScript frees the buffer
+        case 'JS_EVENT_GOT_INPUT': {
+            // AllocateUTF8(), minus the _malloc()...
+            var size = lengthBytesUTF8(str) + 1;
+            var c_str = premade_mallocs_hack.pop(); // !!! fails after 100
+            stringToUTF8Array(str, HEAP8, c_str, size);
+            setValue(PG_Input_Ptr, c_str, 'i8*');
+            break; }
+
+        case 'JS_EVENT_HALTED': {
+            setValue(PG_Halted_Ptr, 1, 'i32');
+            break; }
+
+        case 'JS_EVENT_OUTPUT_DONE':
+            break;
+
+        default:
+            console.log("unsupported JS_EVENT " + id);
+        }
+    }
 
     // The code that did queueEventToC() can optionally take action when the
     // C has processed that event.  Notification of the completion will come
     // before the notification of the request the C code made.
     //
-    postMessage([event_id, event_str]);
+    postMessage([id, str]); // echo the JS_EVENT_XX back to GUI 
+}
 
-    var req_buf_0 = getValue(req_buf + 0, 'i8'); // byte at req_buf[0]
-    var request_id = num_to_request_id_map[req_buf_0];
-    var request_str;
-    console.log("byte is" + getValue(req_buf + 1, 'i8'));
-    if (getValue(req_buf + 1, 'i8') == -1) // a.k.a. u8 255 (there's no 'u8')
-        request_str = null; // 255 is invalid UTF-8 byte, signals null
-    else
-        request_str = UTF8ToString(req_buf + 1); // from emscripten heap
-    _free(req_buf);
-
+function queueRequestToJS(id, str) {
+    //
     // This will eventually run `pump.onmessage` in the code that instantiated
     // the pump worker.  So if that code said:
     //
@@ -107,6 +146,6 @@ onmessage = function (e) { // triggered by queueEventToC
     //
     // ...this argument to postMessage is the `e.data` that code will receive.
     //
-    postMessage([request_id, request_str]);
-    console.log("C Request => JS [" + request_id + "," + request_str + "]");
+    postMessage([id, str]);
+    console.log("C Request => JS [" + id + "," + str + "]");
 }
