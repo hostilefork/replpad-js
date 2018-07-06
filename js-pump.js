@@ -29,19 +29,37 @@
 // wait for a callback from emscripten that the runtime was initialized (?)
 //
 
-// If one is using Emterpreter, then immediately after the importScripts()
-// for %c-pump.o.js, the C routine exports will not be available yet.  This
-// adds to the usual JavaScript dependency of needing the DOM to have
-// loaded before anything useful can be done.  The GUI will wait until it
-// receives *both* the `DOMContentLoaded` event from the browser *and* the
-// `JS_EVENT_RUNTIME_INITIALIZED` message we send here from the worker
-// before posting the `JS_EVENT_DOM_CONTENT_LOADED` back to the worker.
-//
 var PG_Input_Ptr;
 var PG_Halted_Ptr;
 
 var premade_mallocs_hack = []; // !!! see notes on use below
 
+
+function queueRequestToJS(id, str) {
+    if (str === undefined)
+        str = null; // although `undefined == null`, canonize to null
+
+    // This will eventually run `pump.onmessage` in the code that instantiated
+    // the pump worker.  So if that code said:
+    //
+    //     var pump = Worker('js-pump.js');
+    //     pump.onmessage(function (e) {...});
+    //
+    // ...this argument to postMessage is the `e.data` that code will receive.
+    //
+    postMessage([id, str]);
+    console.log("C Request => JS [" + id + "," + str + "]");
+}
+
+
+// If one is using Emterpreter, then immediately after the importScripts()
+// for %c-pump.o.js, the C routine exports will not be available yet.  This
+// adds to the usual JavaScript dependency of needing the DOM to have
+// loaded before anything useful can be done.  The GUI will wait until it
+// receives *both* the `DOMContentLoaded` event from the browser *and* the
+// `C_REQUEST_LOAD_DOM_CONTENT` message we send here from the worker before
+// posting the `JS_EVENT_DOM_CONTENT_LOADED` back to the worker.
+//
 var Module = {
     memoryInitializerPrefixURL: 'build/', // where %c-pump-o.js.mem is
 
@@ -56,21 +74,23 @@ var Module = {
 
         _init_c_pump(); // initializes constant maps, also
 
+        // !!! Hacks needed so long as _on_js_event() cannot be called.
+        //
         PG_Input_Ptr = _fetch_input_ptr_hack(); // char**, starts at null
         PG_Halted_Ptr = _fetch_halted_ptr_hack(); // int32_t*, starts at 0
 
-        self.postMessage(['JS_EVENT_RUNTIME_INITIALIZED', null]); // => GUI
+        queueRequestToJS('C_REQUEST_LOAD_DOM_CONTENT'); // likely loaded by now
     }
 } 
-importScripts('build/c-pump.o.js'); // _c_on_event(), _c_get_halt_ptr()
+importScripts('build/c-pump.o.js'); // _init_c_pump(), _on_js_event()
+
 
 onmessage = function (e) { // triggered by queueEventToC
     id = e.data[0];
     str = e.data[1];
     console.log("JS Event => C: [" + id + "," + str + "]");
 
-    if (id == 'JS_EVENT_DOM_CONTENT_LOADED') {
-        
+    if (id == 'JS_EVENT_DOM_CONTENT_LOADED') {        
         _repl();
 
         // The first time repl() yields, it will fall through to here to
@@ -97,7 +117,7 @@ onmessage = function (e) { // triggered by queueEventToC
     if (0) {
         var event_num = event_id_to_num_map[id];
         var c_str = str && allocateUTF8(str); // JS string => malloc()'d c_str
-        _c_on_event(event_num, c_str);
+        _on_js_event(event_num, c_str);
 
         // don't free c_str(), let _c_on_event() take ownership
     }
@@ -128,24 +148,4 @@ onmessage = function (e) { // triggered by queueEventToC
             console.log("unsupported JS_EVENT " + id);
         }
     }
-
-    // The code that did queueEventToC() can optionally take action when the
-    // C has processed that event.  Notification of the completion will come
-    // before the notification of the request the C code made.
-    //
-    postMessage([id, str]); // echo the JS_EVENT_XX back to GUI 
-}
-
-function queueRequestToJS(id, str) {
-    //
-    // This will eventually run `pump.onmessage` in the code that instantiated
-    // the pump worker.  So if that code said:
-    //
-    //     var pump = Worker('js-pump.js');
-    //     pump.onmessage(function (e) {...});
-    //
-    // ...this argument to postMessage is the `e.data` that code will receive.
-    //
-    postMessage([id, str]);
-    console.log("C Request => JS [" + id + "," + str + "]");
 }

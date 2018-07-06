@@ -29,12 +29,12 @@ emcc repl.c c-pump.c -o $TEMPDIR/c-pump.o.js \
     -O0 \
     -g \
     -s WASM=0 \
-    -s EXPORTED_FUNCTIONS="['_init_c_pump', '_c_on_event','_repl']" \
+    -s EXPORTED_FUNCTIONS="['_init_c_pump', '_on_js_event','_repl']" \
     -s DISABLE_EXCEPTION_CATCHING=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s EMTERPRETIFY=1 \
     -s EMTERPRETIFY_WHITELIST=@emterpreter_whitelist.json \
-    -s EMTERPRETIFY_BLACKLIST="['_c_on_event','_malloc']" \
+    -s EMTERPRETIFY_BLACKLIST="['_on_js_event','_malloc']" \
     -s EMTERPRETIFY_ASYNC=1 \
     -s ASSERTIONS=1 \
     -s SAFE_HEAP=1 \

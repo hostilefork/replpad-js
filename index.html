@@ -41,7 +41,8 @@
 
         switch (id) {
 
-        case 'JS_EVENT_RUNTIME_INITIALIZED':
+        case 'C_REQUEST_LOAD_DOM_CONTENT':
+          //
           // This will kick off the C code, so that it can run for a while
           // and then--when it decides to--return a request to the pump to
           // be processed.
@@ -54,16 +55,6 @@
           runtime_initialized = true;
           break;
 
-        // Getting a JS_EVENT_XXX signal back from the pump just means that
-        // the C code returned from processing that event.  No data is passed
-        // back from the C here--it would do that with an ensuing C_REQUEST.
-        // 
-        case 'JS_EVENT_DOM_CONTENT_LOADED': // startup handled
-          repl.innerHTML = "";
-        case 'JS_EVENT_OUTPUT_DONE':
-        case 'JS_EVENT_GOT_INPUT':
-          break;
-
         case 'C_REQUEST_OUTPUT': {
           repl.innerHTML += str + "<br>";
           queueEventToC('JS_EVENT_OUTPUT_DONE');
@@ -72,6 +63,7 @@
         case 'C_REQUEST_INPUT': {
           typing.disabled = false;
           typing.style = null;
+          typing.focus();
           break; } // JS_EVENT_GOT_INPUT will be sent later via onTypingEnter()
 
         case 'C_REQUEST_SLEEP': {
@@ -118,12 +110,13 @@
         console.log("GUI: DOMContentLoaded event");
 
         typing = document.getElementById('typing');
+        typing.value = null; // browser might cache content, throw it out
         repl = document.getElementById('repl');
 
         if (runtime_initialized) // runtime initialized first
           queueEventToC('JS_EVENT_DOM_CONTENT_LOADED');
         else {
-          // wait to send until JS_EVENT_RUNTIME_INITIALIZED
+          // wait to send until C_REQUEST_LOAD_DOM_CONTENT
         }
         dom_content_loaded = true;
       });

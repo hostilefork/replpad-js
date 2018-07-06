@@ -60,7 +60,7 @@ EMSCRIPTEN_KEEPALIVE void init_c_pump(void) {
 }
 
 
-// c_on_event() is exported as the JavaScript function `_c_on_event()` by
+// on_js_event() is exported as the JavaScript function `_on_js_event()` by
 // Emscripten.
 //
 // It is called by the Web Worker code in %js-pump.js whenever it gets an event
@@ -69,11 +69,11 @@ EMSCRIPTEN_KEEPALIVE void init_c_pump(void) {
 // and its accompanying data (which may be null).
 //
 // !!! This routine currently cannot be called while the long-running repl()
-// function is suspended and allowing asynchronous events.  For the moment,
+// function is suspended in order to run asynchronous events.  For the moment,
 // hacks are used to mutate PG_Input and PG_Halted from the JavaScript using
 // setValue() on pointers from the `_fetch_xxx_hack()` calls.
 //
-EMSCRIPTEN_KEEPALIVE void c_on_event(int id, char *data) {
+EMSCRIPTEN_KEEPALIVE void on_js_event(int id, char *data) {
     printf("_c_on_event(%d) halted=%d\n", id, PG_Halted);
 
     switch (id) {
@@ -111,7 +111,7 @@ EMSCRIPTEN_KEEPALIVE uint32_t* fetch_halted_ptr_hack(void)
 char *js_getline(char **lineptr, size_t *n)
 {
     EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
-        self.postMessage(['C_REQUEST_INPUT', null]);
+        queueRequestToJS('C_REQUEST_INPUT');
     } /* no args needed, e.g. no $0, $1... */ );
 
     while (not PG_Input) // c_on_event() sets this
@@ -149,6 +149,6 @@ void js_printf(const char *fmt, ...)
 void js_exit(int status)
 {
     EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
-        queueRequestToJS('C_REQUEST_QUIT', null);
+        queueRequestToJS('C_REQUEST_QUIT');
     } /* should pass status via $0 but only strings for now */);
 }
