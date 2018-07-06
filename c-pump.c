@@ -14,10 +14,6 @@
 #include "pump.h"
 #include "emscripten.h"
 
-#define C_REQUEST_OUTPUT 0
-#define C_REQUEST_INPUT 1
-#define C_REQUEST_QUIT 2
-
 #define JS_EVENT_DOM_CONTENT_LOADED 0
 #define JS_EVENT_OUTPUT_DONE 1
 #define JS_EVENT_GOT_INPUT 2

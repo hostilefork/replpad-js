@@ -1,9 +1,9 @@
 //
-// js-pump.js
+// worker.js
 //
-// This is the "JavaScript side" of the emscripten-based message pump.  The
-// "C side" is implemented in %c-pump.c, whose build product is included here
-// as `c-pump-o.js` (see compile.sh for how this is built)
+// This is the "JavaScript side" of the C code implemented in %c-pump.c, whose
+// build product is included here as `c-pump-o.js` (see compile.sh for how
+// this is built)
 //
 // Both pieces of the pump are intended to be run inside a "Web Worker", which
 // has exclusive access to: any compiled C routines, the emscripten heap, and
@@ -24,15 +24,12 @@
 // modify state it could observe, and any requests posted to it from the
 // GUI could stay queued indefinitely.
 //
-// Because we are using the "emterpreter", it may not be ready yet to call
-// C functions right after the `importScripts()` statement.  We have to
-// wait for a callback from emscripten that the runtime was initialized (?)
-//
 
+// !!! Temp hacks to workaround: https://stackoverflow.com/questions/51204703/
+//
 var PG_Input_Ptr;
 var PG_Halted_Ptr;
-
-var premade_mallocs_hack = []; // !!! see notes on use below
+var premade_mallocs_hack = [];
 
 
 function queueRequestToJS(id, str) {
