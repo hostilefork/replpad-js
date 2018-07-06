@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8">
     <title>Asynchronous DOM Modification</title>
+
+    <!-- Comments shouldn't come before DOCTYPE/charset for tech reasons. -->
+    <!-- https://google.github.io/styleguide/htmlcssguide.html -->
+
     <script>
       //
       // Start loading the worker ASAP.  It posts C_REQUEST_LOAD_DOM_CONTENT
@@ -11,18 +15,13 @@
       var pump = new Worker('worker.js');
     </script>
     <script src="gui.js"></script>
+    <link rel="stylesheet" type="text/css" href="replpad.css">
   </head>
   <body>
-    <div id='repl' style='font-family: monospace;'>
-      <b>...loading... (see browser console log for errors)</b>
+    <div id="replpad">
+      <div style="line">
+        ...loading... (see browser console log for errors)
+      </div>
     </div>
-    <!-- Input disabled until a C_REQUEST_INPUT is received from worker -->
-    <input
-      type='TEXT'
-      id='typing'
-      style='color: grey; background-color: #F0F0F0;'
-      disabled=true
-      onkeydown='if (event.key === "Enter") onTypingEnter();'
-    >
   </body>
 </html>

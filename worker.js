@@ -25,14 +25,17 @@
 // GUI could stay queued indefinitely.
 //
 
+'use strict'; // <-- FIRST statement! https://stackoverflow.com/q/1335851
+
 // !!! Temp hacks to workaround: https://stackoverflow.com/questions/51204703/
 //
 var PG_Input_Ptr;
 var PG_Halted_Ptr;
+var PG_Slept_Ptr;
 var premade_mallocs_hack = [];
 
 
-function queueRequestToJS(id, str) {
+function queueRequestToJS (id, str) {
     if (str === undefined)
         str = null; // although `undefined == null`, canonize to null
 
@@ -75,6 +78,7 @@ var Module = {
         //
         PG_Input_Ptr = _fetch_input_ptr_hack(); // char**, starts at null
         PG_Halted_Ptr = _fetch_halted_ptr_hack(); // int32_t*, starts at 0
+        PG_Slept_Ptr = _fetch_slept_ptr_hack(); // int32_t*, starts at 0
 
         queueRequestToJS('C_REQUEST_LOAD_DOM_CONTENT'); // likely loaded by now
     }
@@ -83,8 +87,8 @@ importScripts('build/c-pump.o.js'); // _init_c_pump(), _on_js_event()
 
 
 onmessage = function (e) { // triggered by queueEventToC
-    id = e.data[0];
-    str = e.data[1];
+    var id = e.data[0];
+    var str = e.data[1];
     console.log("JS Event => C: [" + id + "," + str + "]");
 
     if (id == 'JS_EVENT_DOM_CONTENT_LOADED') {        
@@ -134,11 +138,17 @@ onmessage = function (e) { // triggered by queueEventToC
             setValue(PG_Input_Ptr, c_str, 'i8*');
             break; }
 
-        case 'JS_EVENT_HALTED': {
+        case 'JS_EVENT_HALTED':
             setValue(PG_Halted_Ptr, 1, 'i32');
-            break; }
+            break;
 
         case 'JS_EVENT_OUTPUT_DONE':
+            // !!! printf doesn't wait for any notification--but it should be
+            // interruptible.
+            break;
+
+        case 'JS_EVENT_SLEEP_DONE':
+            setValue(PG_Slept_Ptr, 1, 'i32');
             break;
 
         default:

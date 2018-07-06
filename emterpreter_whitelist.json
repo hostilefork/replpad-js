@@ -1,6 +1,7 @@
 [
     "_js_printf",
-    "_js_getline",
+    "_js_getline_unless_halt",
+    "_js_sleep_halts",
     "_js_exit",
     "_repl"
 ]

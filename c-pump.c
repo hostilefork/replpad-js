@@ -18,12 +18,14 @@
 #define JS_EVENT_OUTPUT_DONE 1
 #define JS_EVENT_GOT_INPUT 2
 #define JS_EVENT_HALTED 3
+#define JS_EVENT_SLEEP_DONE 4
 
 
 // PG => "Program Global"
 //
 char *PG_Input = nullptr;
 uint32_t PG_Halted = 0;
+uint32_t PG_Slept = 0;
 
 EMSCRIPTEN_KEEPALIVE void init_c_pump(void) {
     //
@@ -45,13 +47,15 @@ EMSCRIPTEN_KEEPALIVE void init_c_pump(void) {
             'JS_EVENT_DOM_CONTENT_LOADED': $0,
             'JS_EVENT_OUTPUT_DONE': $1,
             'JS_EVENT_GOT_INPUT': $2,
-            'JS_EVENT_HALTED': $3
+            'JS_EVENT_HALTED': $3,
+            'JS_EVENT_SLEEP_DONE': $4
         });
     },
         JS_EVENT_DOM_CONTENT_LOADED, /* $0 */
         JS_EVENT_OUTPUT_DONE, /* $1 */
         JS_EVENT_GOT_INPUT, /* $2 */
-        JS_EVENT_HALTED /* $3 */
+        JS_EVENT_HALTED, /* $3 */
+        JS_EVENT_SLEEP_DONE /* $4 */
     );
 }
 
@@ -70,7 +74,7 @@ EMSCRIPTEN_KEEPALIVE void init_c_pump(void) {
 // setValue() on pointers from the `_fetch_xxx_hack()` calls.
 //
 EMSCRIPTEN_KEEPALIVE void on_js_event(int id, char *data) {
-    printf("_c_on_event(%d) halted=%d\n", id, PG_Halted);
+    printf("_on_js_event(%d) halted=%d\n", id, PG_Halted);
 
     switch (id) {
     case JS_EVENT_DOM_CONTENT_LOADED:
@@ -84,8 +88,12 @@ EMSCRIPTEN_KEEPALIVE void on_js_event(int id, char *data) {
         PG_Input = data;
         break; }
 
+    case JS_EVENT_SLEEP_DONE: {
+        PG_Slept = 1;
+        break; }
+
     case JS_EVENT_HALTED: {
-        PG_Halted = true;
+        PG_Halted = 1;
         break; }
 
     default:
@@ -93,7 +101,7 @@ EMSCRIPTEN_KEEPALIVE void on_js_event(int id, char *data) {
     }
 }
 
-// !!! Hacks used until _c_on_event() can't be called.
+// !!! Hacks used until _on_js_event() can be called during async sleep.
 
 EMSCRIPTEN_KEEPALIVE char** fetch_input_ptr_hack(void)
   { return &PG_Input; }
@@ -101,17 +109,50 @@ EMSCRIPTEN_KEEPALIVE char** fetch_input_ptr_hack(void)
 EMSCRIPTEN_KEEPALIVE uint32_t* fetch_halted_ptr_hack(void)
   { return &PG_Halted; }
 
+EMSCRIPTEN_KEEPALIVE uint32_t* fetch_slept_ptr_hack(void)
+  { return &PG_Slept; }
 
-// Synchronous-looking API
 
-char *js_getline(char **lineptr, size_t *n)
+// Synchronous-looking API, whose routines are actually put into suspended
+// animation during `sleep_with_yield` and pulled off the stack, then are
+// re-entered.  This is possible because they are not running directly in
+// JavaScript, but through the "emterpreter" bytecode--so the emterpret()
+// function is able to do this trickery.
+
+char *js_getline_unless_halt(char **lineptr, size_t *n)
 {
+    assert(not PG_Slept);
+
+    if (PG_Halted) {
+        PG_Halted = 0; // don't preserve state once observed
+        return nullptr;
+    }
+
     EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
         queueRequestToJS('C_REQUEST_INPUT');
     } /* no args needed, e.g. no $0, $1... */ );
 
-    while (not PG_Input) // c_on_event() sets this
+    // Calling sleep_with_yield will unwind the C stack temporarily, allow the
+    // worker message pump to run, and then re-enter this stack by bringing
+    // the state out of "suspended animation" in the emterpreter.  While the
+    // worker message pump runs, it's able to process messages from the GUI
+    // indicating input was received, and set the PG_Input variable.
+    //
+    // !!! Ideally it would set the PG_Input variable through a call to
+    // _on_js_event(), so it could update arbitrary C structures and use
+    // things like malloc().  That's not currently working, so it's hacked up
+    // using setValue() in JavaScript.  See this issue:
+    //
+    // https://stackoverflow.com/q/51204703/
+    //
+    while (not PG_Input and not PG_Halted)
        emscripten_sleep_with_yield(50);
+
+    if (PG_Halted) {
+        assert(not PG_Input);
+        PG_Halted = 0;
+        return nullptr;
+    }
 
     char *result = PG_Input;
     PG_Input = nullptr;
@@ -142,9 +183,33 @@ void js_printf(const char *fmt, ...)
     emscripten_sleep_with_yield(0);
 }
 
+bool js_sleep_halts(int msec) {
+    assert(not PG_Slept);
+
+    if (PG_Halted) {
+        PG_Halted = 0; // don't preserve state once observed
+        return true;
+    }
+
+    EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
+        queueRequestToJS('C_REQUEST_SLEEP', $0);
+    }, msec /* $0 */);
+
+    while (not PG_Halted and not PG_Slept)
+        emscripten_sleep_with_yield(50);
+
+    if (PG_Halted) {
+        assert(not PG_Slept);
+        PG_Halted = 0;
+        return true;
+    }
+    PG_Slept = 0;
+    return false;
+}
+
 void js_exit(int status)
 {
     EM_ASM_({ // v-- apostrophe not double QUOTES! parenthesize COMMAS!
-        queueRequestToJS('C_REQUEST_QUIT');
-    } /* should pass status via $0 but only strings for now */);
+        queueRequestToJS('C_REQUEST_QUIT', $0);
+    }, status /* $0 */);
 }

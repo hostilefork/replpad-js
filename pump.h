@@ -17,20 +17,22 @@
 //
 #include <stdio.h>
 
+#if !defined(__cplusplus)
+	#define nullptr ((void*)0)
+#endif
+
 // Similar to POSIX getline()
 // To have it malloc for you, pass lineptr as null
 // To get an arbitrary length, pass n as pointer to a value of 0.
 //
-extern char *js_getline(char **lineptr, size_t *n);
+extern char *js_getline_unless_halt(char **lineptr, size_t *n);
 
 // Similar to C standard library printf()
 //
 extern void js_printf(const char *fmt, ...);
 
+bool js_sleep_halts(int msec);
+
 // Similar to C's exit()
 //
 extern void js_exit(int status);
-
-#if !defined(__cplusplus)
-	#define nullptr ((void*)0)
-#endif

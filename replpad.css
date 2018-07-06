@@ -1,0 +1,45 @@
+/* https://google.github.io/styleguide/htmlcssguide.html */
+
+#replpad {
+	font-family: sans-serif;
+}
+
+.input {
+/* None of these properties seem to work from CSS, so squiggly underlines get
+   put on the contentEditable input, unless it is done explicitly through
+   code, e.g. `span.spellcheck = false;`.  To be safe, we do them all. */
+  
+/*	autocomplete: "off";
+	autocorrect: "off";
+	autocapitalize: "off";
+	spellcheck: "false"; */
+}
+
+/* contenteditable divs get a border around them without this */
+/* https://stackoverflow.com/a/2260788/211160 */
+.input:focus {
+    outline: 0px solid transparent;
+}
+
+/*
+ * There's no way to disable the key shortcuts for making things bold or italic
+ * in contentEditable, short of hooking key codes.  But since <b> and <i> are
+ * what's used, you can just style those out.  Likely going to need a
+ * process of canonization anyway.
+ * https://stackoverflow.com/a/34961662/211160
+ */
+.input b {
+ 	font-weight: normal;
+}
+.input i {
+	font-style: normal;
+}
+
+.prompt {
+	color: purple;
+}
+
+.output {
+	color: #696969;
+	font-family: monospace;
+}

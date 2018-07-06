@@ -17,11 +17,14 @@
 // hogging the thread by running.
 //
 // Putting the code on a Web Worker takes away the ability to access the DOM
-// directly.  However, it does allow send messages to tell the GUI thread to
-// affect the DOM while the function is still on the stack.  Yet it is a one
-// way street, and it can't get any information back from that process
-// until it's off the stack--because the web worker's message queue is tied
-// up so long as a function is running.
+// directly--you can't even use alert() or prompt()!  However, it does allow
+// you to send messages to tell the GUI thread to affect the DOM while the
+// function is still on the stack.  Yet it is a one way street--it can't get
+// any information back from that process until the call that made the request
+// has yielded control back to the brwoser.  Because the web worker's message
+// queue is tied up so long as a function is running, and the message queue
+// is the only way to get a response back (modulo something egregious, like
+// using synchronous XMLHttpRequests to talk to the GUI through a webserver.)
 //
 // So one can either adapt to this by writing one's program in an asynchronous
 // style like the rest of the JavaScript world (posting requests, getting
@@ -45,15 +48,25 @@ void repl(void)
 
     size_t size;
     char *line = nullptr;
-    do {
+    while (true) {
         free(line); // legal on nullptr */
 
-        js_printf("Enter some text: ");
+        js_printf("&gt;&gt; ");
         size = 0;
-        line = js_getline(nullptr, &size);
+        line = js_getline_unless_halt(nullptr, &size);
+        if (not line) {
+            js_printf("[Halted by ESCAPE]");
+            continue;
+        }
 
-        js_printf("You entered: %s\n", line);
-    } while (strcmp(line, "quit") != 0);
+        if (strcmp(line, "quit") == 0)
+            break;
+
+        do {
+            js_printf("... %s ... (hit ESC to cancel)", line);
+        } while (not js_sleep_halts(2000));
+        js_printf("[Halted by ESCAPE]");
+    };
 
     // !!! The calls to `js_printf()` and `js_getline()` above cause repl()
     // to take itself off the stack, and then re-enter it via a setTimeout()
