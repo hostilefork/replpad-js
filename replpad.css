@@ -1,24 +1,103 @@
-/* https://google.github.io/styleguide/htmlcssguide.html */
+/*
+ * replpad.css
+ *
+ * CSS Style Guide (which this file should follow, someday)
+ * https://google.github.io/styleguide/htmlcssguide.html
+ *
+ * In the evolutionary spirit with which this is being developed, this just
+ * kind of merges in segments from all the CSS files of components being used.
+ * Better practices will be used down the line once the basic functionality
+ * being demosnstrated works.
+ *
+ */
+
+
+html, body {
+    margin: 0;
+
+    /* https://stackoverflow.com/a/44645580/211160 */
+    padding: 0; /* avoid padding that throws off #replpad 100vh calculation */
+}
+* {
+    box-sizing: border-box; /* including because answer above included it */
+}
+
+
+/*
+ * REPLPAD (MAIN CONSOLE/TUTORIAL WIDGET)
+ *
+ * It's important that the replpad take up the full vertical space, because
+ * it needs to be able to get clicks in big empty space regions in order to
+ * focus the cursor...since the input span can be small and hard to click.
+ *
+ * https://stackoverflow.com/a/7049918 // sizing to 100%
+ * https://stackoverflow.com/a/9183467 // get clicks on replpad, not children
+ * https://stackoverflow.com/q/31982407 // selections aren't clicks
+ */
+
 
 #replpad {
-	font-family: sans-serif;
+    /*
+     * There's not really much point in ever hiding the vertical scroll bar;
+     * it will show up in pretty much any session, and that causes a jarring
+     * moment where it appears.  It's smoother to just have it.
+     *
+     * !!! What should the story with horizontal scrolling be?  What about
+     * wide divs that are inlined in the content that don't word wrap, or
+     * images--if those could be displayed inline?
+     */
+    /* https://stackoverflow.com/q/13777013/ */
+    overflow-y: scroll !important; /* always show */
+    overflow-x: auto; /* show if necessary (but most spans will word wrap) */
+
+    font-family: sans-serif; /* try proportional font for now */
+
+    padding: 5px; /* put a little space around the edge and from splitter */
+
+    /*
+     * There needs to be more empty space at the bottom, because it's visually
+     * difficult to be typing on the very absolute bottom.  Also, when you
+     * hover a hyperlink or do various things, browsers like Chrome will do
+     * an impromptu status bar overlaying what you're typing--which is annoying
+     * in things like chat programs that don't account for it.
+     */
+    padding-bottom: 64px;
+}
+
+.escaped {
+    cursor: 'none';
+    background-color: #D8D8D8;
 }
 
 .input {
-/* None of these properties seem to work from CSS, so squiggly underlines get
-   put on the contentEditable input, unless it is done explicitly through
-   code, e.g. `span.spellcheck = false;`.  To be safe, we do them all. */
-  
-/*	autocomplete: "off";
-	autocorrect: "off";
-	autocapitalize: "off";
-	spellcheck: "false"; */
+    /*
+     * None of these properties seem to work from CSS, so squiggly underlines
+     * get put on the contentEditable input, unless you assign explicitly with
+     * code, e.g. `span.spellcheck = false;`.  See %gui.js
+     */
+    /* autocomplete: "off"; */
+    /* autocorrect: "off"; */
+    /* autocapitalize: "off"; */
+    /* spellcheck: "false"; */
+
+    /*
+     * Empty spans should still show up, and be big enough to click on
+     * Otherwise the focus cursor will look like it's on the previous span
+     *
+     * https://stackoverflow.com/a/25789118
+     *
+     * !!! Actually this wouldn't help once the display was changed to inline
+     * from inline-block; the min-width wasn't being heeded.  So another span
+     * with a zero-no-width-joiner is stuck in front of it.  Leaving this here
+     * as a note to try and find a better answer.
+     */
+    min-width: 30px;
+    display: inline;
 }
 
-/* contenteditable divs get a border around them without this */
-/* https://stackoverflow.com/a/2260788/211160 */
 .input:focus {
-    outline: 0px solid transparent;
+    /* https://stackoverflow.com/a/2260788 */
+    outline: 0px solid transparent; /* avoid border on contenteditable div */
 }
 
 /*
@@ -26,20 +105,309 @@
  * in contentEditable, short of hooking key codes.  But since <b> and <i> are
  * what's used, you can just style those out.  Likely going to need a
  * process of canonization anyway.
+ *
  * https://stackoverflow.com/a/34961662/211160
  */
 .input b {
- 	font-weight: normal;
+    font-weight: normal;
 }
 .input i {
-	font-style: normal;
+    font-style: normal;
 }
 
 .prompt {
-	color: purple;
+    color: purple;
 }
 
 .output {
-	color: #696969;
-	font-family: monospace;
+    color: #696969;
+    font-family: monospace;
+}
+
+
+/*
+ * TUTORIAL CONTENT ITEMS
+ *
+ * The concept of being on the web is to be a tutorial, and since the REPL is
+ * web oriented we're going to try mixing tutorial stuff in with the console
+ * itself.  How it will work exactly is not yet determined, but this is for
+ * trying out some styled things in the middle
+ */
+.note {
+    background: #fff3d4;
+    border-color: #f6b73c;
+    border-left-width: 5px;
+    border-left-style: solid;
+}
+
+
+/*
+ * WATCHLIST
+ */
+
+table.watchlist { /* the overall table itself */
+  border-collapse: separate; /* one line between cells, not cells-in-boxes */
+  border-spacing: 0; /* don't space cells out on the table background */
+
+  /* The cells get this background color, which is set here and not on the
+   cell so that the .selected style shows up. */
+  background: #fff;
+
+  max-width: 100%;
+  width: 100%;
+}
+
+.watchlist td:nth-child(1), /* first column */
+.watchlist th /* first row */
+{
+    color: #888; /* dark gray text */
+    background: #eee; /* light gray background */
+
+    font-weight: normal; /* default <th> bolding is too heavy for watchlist */
+    font-size: 12px; /* header is mostly just there for resizing, be small */
+    font-family: sans-serif; /* distinguishing font for headers looks nice */
+    text-align: center; /* center text horizontally in cell */
+    vertical-align: middle; /* center text vertically in cell */
+
+    padding: 2px; /* headers don't need as much padding as the cells */
+    height: 100%;
+}
+.watchlist td:nth-child(1) { /* first column */
+    /*
+     * !!! It appears that min-width and max-width are ignored in table cells,
+     * but width is heeded.  Ideally this would say "be only as large as the
+     * content requires" (e.g. the number in the column) but that's not what
+     * `width: 100%;` means and I don't know what would.  Estimate the number
+     * is 8 pixels wide and then account for 8px padding, for the moment.
+     *
+     * https://stackoverflow.com/a/18375283
+     * https://stackoverflow.com/a/8465980
+     */
+    width: 24px;
+
+    padding-left: 8px; /* want padding to look consistent with other columns */
+    padding-right: 8px;
+}
+
+.watchlist td {
+    /* cells inherit white background from table, .select overrides */
+    text-align: left;
+    vertical-align: top;
+    padding: 8px; /* give the cells a healthy amount of padding */
+}
+
+/* put lines on the bottom and left of each cell--the left border will help
+ separate from the splitter */
+.watchlist th,
+.watchlist td {
+    line-height:18px;
+    border-bottom:1px solid #ddd;
+}
+.watchlist th + th,
+.watchlist td + td,
+.watchlist th + td,
+.watchlist td + th {
+    border-left:1px solid #ddd;
+}
+
+.selected { /* for use with https://stackoverflow.com/a/17966381 */
+    background: lightBlue;
+    border-left: 0; /* !!! doesn't work yet, specificity issue, investigate */
+}
+
+
+/*
+ * SPLITTER WIDGET
+ *
+ * https://github.com/nathancahill/Split.js
+ *
+ * There was no canon demonstration CSS for the splitter widget.  This was
+ * reverse-engineered from the project page's site.
+ */
+
+.container {
+    height: 100vh;
+}
+
+/* So contents don't crash right up against the gutter or border */
+.split p, .split-flex p {
+    padding: 20px;
+}
+
+/* Not entirely sure what this does--from split.js homepage */
+.split, .split-flex {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.gutter {
+    background-color: #eee;
+    border-right: 1px solid #E8E8E8; /* softer than gray, harder than white */
+    border-left: 1px solid #E8E8E8; /* ^-- */
+
+    background-repeat: no-repeat;
+    background-position: 50%;
+
+    width: 10px; /* make same size as custom scroll bar */
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('lib/grips/vertical.png');
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('lib/grips/horizontal.png');
+    cursor: ns-resize;
+}
+
+.split.split-horizontal, .gutter.gutter-horizontal {
+    height: 100%;
+    float: left;
+}
+
+
+/*
+ * TABLE RESIZING BY DRAGGING COLUMN HEADERS
+ * 
+ * This doesn't actually seem to work very well, and needs some development.
+ * But of the options on the web, it seems to be the only one that doesn't
+ * use jQuery or some abstracted JS build process.
+ *
+ * https://github.com/irhc/table-resize
+ * https://github.com/irhc/table-resize/blob/master/table-resize.css
+ */
+
+.resize-base {
+    position:relative;
+    height:100%;
+    width:100%;
+}
+.resize-elem {
+    position:absolute;
+    height:100%;
+    width:5px;
+    left:100%;
+    margin-left:0;
+    top:0;
+    cursor:ew-resize;
+}
+.resize-text {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+
+/*
+ * CUSTOM SCROLLBAR
+ *
+ * The default scroll bar has fairly useless arrows on the top and bottom and
+ * is quite wide.  So rather than "just to be cool", using a custom scrollbar
+ * reduces the visual noise and saves space.  This uses a riff on "Style 11"
+ * from here, changed to match the splitter more closely.
+ *
+ * https://scotch.io/tutorials/customize-the-browsers-scrollbar-with-css
+ * 
+ * !!! This technique doesn't work on Firefox, but so long as the worst that
+ * happens is "you just get the default OS scroll bar" that is fine.
+ */
+
+#replpad::-webkit-scrollbar {
+    width: 9px;
+    background-color: #eee;
+}
+
+#replpad::-webkit-scrollbar-track {
+  /*border-radius: 10px;*/
+  /*background: rgba(0,0,0,0.1);*/
+  /*border: 1px solid #ccc;*/
+
+    /* let splitter provide right border */
+    border-left: 1px solid #E8E8E8; /* softer than gray, harder than white */
+}
+
+#replpad::-webkit-scrollbar-thumb {
+  border-radius: 9px;
+  /*background: linear-gradient(left, #fff, #e4e4e4); */
+  background: #ddd;
+  color: #ddd;
+  border: 1px solid #ddd; /* match the lines of the watchlist */
+}
+
+#replpad::-webkit-scrollbar-thumb:hover {
+  background: #fff;
+}
+
+#replpad::-webkit-scrollbar-thumb:active {
+  /*background: linear-gradient(left, #22ADD4, #1E98BA); */
+}
+
+
+/*
+ * RIGHT-CLICK MENU
+ *
+ * While right-click menus are part of the HTML5 spec (such that even if one
+ * has JavaScript disabled, you should see them)...only Firefox implements
+ * them.  They're fairly important in an IDE/REPL, so this adds them.
+ *
+ * https://stackoverflow.com/a/35730445/211160
+ */
+
+#menu {
+  visibility: hidden;
+  opacity: 0;
+  position: fixed;
+  background: #fff;
+  color: #555;
+  font-family: sans-serif;
+  font-size: 11px;
+  -webkit-transition: opacity .5s ease-in-out;
+  -moz-transition: opacity .5s ease-in-out;
+  -ms-transition: opacity .5s ease-in-out;
+  -o-transition: opacity .5s ease-in-out;
+  transition: opacity .5s ease-in-out;
+  -webkit-box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  -moz-box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  padding: 0px;
+  border: 1px solid #C6C6C6;
+}
+
+#menu a {
+  display: block;
+  color: #555;
+  text-decoration: none;
+  padding: 6px 8px 6px 30px;
+  width: 250px;
+  position: relative;
+}
+
+#menu a img,
+#menu a i.fa {
+  height: 20px;
+  font-size: 17px;
+  width: 20px;
+  position: absolute;
+  left: 5px;
+  top: 2px;
+}
+
+#menu a span {
+  color: #BCB1B3;
+  float: right;
+}
+
+#menu a:hover {
+  color: #fff;
+  background: #3879D9;
+}
+
+#menu hr {
+  border: 1px solid #EBEBEB;
+  border-bottom: 0;
 }

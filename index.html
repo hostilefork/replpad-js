@@ -2,26 +2,102 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Asynchronous DOM Modification</title>
+    <title>Ren Garden</title>
 
-    <!-- Comments shouldn't come before DOCTYPE/charset for tech reasons. -->
-    <!-- https://google.github.io/styleguide/htmlcssguide.html -->
+    <!--
+      index.html
+
+      Note: I seem to recall comments shouldn't come before DOCTYPE/charset.
+
+      HTML Style Guide (which this should probably follow at some point)
+      https://google.github.io/styleguide/htmlcssguide.html 
+    -->
 
     <script>
       //
-      // Start loading the worker ASAP.  It posts C_REQUEST_LOAD_DOM_CONTENT
-      // once the emscripten runtime is initialized.
+      // "Web workers" always load from their own script URL.  Chrome won't
+      // load them from local `file://` URLs, see README.md for workaround.
+      //
+      // Start loading the worker directly from this first html file, don't
+      // wait for a second fetch of a script to then have *that script* do the
+      // fetch.  It will post C_REQUEST_LOAD_DOM_CONTENT to the GUI once the
+      // emscripten runtime is initialized.
+      //
+      // !!! This method of declaring a global var is contentious with modules
+      // in JavaScript, which seem to be a nightmare and don't actually work.
+      // But if someday they do work, this probably needs rethinking.
       //
       var pump = new Worker('worker.js');
     </script>
-    <script src="gui.js"></script>
+
+    <!-- https://github.com/nathancahill/Split.js -->
+    <script src="./lib/split.js"></script>
+    <!-- splitter css in replpad.css -->
+
+    <!-- https://github.com/irhc/table-resize -->
+    <script src="./lib/table-resize.js"></script>
+    <!-- table resize css in replpad.css -->
+
+    <script src="./gui.js"></script>
+
     <link rel="stylesheet" type="text/css" href="replpad.css">
   </head>
   <body>
-    <div id="replpad">
-      <div style="line">
-        ...loading... (see browser console log for errors)
+    <div class="container">
+      <div id="replpad" class="split split-horizontal">
+        <div style="line">
+          ...loading... (see browser console log for errors)
+        </div>
       </div>
+      <div id="right" class="split split-horizontal">
+        <table id='watchlist' class='watchlist'>
+          <thead>
+            <tr>
+              <th></th><!-- superfluous labeling with # or similar -->
+              <th>Watch</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onmousedown="RowClick(this,false);">
+              <td>1</td>
+              <td>x</td>
+              <td>300</td>
+            </tr>
+            <tr onmousedown="RowClick(this,false);">
+              <td>2</td>
+              <td>(x + 4)</td>
+              <td>304</td>
+            </tr>
+            <tr onmousedown="RowClick(this,false);">
+              <td>3</td>
+              <td>&lt;before&gt;</td>
+              <td>[a b c]</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="menu">
+      <a href="https://chat.stackoverflow.com/rooms/291/">
+        <img src="http://rebolsource.net/favicon.ico" />
+        Rebol Chat
+        <span>Ctrl + ?!</span>
+      </a>
+      <hr />
+      <a href="#" onclick="OnMenuCut();">
+        Cut
+        <span>Ctrl + ?!</span>
+      </a>
+      <a href="#" onclick="OnMenuCopy();">
+        Copy
+        <span>Ctrl + ?!</span>
+      </a>
+      <a href="#" onclick="OnMenuPaste();">
+        Paste
+        <span>Ctrl + ?!</span>
+      </a>
     </div>
   </body>
 </html>

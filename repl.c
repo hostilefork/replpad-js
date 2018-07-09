@@ -49,7 +49,7 @@ void repl(void)
     size_t size;
     char *line = nullptr;
     while (true) {
-        free(line); // legal on nullptr */
+        free(line); // legal on nullptr
 
         js_printf("&gt;&gt; ");
         size = 0;
@@ -61,6 +61,14 @@ void repl(void)
 
         if (strcmp(line, "quit") == 0)
             break;
+
+        if (strncmp(line, "watch", 5) == 0) {
+            //
+            // https://github.com/kripken/emscripten/issues/6823
+            //
+            MAIN_THREAD_EM_ASM("alert('needs emscripten fix');");
+            continue;
+        }
 
         do {
             js_printf("... %s ... (hit ESC to cancel)", line);

@@ -30,6 +30,7 @@ emcc repl.c c-pump.c -o $TEMPDIR/c-pump.o.js \
     -g \
     -s WASM=0 \
     -s EXPORTED_FUNCTIONS="['_init_c_pump', '_on_js_event','_repl']" \
+    -s EXTRA_EXPORTED_RUNTIME_METHODS="['allocateUTF8']" \
     -s DISABLE_EXCEPTION_CATCHING=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s EMTERPRETIFY=1 \
