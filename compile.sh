@@ -2,6 +2,8 @@
 #
 # emcc command-line options:
 # https://kripken.github.io/emscripten-site/docs/tools_reference/emcc.html
+# https://github.com/kripken/emscripten/blob/incoming/src/settings.js
+#
 # Note environment variable EMCC_DEBUG for diagnostic output
 #
 

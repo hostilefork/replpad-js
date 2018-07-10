@@ -1,5 +1,28 @@
 /*
- * replpad.css
+ * File: %replpad.css
+ * Summary: "Aggregated Stylesheet for REPL and Widgets Used"
+ * Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+ * Homepage: https://github.com/hostilefork/replpad-js/
+ *
+ ******************************************************************************
+ *
+ * Copyright (c) 2018 hostilefork.com
+ *
+ * See README.md and CREDITS.md for more information
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * https://www.gnu.org/licenses/agpl-3.0.en.html
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ ******************************************************************************
  *
  * CSS Style Guide (which this file should follow, someday)
  * https://google.github.io/styleguide/htmlcssguide.html
@@ -8,18 +31,35 @@
  * kind of merges in segments from all the CSS files of components being used.
  * Better practices will be used down the line once the basic functionality
  * being demosnstrated works.
- *
  */
-
 
 html, body {
     margin: 0;
 
     /* https://stackoverflow.com/a/44645580/211160 */
     padding: 0; /* avoid padding that throws off #replpad 100vh calculation */
+
+    /*
+     * When rebolsource.net was being designed, HostileFork and earl debated
+     * for several hours about the exact not-quite-white and not-quite-black
+     * settings to use for the Rebol color scheme.  This was the result,
+     * carried forward here--though no one will probably notice.
+     */
+    color: #333;
+    background-color: #fdfdfd;
 }
 * {
     box-sizing: border-box; /* including because answer above included it */
+}
+
+
+/*
+ * PRELOAD ANIMATION
+ */
+
+img.center { /* https://stackoverflow.com/a/7055404 */
+    display: block;
+    margin: 0 auto;
 }
 
 
@@ -98,6 +138,32 @@ html, body {
 .input:focus {
     /* https://stackoverflow.com/a/2260788 */
     outline: 0px solid transparent; /* avoid border on contenteditable div */
+}
+
+.input.multiline {
+    display: block;
+    padding: 4px 4px; 
+    border-radius: 4px;
+    border: 1px solid transparent; /* accounts for total size if not focused */
+    text-decoration: none; 
+}
+.input.multiline:focus {
+    /* https://stackoverflow.com/a/11426967 */
+    border: 1px solid #eee; /* light rounded box on multiline input */ 
+}
+.multiline-arrow { /* downward pointing arrow at the multiline box */
+    color: #aaa; /* not as light a gray as the rounded multiline border */
+    font-size: 80%; /* percentage of what it would be otherwise */
+    vertical-align: bottom;
+    padding-bottom: 2px;
+    padding-left: 0px;
+
+    /* Don't want this visual hint selected in the transcript by copy/paste */
+    /* https://css-tricks.com/almanac/properties/u/user-select/ */
+    -webkit-user-select: none; /* Chrome all / Safari all */
+    -moz-user-select: none; /* Firefox all */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* "future" */
 }
 
 /*

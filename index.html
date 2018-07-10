@@ -4,14 +4,44 @@
     <meta charset="utf-8">
     <title>Ren Garden</title>
 
-    <!--
-      index.html
+<!-- Comments shouldn't come before DOCTYPE/charset -->
 
-      Note: I seem to recall comments shouldn't come before DOCTYPE/charset.
-
-      HTML Style Guide (which this should probably follow at some point)
-      https://google.github.io/styleguide/htmlcssguide.html 
-    -->
+<!--
+ ! File: %index.html
+ ! Summary: "Main (and likely only) HTML page for the REPL project"
+ ! Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+ ! Homepage: https://github.com/hostilefork/replpad-js/
+ !
+ !-----------------------------------------------------------------------------
+ !
+ ! Copyright (c) 2018 hostilefork.com
+ !
+ ! See README.md and CREDITS.md for more information
+ !
+ ! This program is free software: you can redistribute it and/or modify
+ ! it under the terms of the GNU Affero General Public License as
+ ! published by the Free Software Foundation, either version 3 of the
+ ! License, or (at your option) any later version.
+ !
+ ! https://www.gnu.org/licenses/agpl-3.0.en.html
+ !
+ ! This program is distributed in the hope that it will be useful,
+ ! but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ! GNU Affero General Public License for more details.
+ !
+ !-----------------------------------------------------------------------------
+ !
+ ! It's generally the goal of the project to be a "single page", where most
+ ! all interaction happens inside the console widget.  It will have tutorials
+ ! and such, but those will be data-driven and content written in something
+ ! friendlier than HTML--such as MarkDown.  So this may wind up being the only
+ ! HTML page there is, with all content dynamically inserted into it.
+ ! 
+ ! HTML Style Guide (which this should probably follow at some point)
+ ! https://google.github.io/styleguide/htmlcssguide.html 
+ !
+ !-->
 
     <script>
       //
@@ -45,15 +75,32 @@
   <body>
     <div class="container">
       <div id="replpad" class="split split-horizontal">
-        <div style="line">
-          ...loading... (see browser console log for errors)
+        <div class="line">
+          <!-- Placeholder image, taken from: -->
+          <!-- https://medium.com/@feldman238/the-quickest-and-easiest-preloader-ever-9efa975e1a50 -->
+          <img class="center" src="preload.gif">
+        </div>
+        <div class="line">
+          <b>Note: "Modern" web browser is required!</b>
+        </div>
+        <div class="line">
+          If load fails, check dev console for errors (typically Ctrl-Shift-I)
+        </div>
+        <div><hr></div>
+        <div class="line">
+          %index.html fetch complete...
         </div>
       </div>
+      <!-- Just putting a table here with the splitter to get a feel for how
+        compatible the approach is in various browsers; there's a bunch of
+        more important things to get in place before making the watchlist
+        actually work...one aspect is to make it use the libRebol from JS
+        vs. need to be in C that gets recompiled on each change...  -->
       <div id="right" class="split split-horizontal">
         <table id='watchlist' class='watchlist'>
           <thead>
             <tr>
-              <th></th><!-- superfluous labeling with # or similar -->
+              <th></th><!-- superfluous to label this with # or similar -->
               <th>Watch</th>
               <th>Value</th>
             </tr>

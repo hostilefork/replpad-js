@@ -1,5 +1,28 @@
 //
-// worker.js
+// File: %worker.js
+// Summary: "Web Worker for Code Evaluation"
+// Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+// Homepage: https://github.com/hostilefork/replpad-js/
+//
+//=////////////////////////////////////////////////////////////////////////=//
+//
+// Copyright (c) 2018 hostilefork.com
+//
+// See README.md and CREDITS.md for more information
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// https://www.gnu.org/licenses/agpl-3.0.en.html
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+//=////////////////////////////////////////////////////////////////////////=//
 //
 // This is the "JavaScript side" of the C code implemented in %c-pump.c, whose
 // build product is included here as `c-pump-o.js` (see compile.sh for how
@@ -25,19 +48,12 @@
 // GUI could stay queued indefinitely.
 //
 
-'use strict'; // <-- FIRST statement! https://stackoverflow.com/q/1335851
-
-// !!! Temp hacks to workaround: https://stackoverflow.com/questions/51204703/
-//
-var PG_Input_Ptr;
-var PG_Halted_Ptr;
-var PG_Slept_Ptr;
-var premade_mallocs_hack = [];
+'use strict' // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
 
-function queueRequestToJS (id, str) {
+function queueRequestToJS(id, str) {
     if (str === undefined)
-        str = null; // although `undefined == null`, canonize to null
+        str = null // although `undefined == null`, canonize to null
 
     // This will eventually run `pump.onmessage` in the code that instantiated
     // the pump worker.  So if that code said:
@@ -47,112 +63,93 @@ function queueRequestToJS (id, str) {
     //
     // ...this argument to postMessage is the `e.data` that code will receive.
     //
-    postMessage([id, str]);
-    console.log("C Request => JS [" + id + "," + str + "]");
+    postMessage([id, str])
+    console.log("C Request => JS [" + id + "," + str + "]")
 }
 
 
-// If one is using Emterpreter, then immediately after the importScripts()
-// for %c-pump.o.js, the C routine exports will not be available yet.  This
-// adds to the usual JavaScript dependency of needing the DOM to have
-// loaded before anything useful can be done.  The GUI will wait until it
-// receives *both* the `DOMContentLoaded` event from the browser *and* the
-// `C_REQUEST_LOAD_DOM_CONTENT` message we send here from the worker before
-// posting the `JS_EVENT_DOM_CONTENT_LOADED` back to the worker.
-//
 var Module = {
     memoryInitializerPrefixURL: 'build/', // where %c-pump-o.js.mem is
 
+    // https://stackoverflow.com/q/46332699
+    locateFile: function(s) {
+      return 'build/' + s
+    },
+
+    // GUI will wait until it receives both the 'DOMContentLoaded' signal from
+    // the browser, and this C_REQUEST_LOAD_DOM_CONTENT from the worker,
+    // before signaling back to the worker with JS_EVENT_DOM_CONTENT_LOADED.
+    // Hence that event means the GUI is ready to service requests.
+    //
     onRuntimeInitialized: function() {
-        console.log("Worker: onRuntimeInitialized() event");
+        _init_c_pump()
+        queueRequestToJS('C_REQUEST_LOAD_DOM_CONTENT') // likely loaded by now
+    },
 
-        // !!! see notes below on why this is necessary...once repl() starts
-        // running, as long as it won't get off the stack, we can't malloc().
-        //
-        for (var i = 0; i < 100; ++i)
-            premade_mallocs_hack.push(_malloc(100));
+    emterpreterFile: "<will be filled in via XMLHttpRequest()>"
 
-        _init_c_pump(); // initializes constant maps, also
-
-        // !!! Hacks needed so long as _on_js_event() cannot be called.
-        //
-        PG_Input_Ptr = _fetch_input_ptr_hack(); // char**, starts at null
-        PG_Halted_Ptr = _fetch_halted_ptr_hack(); // int32_t*, starts at 0
-        PG_Slept_Ptr = _fetch_slept_ptr_hack(); // int32_t*, starts at 0
-
-        queueRequestToJS('C_REQUEST_LOAD_DOM_CONTENT'); // likely loaded by now
-    }
+    // The rest of these fields will be filled in by the boilerplate of the
+    // Emterpreter.js file (it looks for an existing Module and adds to it,
+    // but this is also how you parameterize options.)
 } 
-importScripts('build/c-pump.o.js'); // _init_c_pump(), _on_js_event()
 
+// If you use the emterpreter, it will balloon up the size of the javascript
+// unless you break the emterpreter bytecode out into a separate binary file.
+// You have to get the data into the Module['emterpreterFile'] before trying
+// to load the emscripten'd code.
+//
+var req = new XMLHttpRequest()
+req.open("GET", "build/r3.bin", true)
+req.responseType = "arraybuffer"
 
-onmessage = function (e) { // triggered by queueEventToC
-    var id = e.data[0];
-    var str = e.data[1];
-    console.log("JS Event => C: [" + id + "," + str + "]");
-
-    if (id == 'JS_EVENT_DOM_CONTENT_LOADED') {        
-        _repl();
-
-        // The first time repl() yields, it will fall through to here to
-        // return to the main loop.  But after that, it will be continued
-        // by the `resume()` wrapper function that it was re-posted to run
-        // with.  So there's really no way to get a result back from it.
-        //
-        // There's nothing particularly interesting about the first yield
-        // vs any others that come later which you can't respond to, so don't
-        // do anything special--just return.
-        //
-        return;
-    }
-
-    // !!! Currently researching how to be able to run C *during* the suspended
-    // state of an `emscripten_sleep_with_yield()`:
-    //
-    // https://stackoverflow.com/questions/51204703/
-    //
-    // Until a more elegant solution is found, _malloc() can't be called during
-    // that callback.  So a premade buffer must be around for pure JavaScript
-    // to fill--but if it can do that, why can't non-emterpreted C do it?!  :-/
-    //
-    if (0) {
-        var event_num = event_id_to_num_map[id];
-        var c_str = str && allocateUTF8(str); // JS string => malloc()'d c_str
-        _on_js_event(event_num, c_str);
-
-        // don't free c_str(), let _c_on_event() take ownership
-    }
-    else {
-        // !!! Proof-of-concept, just show that the JavaScript data can
-        // make it to influence the repl(), despite it being written in a
-        // synchronous-IO style.  Hack the bytes of the JavaScript string
-        // into a premade buffer (hence no malloc())
-        //
-        switch (id) {
-
-        case 'JS_EVENT_GOT_INPUT': {
-            // AllocateUTF8(), minus the _malloc()...
-            var size = lengthBytesUTF8(str) + 1;
-            var c_str = premade_mallocs_hack.pop(); // !!! fails after 100
-            stringToUTF8Array(str, HEAP8, c_str, size);
-            setValue(PG_Input_Ptr, c_str, 'i8*');
-            break; }
-
-        case 'JS_EVENT_HALTED':
-            setValue(PG_Halted_Ptr, 1, 'i32');
-            break;
-
-        case 'JS_EVENT_OUTPUT_DONE':
-            // !!! printf doesn't wait for any notification--but it should be
-            // interruptible.
-            break;
-
-        case 'JS_EVENT_SLEEP_DONE':
-            setValue(PG_Slept_Ptr, 1, 'i32');
-            break;
-
-        default:
-            console.log("unsupported JS_EVENT " + id);
+req.onreadystatechange = function (e) {
+    // 0=UNSENT, 1=OPEN, 2=HEADERS_RECEIVED, 3=LOADING, 4=DONE  
+    if (req.readyState == 4) {
+        if (req.status != 200) {
+            queueRequestToJS("C_REQUEST_ALERT", req.statusText)
+            return
         }
+
+        var arraybuffer = req.response // Note: not req.responseText
+        Module['emterpreterFile'] = arraybuffer
+
+        importScripts('build/r3.js') // _init_c_pump(), _on_js_event()
+    }  
+}; 
+
+req.send()
+
+
+//=//// WORKER MESSAGE PUMP ////////////////////////////////////////////////=//
+//
+// This is the routine triggered by the GUI when it does queueEventToC().
+//
+
+onmessage = function (e) {
+    var id = e.data[0]
+    var str = e.data[1]
+    console.log("JS Event => C: [" + id + "," + str + "]")
+
+    if (id != 'JS_EVENT_DOM_CONTENT_LOADED') {
+        //
+        // _on_js_event() is responsible for freeing allocation (if not null)
+        //
+        _on_js_event(event_id_to_num_map[id], str && allocateUTF8(str))
+        return
     }
+
+    queueRequestToJS('C_REQUEST_OUTPUT', '\nExecuting Rebol boot code...')
+    rebInit()
+
+    queueRequestToJS('C_REQUEST_RESET')
+    _repl()
+
+    // The first time repl() yields, it will fall through to here to
+    // return to the main loop.  But after that, it will be continued
+    // by the `resume()` wrapper function that it was re-posted to run
+    // with.  So there's really no way to get a result back from it.
+    //
+    // There's nothing particularly interesting about the first yield
+    // vs any others that come later which you can't respond to, so don't
+    // do anything special--just return.
 }

@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 #if !defined(__cplusplus)
-	#define nullptr ((void*)0)
+    #define nullptr ((void*)0)
 #endif
 
 // Similar to POSIX getline()
