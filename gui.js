@@ -36,7 +36,7 @@
 'use strict' // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
 // Lets us do something like jQuery $("<div class='foo'>content</div>").
-// load("&lt;"") gives `<` while document.createTextNode("&lt;") gives `&lt;`
+// load("&lt;") gives `<` while document.createTextNode("&lt;") gives `&lt;`
 //
 var loader_temp = document.createElement("div")
 function load(html) {
@@ -106,7 +106,7 @@ var OnMenuCopy
 function queueEventToC(id, str) { // str `undefined` if not passed in
     if (str === undefined)
         str = null // although `undefined == null`, canonize to null
-    
+
     // Some stub "loading" text was in the console area.  This would be changed
     // to take down whatever loading animation or more sophisticated thing.
     //
@@ -495,7 +495,7 @@ window.onmousemove = function() {
 }
 
 function AbandonEscapeMode() {
-    if (!replpad.classList.contains('escaped')) 
+    if (!replpad.classList.contains('escaped'))
         return
 
     replpad.classList.remove('escaped')
@@ -597,7 +597,7 @@ function OnEscape() {
                 window.getSelection().removeAllRanges()
             return
         }
-        
+
         console.log("adding escaped")
         replpad.classList.add('escaped')
         return
@@ -663,7 +663,7 @@ placeCaretAtEnd = function(el) { // https://stackoverflow.com/a/4238971
     }
 }
 
-// 
+//
 //
 function replaceSelectedText(newText) { https://stackoverflow.com/a/3997896
     if (window.getSelection) {
@@ -688,9 +688,9 @@ function replaceSelectedText(newText) { https://stackoverflow.com/a/3997896
 
 var lastSelectedRow
 var watchlist = document.getElementById('watchlist')
-console.log(watchlist)
-var trs = document.getElementById('watchlist').tBodies[0].getElementsByTagName('tr')
-console.log(trs)
+var trs = document.getElementById('watchlist')
+    .tBodies[0]
+    .getElementsByTagName('tr')
 
 // disable text selection
 /*document.onselectstart = function() {
@@ -700,13 +700,13 @@ console.log(trs)
 RowClick = function(currenttr, lock) {
     if (window.event.ctrlKey)
         toggleRow(currenttr)
-    
+
     if (window.event.button === 0) {
         if (!window.event.ctrlKey && !window.event.shiftKey) {
             clearAll()
             toggleRow(currenttr)
         }
-    
+
         if (window.event.shiftKey) {
             selectRowsBetweenIndexes(
                 [lastSelectedRow.rowIndex, currenttr.rowIndex]

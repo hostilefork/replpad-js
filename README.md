@@ -32,7 +32,7 @@ mostly has to do with minding one's p's and q's about issues of alignment and
 aliasing (which C developers should have been doing anyway).
 
 What makes it tricky is when your C code was written in a synchronous style,
-expectinh to see feedback while it is running--instead of waiting until it has
+expecting to see feedback while it is running--instead of waiting until it has
 finished running.  For instance:
 
     sum: 0
@@ -131,3 +131,6 @@ moves from cut-and-paste to a project of scale will be seen as it goes.
 * Web Assembly is relatively new, but the MIME type must be served correctly
   for it to work.  You may have to add `application/webassembly wasm` to your
   webserver's `/etc/mime-types` file (and restart, e.g. `apache2ctl restart`).
+  Failure to do so means it will "fall back to an ArrayBuffer implementation",
+  which is slower.  (You will notice it appearing to fetch the .wasm file twice
+  in the network log.)
