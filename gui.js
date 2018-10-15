@@ -35,6 +35,217 @@
 
 'use strict' // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
+// Worker message pump, created once runtime is loaded
+//
+// !!! The worker is no longer in use, since only one thread is able to call
+// the EXPORTED_FUNCTIONS...and it's too important to be able to mix libRebol
+// APIs directly with code on the GUI thread.  However, code for instantiating
+// it is kept around for the moment, to make it easier to use a worker if a
+// need for one comes up.
+//
+var pump
+
+// Currently, the only way the REPL runs is if you build using "emterpreter":
+//
+// https://github.com/kripken/emscripten/wiki/Emterpreter
+//
+// Future directions would run rebPromise() on a spawned thread, and hold the
+// stack in a suspended state when asynchronous demands are made, then using
+// Atomics.wait() to be signaled when the resolve() or reject() are called by
+// code on the GUI thread.  This requires writing some new code and also the
+// support for SharedArrayBuffer, which many browsers don't have enabled yet:
+//
+// https://stackoverflow.com/questions/51351983/
+//
+var using_emterpreter = true
+
+var is_localhost = ( // helpful to put certain debug behaviors under this flag
+    location.hostname === "localhost"
+    || location.hostname === "127.0.0.1"
+    || location.hostname.startsWith("192.168")
+)
+if (is_localhost) {
+    var old_alert = window.alert
+    window.alert = function(message) {
+        old_alert()
+        debugger
+    }
+}
+
+var Module = {
+    //
+    // For errors like:
+    //
+    //    "table import 1 has a larger maximum size 37c than the module's
+    //     declared maximum 890"
+    //
+    // The total memory must be bumped up.  These large sizes occur in debug
+    // builds with lots of assertions and symbol tables.  Note that the size
+    // may appear smaller than the maximum in the error message, as previous
+    // tables (e.g. table import 0 in the case above) can consume memory.
+    //
+    // !!! Messing with this setting never seemed to help.  See the emcc
+    // parameter ALLOW_MEMORY_GROWTH for another possibility.
+    //
+ /* TOTAL_MEMORY: 16 * 1024 * 1024, */
+
+    locateFile: function(s) {
+        //
+        // function for finding %libr3.wasm and (if needed) %libr3.bytecode
+        // (Note: memoryInitializerPrefixURL for bytecode was deprecated)
+        //
+        // https://stackoverflow.com/q/46332699
+        //
+        return '../ren-c/make/' + s
+    },
+
+    // This is a callback that happens sometime after you load the emscripten
+    // library (%libr3.js in this case).  It's turned into a promise instead
+    // of a callback.  Sanity check it's not used prior by making it a string.
+    //
+    onRuntimeInitialized: "<mutated from a callback into a Promise>",
+
+    // If you use the emterpreter, it balloons up the size of the javascript
+    // unless you break the emterpreter bytecode out into a separate file.
+    // You have to get the data into the Module['emterpreterFile'] before
+    // trying to load the emscripten'd code.
+    //
+    emterpreterFile: "<if `using_emterpreter`, fetch() of %libr3.bytecode>"
+
+    // The rest of these fields will be filled in by the boilerplate of the
+    // Emterpreter.js file when %libr3.js loads (it looks for an existing
+    // Module and adds to it, but this is also how you parameterize options.)
+}
+
+
+//=// CONVERTING CALLBACKS TO PROMISES /////////////////////////////////////=//
+//
+// https://stackoverflow.com/a/22519785
+//
+
+var dom_content_loaded_promise = new Promise(function(resolve, reject) {
+    document.addEventListener('DOMContentLoaded', resolve)
+})
+
+var onGuiInitialized
+var gui_init_promise = new Promise(function(resolve, reject) {
+    //
+    // The GUI has to be initialized (DOM initialization, etc.) before we can
+    // even use HTML to show status text like "Running Mezzanine", etc.  When
+    // all the GUI's services are available it will call onGuiInitialized().
+    // This converts that into a promise so it can be used in a clearer-to-read
+    // linear .then() sequence.
+    //
+    onGuiInitialized = resolve
+})
+
+var runtime_init_promise = new Promise(function(resolve, reject) {
+    //
+    // The load of %libr3.js will at some point will trigger a call to
+    // onRuntimeInitialized().  We set it up so that when it does, it will
+    // resolve this promise (used to trigger a .then() step).
+    //
+    Module.onRuntimeInitialized = resolve
+})
+
+
+// If we are using the emterpreter, Module.emterpreterFile must be assigned
+// before the %libr3.js starts running.  And it will start running some time
+// after the dynamic `<script>` is loaded.
+//
+// (It's a "promiser" function, because if it were done as a promise it would
+// need to have a .catch() clause attached to it here.  This way, it can just
+// use the catch of the promise chain it's put into.)
+//
+var bytecode_promiser
+if (using_emterpreter) {
+    bytecode_promiser = () => fetch("../ren-c/make/libr3.bytecode")
+        .then(function(response) {
+
+        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+        if (!response.ok)
+            throw Error(response.statusText) // handled by .catch() below
+
+        return response.arrayBuffer() // arrayBuffer() method is a promise
+
+    }).then(function(buffer) {
+
+        Module.emterpreterFile = buffer // must load before emterpret()-ing
+    })
+} else
+    bytecode_promiser = () => Promise.resolve()
+
+
+// The initialization is written as a series of promises for simplicity.
+//
+// !!! Review use of Promise.all() for steps which could be run in parallel.
+//
+bytecode_promiser()
+  .then(() => dom_content_loaded_promise) // to add <script> to document.body
+  .then(function() {
+
+    // To avoid a race condition, we don't request the load of %libr3.js until
+    // we have the Module declared and the onRuntimeInitialized handler set up.
+    // Also, if we are using emscripten we need the bytecode.  Hence, we must
+    // use a dynamic `<script>` element, created here--instead of a `<script>`
+    // tag in the HTML.
+    //
+    var script = document.createElement('script');
+    script.src = "../ren-c/make/libr3.js";
+    document.body.appendChild(script);
+
+    // ^-- The above will eventually trigger runtime_init_promise, but don't
+    // wait on that just yet.  Instead just get the loading process started,
+    // then wait on the GUI (which 99.9% of the time should finish first) so we
+    // can display a "loading %libr3.js" message in the browser window.
+    //
+    return gui_init_promise
+
+}).then(function() { // our onGuiInitialized() message currently has no args
+
+    console.log('Loading/Running %libr3.js...')
+    return runtime_init_promise
+
+}).then(function() { // emscripten's onRuntimeInitialized() has no args
+
+    console.log('Executing Rebol boot code...')
+    rebStartup()
+
+    console.log('Initializing extensions')
+    var extensions = rebBuiltinExtensions() // e.g. JS-NATIVE extension
+    rebElide(
+        "for-each [init quit]", extensions,
+            "[load-extension ensure handle! init]"
+    )
+
+    console.log('Fetching %replpad.reb...')
+    return fetch('replpad.reb') // contains JS-NATIVE/JS-AWAITER declarations
+
+}).then(function(response) {
+
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText) // handled by .catch() below
+
+    return response.text() // text() method also a promise ("USVString")
+
+}).then(function(text) {
+
+    console.log("Running %replpad.reb")
+    rebElide(text)
+    console.log("Finished running replpad.reb @ " + rebTick())
+
+    return rebPromise("main")
+
+}).catch(function(error) {
+
+    console.error(error) // shows stack trace (if user opens console...)
+    alert(error.toString()) // notifies user w/no console open
+
+})
+
+
+
 // Lets us do something like jQuery $("<div class='foo'>content</div>").
 // load("&lt;") gives `<` while document.createTextNode("&lt;") gives `&lt;`
 //
@@ -51,22 +262,13 @@ function load(html) {
 }
 
 
-// We want to start loading the C runtime as soon as possible, and in
-// parallel to loading the DOM content.  But both have to be ready to
-// run useful code.  Wait to send JS_EVENT_DOM_CONTENT_LOADED to the
-// worker until it has sent us C_REQUEST_LOAD_DOM_CONTENT -and- the
-// 'DOMContentLoaded' trigger has happened on the GUI.
-//
-var dom_content_loaded = false
-var runtime_initialized = false
-
-
 var replpad
 
 // As a proof of concept, the "magic undo" is being tested, to see if that
 // Ren Garden feature can be carried over to the browser.
 //
 var input = null
+var input_resolve
 var first_input = null
 var onInputKeyDown
 var placeCaretAtEnd
@@ -103,20 +305,13 @@ var OnMenuCopy
 //
 // This wraps pump.postMessage to make what the pump is *for* more clear.
 //
-function queueEventToC(id, str) { // str `undefined` if not passed in
+function queueEventToWorker(id, str) { // str `undefined` if not passed in
     if (str === undefined)
         str = null // although `undefined == null`, canonize to null
 
-    // Some stub "loading" text was in the console area.  This would be changed
-    // to take down whatever loading animation or more sophisticated thing.
-    //
-    if (id == 'JS_EVENT_DOM_CONTENT_LOADED')
-        replpad.appendChild(load(
-            "<div class='line'>DOMContentLoaded event received...</div>"
-        ))
-
     pump.postMessage([id, str]) // argument will be e.data in onmessage(e)
 }
+
 
 function ActivateInput(el) {
     el.onkeydown = onInputKeyDown
@@ -156,109 +351,9 @@ pump.onmessage = function(e) {
     var id = e.data[0]
     var param = e.data[1] // can be any data type
 
+    // !!! Currently the worker is not in use.
+    //
     switch (id) {
-
-    case 'C_REQUEST_LOAD_DOM_CONTENT':
-        //
-        // This will kick off the C code, so that it can run for a while
-        // and then--when it decides to--post a request to the GUI
-        // be processed.
-        //
-        if (dom_content_loaded) // 'DOMContentLoaded' already happened
-            queueEventToC('JS_EVENT_DOM_CONTENT_LOADED')
-        else {
-            // wait to send event until 'DOMContentLoaded' happens
-        }
-        runtime_initialized = true
-        break
-
-    case 'C_REQUEST_ALERT':
-        //
-        // Used for errors early in initialization, when output to the
-        // console may not work.
-        //
-        alert(param)
-        break
-
-    case 'C_REQUEST_RESET': {
-        //
-        // The output strategy is to merge content into the last div, until
-        // a newline is seen.  Kick it off with an empty div, so there's
-        // always somewhere the first output can stick to.
-        //
-        replpad.innerHTML = "<div class='line'>&zwnj;</div>"
-        break }
-
-    case 'C_REQUEST_OUTPUT': {
-        //
-        // Just as a test, try throwing in some stuff that isn't ordinary
-        // console output before the prompt.
-        //
-/*        if (param == "&gt;&gt; ") {
-            var note = load("<div class='note'><p>"
-                + "<a href='https://forum.rebol.info/t/690'>Beta/One</a>"
-                + " should have its tutorial steps inline in the console,"
-                + " talking you through and observing your progress."
-                + "</p><div>"
-            replpad.appendChild(note)
-        }*/
-
-        var line = replpad.lastChild
-
-        // Split string into pieces.  Note that splitting a string of just "\n"
-        // will give ["", ""].
-        //
-        // Each newline means making a new div, but if there's no newline (e.g.
-        // only "one piece") then no divs will be added.
-        //
-        var pieces = param.split("\n")
-        line.innerHTML += pieces.shift() // shift() takes first element
-        while (pieces.length)
-            replpad.appendChild(
-                load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
-            )
-
-        // !!! scrollIntoView() is supposedly experimental.
-        replpad.lastChild.scrollIntoView()
-
-        queueEventToC('JS_EVENT_OUTPUT_DONE')
-        break }
-
-    case 'C_REQUEST_INPUT': {
-        //
-        // !!! It seems that an empty div with contenteditable will stick
-        // the cursor to the beginning of the previous div.  :-/  This does
-        // not happen when the .input CSS class has `display: inline-block;`,
-        // but then that prevents the div from flowing naturally along with
-        // the previous divs...it jumps to its own line if it's too long.
-        // Putting a (Z)ero (W)idth (N)on-(J)oiner before it seems to solve
-        // the issue, so the cursor will jump to that when the input is empty.
-        //
-        replpad.lastChild.appendChild(load("&zwnj;"))
-
-        var new_input = load("<div class='input'></div>")
-        replpad.lastChild.appendChild(new_input)
-
-        ActivateInput(new_input)
-        break } // JS_EVENT_GOT_INPUT will be sent later via onTypingEnter()
-
-    case 'C_REQUEST_SLEEP': {
-        //
-        // This is distinct from emscripten_sleep_with_yield() because of the
-        // need to be interrupted by halts.
-        //
-        sleep_timeout_id = setTimeout(function () {
-            queueEventToC('JS_EVENT_SLEEP_DONE')
-        }, param)
-        break }
-
-    case 'C_REQUEST_QUIT': {
-        alert("Process called js_exit()")
-        break }
-
-    default: {
-        alert("Unknown C_REQUEST:" + id)
-        break }
     }
 }
 
@@ -266,13 +361,6 @@ pump.onmessage = function(e) {
 document.addEventListener('DOMContentLoaded', function () { //...don't indent
 
 //=//// DOMContentLoaded Handled ///////////////////////////////////////////=//
-
-dom_content_loaded = true
-if (runtime_initialized) // runtime initialized first
-    queueEventToC('JS_EVENT_DOM_CONTENT_LOADED')
-else {
-    // wait to send until C_REQUEST_LOAD_DOM_CONTENT
-}
 
 Split(['#replpad', '#right'], {
     sizes: [75, 25],
@@ -379,17 +467,23 @@ onInputKeyDown = function(e) {
 
         // Otherwise, consider the input ready for evaluation
 
-        var text = input.innerText
-        if (text == "") {
-            //
-            // !!! Currently passing an empty string to the C is causing it
-            // to hang; the loop isn't going to be in C though, it's going to
-            // be a JavaScript loop calling libRebol routines...so fixing it
-            // isn't important.  Just return.
-            //
-            e.preventDefault()
-            return
-        }
+        // We don't want to get <br>, <div>, or &nbsp; in the Rebol text.
+        // But to preserve the undo information, we also don't want to reach
+        // in and canonize the mess the browser made during contentEditable.
+        //
+        // Do in steps; tweak the HTML of a copy, then get the textContent.
+        // https://stackoverflow.com/a/5959455
+        //
+        var clone_children = true
+        var temp = input.cloneNode(clone_children)
+        temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n");
+        temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n");
+        temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n");
+
+        // Note: textContent is different from innerText
+        // http://perfectionkills.com/the-poor-misunderstood-innerText/
+        //
+        var text = temp.textContent
         DeactivateInput()
 
         // We want the replpad to act equivalently to what's generally possible
@@ -401,7 +495,19 @@ onInputKeyDown = function(e) {
         var new_line = load("<div class='line'>&zwnj;</div>")
         replpad.appendChild(new_line)
 
-        queueEventToC('JS_EVENT_GOT_INPUT', text)
+        // !!! Due to limitations of the emterpreter, EXPORTED_FUNCTIONS may
+        // not be called during an emscripten_sleep_with_yield().  This means
+        // that resolving the promise that REPLPAD-INPUT is waiting on can't
+        // be done with a rebText() value, because we can't call rebText()!
+        // hence the resolver takes a function which is called to produce the
+        // value at a time when it is no longer yielding, and it's safe to
+        // call the libRebol API again.
+        //
+        input_resolve(function () {
+            return rebText(text)
+        })
+        input_resolve = undefined
+
         e.preventDefault() // Allowing enter puts a <br>
         return
     }
@@ -781,5 +887,7 @@ OnMenuPaste = function() {
 }
 
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
+
+onGuiInitialized();
 
 }) // lame to indent nearly this entire file, just to put it in the handler

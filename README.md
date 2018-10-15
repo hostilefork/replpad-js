@@ -11,9 +11,18 @@ It is based on a prior non-web effort circa 2015, written in Qt:
 
 https://www.youtube.com/watch?v=0exDvv5WEv
 
-This is a very early stage of development, and it will probably be a little
-while before a turnkey build process exists for it.  But reading the source
-may be informative in the meantime, for those curious.
+To get this project to run, you will need to have these build products from the
+Ren-C interpreter, which are produced via the %emscripten.r config file:
+
+* `%libr3.js`
+* `%libr3.wasm`
+* `%libr3.bytecode`
+
+This project is at a a very early stage of development.  For support, please
+visit the StackOverflow chat room or Rebol Discourse Forum:
+
+* https://chat.stackoverflow.com/rooms/291/rebol
+* https://forum.rebol.info
 
 
 ## Mechanics
