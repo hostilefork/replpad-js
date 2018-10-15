@@ -358,14 +358,12 @@ pump.onmessage = function(e) {
 }
 
 
+var splitter_sizes = [75, 25]
+var splitter // will be created by the JS-WATCH_VISIBLE command
+
 document.addEventListener('DOMContentLoaded', function () { //...don't indent
 
 //=//// DOMContentLoaded Handled ///////////////////////////////////////////=//
-
-Split(['#replpad', '#right'], {
-    sizes: [75, 25],
-    minSize: 200
-})
 
 // !!! The TableResize component is flaky and doesn't seem to work here, but
 // there does not seem to be much in the way of viable non-jQuery codebases

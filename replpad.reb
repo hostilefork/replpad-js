@@ -162,6 +162,58 @@ lib/write: write: lib/read: read: function [
 ]
 
 
+js-watch-visible: js-awaiter [
+    visible [logic!]
+]{
+    var visible = rebDid(rebR(rebArg('visible')))
+
+    var right_div = document.getElementById('right')
+
+    // Suggestion from author of split.js is destroy/recreate to hide/show
+    // https://github.com/nathancahill/Split.js/issues/120#issuecomment-428050178
+    //
+    if (visible) {
+        if (!splitter) {
+            replpad.classList.add("split-horizontal")
+            right_div.style.display = 'block'
+            splitter = Split(['#replpad', '#right'], {
+                sizes: splitter_sizes,
+                minSize: 200
+            })
+        }
+    }
+    else {
+        // While destroying the splitter, remember the size ratios so that the
+        // watchlist comes up the same percent of the screen when shown again.
+        //
+        if (splitter) {
+            replpad.classList.remove("split-horizontal")
+            splitter_sizes = splitter.getSizes()
+            right_div.style.display = 'none'
+            splitter.destroy()
+            splitter = undefined
+        }
+    }
+
+    setTimeout(resolve, 0)
+}
+
+watch: function [
+     :arg [
+        word! get-word! path! get-path!
+        block! group!
+        integer! tag! refinement!
+    ]
+        {word to watch or other legal parameter, see documentation)}
+][
+    ; REFINEMENT!s are treated as instructions.  `watch /on` seems easy...
+    refinement? :arg and [switch :arg [
+        /on [js-watch-visible true]
+        /off [js-watch-visible false]
+    ] then [return] else [fail ["Bad command:" :arg]]]
+]
+
+
 main: function [
     {The Read, Eval, Print Loop}
     return: [] ;-- at the moment, an infinite loop--does not return
