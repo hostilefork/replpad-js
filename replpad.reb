@@ -91,8 +91,9 @@ replpad-write: js-awaiter [
 
 lib/write-stdout: write-stdout: function [
     {Writes just text to the ReplPad}
-    text [text!]
+    text [text! char!]
 ][
+    if char? text [text: my to-text]
     replpad-write text
 ]
 
