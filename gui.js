@@ -67,7 +67,7 @@ var is_localhost = ( // helpful to put certain debug behaviors under this flag
 if (is_localhost) {
     var old_alert = window.alert
     window.alert = function(message) {
-        old_alert()
+        old_alert(message)
         debugger
     }
 }
