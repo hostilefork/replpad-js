@@ -33,7 +33,8 @@
 // as possible.
 //
 
-'use strict' // <-- FIRST statement! https://stackoverflow.com/q/1335851
+'use strict'  // <-- FIRST statement! https://stackoverflow.com/q/1335851
+
 
 // Worker message pump, created once runtime is loaded
 //
@@ -44,6 +45,7 @@
 // need for one comes up.
 //
 var pump
+
 
 // Currently, the only way the REPL runs is if you build using "emterpreter":
 //
@@ -59,7 +61,7 @@ var pump
 //
 var using_emterpreter = true
 
-var is_localhost = ( // helpful to put certain debug behaviors under this flag
+var is_localhost = (  // helpful to put certain debug behaviors under this flag
     location.hostname === "localhost"
     || location.hostname === "127.0.0.1"
     || location.hostname.startsWith("192.168")
@@ -72,6 +74,84 @@ if (is_localhost) {
         debugger
     }
 }
+
+
+// GitHub is queried for this hash if it is not already set, unless running
+// on the local host.  (If you run locally and want to test the fetching,
+// you'll have to edit the code.)
+//
+var libr3_git_short_hash = null
+
+// We're able to ask GitHub what the latest build's commit ID is, and then use
+// that to ask for the latest Travis build.  GitHub API returns responses via
+// JSON, and supports CORS so we can legally do the cross domain request in
+// the client (yay!)
+//
+// https://stackoverflow.com/a/15933109/211160
+//
+// Note these are "promiser" functions, because if they were done as a promise
+// it would need to have a .catch() clause attached to it here.  This way, it
+// can just use the catch of the promise chain it's put into.)
+
+var libr3_git_hash_promiser
+if (!libr3_git_short_hash && is_localhost)
+    libr3_git_hash_promiser = () => Promise.resolve(null)
+else {
+    libr3_git_hash_promiser = () => {
+        console.log("Making GitHub API CORS request for the latest commit ID")
+
+        let owner = "metaeducation"
+        let repo = "ren-c"
+        let branch = "master"
+
+        return fetch(
+            "https://api.github.com/repos/" + owner + "/" + repo
+                + "/git/refs/heads/" + branch
+
+          ).then(function (response) {
+
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.json();
+
+          }).then(function (json) {
+
+            let hash = json["object"]["sha"];
+            console.log("GitHub says latest commit to master was " + hash)
+            return hash
+          })
+    }
+}
+
+
+// At this moment, there are 3 files involved in the download of the library:
+// a .JS loader stub, a .WASM loader stub, and a large emterpreter .BYTECODE
+// file.  See notes on the hopefully temporary use of the "Emterpreter",
+// without which one assumes only a .wasm file would be needed.
+//
+// If you see files being downloaded multiple times in the Network tab of your
+// browser's developer tools, this is likely because your webserver is not
+// configured correctly to offer the right MIME type for the .wasm file...so
+// it has to be interpreted by JavaScript.  See the README.md for how to
+// configure your server correctly.
+//
+function libRebolComponentURL(extension) {
+    let components = [".js", ".wasm", ".bytecode"]
+
+    if (!components.includes(extension))
+        throw Error("Unknown libRebol component extension: " + extension)
+
+    let dir = libr3_git_short_hash  // empty string ("") is falsey in JS
+            ? "http://metaeducation.s3.amazonaws.com/travis-builds/0.16.2/"
+            : "../ren-c/make/"  // assumes replpad-js/ is peer to ren-c/ dir
+
+    let opt_dash = libr3_git_short_hash ? "-" : "";
+
+    return dir + "libr3" + opt_dash + libr3_git_short_hash + extension
+}
+
 
 var Module = {
     //
@@ -92,12 +172,23 @@ var Module = {
 
     locateFile: function(s) {
         //
-        // function for finding %libr3.wasm and (if needed) %libr3.bytecode
-        // (Note: memoryInitializerPrefixURL for bytecode was deprecated)
+        // function for finding %libr3.wasm  (Note: memoryInitializerPrefixURL
+        // for bytecode was deprecated)
         //
         // https://stackoverflow.com/q/46332699
         //
-        return '../ren-c/make/' + s
+        console.info("Module.locateFile() asking for .wasm address of " + s)
+
+        // Although we rename the files to add the Git Commit Hash before
+        // uploading them to S3, it seems that for some reason the .js hard
+        // codes the name the file was built under in this request.  :-/
+        // So even if the request was for `libr3-xxxxx.js` it will be asked
+        // in this routine as "Where is `libr3.wasm`
+        //
+        if (s == "libr3.wasm")
+            return libRebolComponentURL(".wasm")
+
+        throw Error("Module.locateFile() doesn't recognize" + s)
     },
 
     // This is a callback that happens sometime after you load the emscripten
@@ -154,35 +245,115 @@ var runtime_init_promise = new Promise(function(resolve, reject) {
 // before the %libr3.js starts running.  And it will start running some time
 // after the dynamic `<script>` is loaded.
 //
-// (It's a "promiser" function, because if it were done as a promise it would
-// need to have a .catch() clause attached to it here.  This way, it can just
-// use the catch of the promise chain it's put into.)
+// See notes on short_hash_promiser for why this is a "promiser", not a promise
 //
 var bytecode_promiser
-if (using_emterpreter) {
-    bytecode_promiser = () => fetch("../ren-c/make/libr3.bytecode")
-        .then(function(response) {
-
-        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-        if (!response.ok)
-            throw Error(response.statusText) // handled by .catch() below
-
-        return response.arrayBuffer() // arrayBuffer() method is a promise
-
-    }).then(function(buffer) {
-
-        Module.emterpreterFile = buffer // must load before emterpret()-ing
-    })
-} else
+if (!using_emterpreter)
     bytecode_promiser = () => Promise.resolve()
+else {
+    bytecode_promiser = () => {
+        let url = libRebolComponentURL(".bytecode")
+        console.log("Requesting bytecode from:" + url)
+
+        return fetch(url)
+          .then(function(response) {
+
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.arrayBuffer()  // arrayBuffer() method is a promise
+
+          }).then(function(buffer) {
+
+            Module.emterpreterFile = buffer  // must load before emterpret()-ing
+          })
+    }
+}
 
 
-// The initialization is written as a series of promises for simplicity.
+// %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
+// run after the JavaScript extension has been loaded.
+//
+// When editing locally, one wants the local server to provide the replpad.reb
+// file.  It's just an ordinary fetch.  But using the GitHub API to fetch
+// files from elsewhere has the advantage of potentially letting people do
+// their own development, push changes there, and ask (via some URL fragment)
+// to run that.
+//
+var replpad_reb_promiser
+if (is_localhost) {
+    replpad_reb_promiser = () => {
+        console.log("Fetching %replpad.reb from localhost (not GitHub)")
+        console.log("(This is based on detection, see gui.js for override)")
+
+        return fetch('replpad.reb')
+          .then(function(response) {
+
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.text()  // text() method a promise ("USVString")
+          })
+    }
+}
+else {
+    // GitHub's response is a little weirder, as JSON, and you have to
+    // extract the blob out of it.
+    //
+    replpad_reb_promiser = () => {
+        console.log("Fetching %replpad.reb from GitHub (not localhost)")
+        console.log("(This is based on detection, see gui.js for override)")
+
+        let owner = "hostilefork"
+        let repo = "replpad-js"
+        let branch = "master"  // !!! look into API for branch choice here
+
+        let url = "https://api.github.com/repos/" + owner + "/" + repo
+            + "/contents/" + 'replpad.reb'
+
+        return fetch(url)
+          .then(function (response) {
+
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.json()
+
+          }).then(function (json) {
+            //
+            // The JSON request from GitHub comes back as Base64.  Rather than
+            // include a JS base-64 decoder, use the one in Rebol, since it
+            // is initialized at this point!
+            //
+            let decoded = rebSpell(
+                "as text! debase/base", rebT(json.content), rebI(64)
+            )
+            return decoded
+          })
+    }
+}
+
+
+// Initialization is written as a series of promises for, uh, "simplicity".
 //
 // !!! Review use of Promise.all() for steps which could be run in parallel.
 //
-bytecode_promiser()
-  .then(() => dom_content_loaded_promise) // to add <script> to document.body
+libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
+  .then(function (hash) {
+    //
+    // We set a global vs. chain it, because the hash needs to be used by the
+    // Module.localFile() callback anyway.
+
+    if (hash)
+        libr3_git_short_hash = hash.substring(0,7)  // first 7 characters
+    else
+        libr3_git_short_hash = ""
+  })
+  .then(bytecode_promiser)  // needs short hash (now in global variable)
+  .then(() => dom_content_loaded_promise)  // to add <script> to document.body
   .then(function() {
 
     // To avoid a race condition, we don't request the load of %libr3.js until
@@ -191,9 +362,10 @@ bytecode_promiser()
     // use a dynamic `<script>` element, created here--instead of a `<script>`
     // tag in the HTML.
     //
-    var script = document.createElement('script');
-    script.src = "../ren-c/make/libr3.js";
-    document.body.appendChild(script);
+    let script = document.createElement('script')
+    script.src = libRebolComponentURL(".js")  // full name includes short hash
+
+    document.body.appendChild(script)
 
     // ^-- The above will eventually trigger runtime_init_promise, but don't
     // wait on that just yet.  Instead just get the loading process started,
@@ -202,12 +374,12 @@ bytecode_promiser()
     //
     return gui_init_promise
 
-}).then(function() { // our onGuiInitialized() message currently has no args
+  }).then(function() {  // our onGuiInitialized() message currently has no args
 
     console.log('Loading/Running %libr3.js...')
     return runtime_init_promise
 
-}).then(function() { // emscripten's onRuntimeInitialized() has no args
+  }).then(function() {  // emscripten's onRuntimeInitialized() has no args
 
     console.log('Executing Rebol boot code...')
     rebStartup()
@@ -227,32 +399,22 @@ bytecode_promiser()
         "for-each collation builtin-extensions",
             "[load-extension collation]"
     )
-
-    console.log('Fetching %replpad.reb...')
-    return fetch('replpad.reb')  // contains JS-NATIVE/JS-AWAITER declarations
-
-}).then(function(response) {
-
-    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-    if (!response.ok)
-        throw Error(response.statusText)  // handled by .catch() below
-
-    return response.text()  // text() method also a promise ("USVString")
-
-}).then(function(text) {
+  })
+  .then(replpad_reb_promiser)
+  .then(function(text) {
 
     console.log("Running %replpad.reb")
     rebElide(text)
-    console.log("Finished running replpad.reb @ " + rebTick())
+    console.log("Finished running replpad.reb @ tick " + rebTick())
 
     return rebPromise("main")
 
-}).catch(function(error) {
+  }).catch(function(error) {
 
-    console.error(error) // shows stack trace (if user opens console...)
-    alert(error.toString()) // notifies user w/no console open
+    console.error(error)  // shows stack trace (if user opens console...)
+    alert(error.toString())  // notifies user w/no console open
 
-})
+  })
 
 
 
@@ -261,12 +423,12 @@ bytecode_promiser()
 //
 var loader_temp = document.createElement("div")
 function load(html) {
-    loader_temp.innerHTML = html;
-    var loaded = loader_temp.firstChild;
-    loader_temp.removeChild(loaded) // https://trello.com/c/64iJBijV
+    loader_temp.innerHTML = html
+    var loaded = loader_temp.firstChild
+    loader_temp.removeChild(loaded)  // https://trello.com/c/64iJBijV
     if (loader_temp.firstChild) {
         alert("load() created more than one element" + loader_temp.innerHTML)
-        loader_temp.innerHTML = "" // https://trello.com/c/1P2jwTmZ
+        loader_temp.innerHTML = ""  // https://trello.com/c/1P2jwTmZ
     }
     return loaded
 }
@@ -315,11 +477,11 @@ var OnMenuCopy
 //
 // This wraps pump.postMessage to make what the pump is *for* more clear.
 //
-function queueEventToWorker(id, str) { // str `undefined` if not passed in
+function queueEventToWorker(id, str) {  // str `undefined` if not passed in
     if (str === undefined)
-        str = null // although `undefined == null`, canonize to null
+        str = null  // although `undefined == null`, canonize to null
 
-    pump.postMessage([id, str]) // argument will be e.data in onmessage(e)
+    pump.postMessage([id, str])  // argument will be e.data in onmessage(e)
 }
 
 
@@ -337,7 +499,7 @@ function ActivateInput(el) {
     el.autocapitalize = "off"
 
     if (!first_input)
-        first_input = el // will stop magic-undo from undoing
+        first_input = el  // will stop magic-undo from undoing
 
     el.focus()
     placeCaretAtEnd(el)
@@ -359,7 +521,7 @@ function DeactivateInput() {
 //
 pump.onmessage = function(e) {
     var id = e.data[0]
-    var param = e.data[1] // can be any data type
+    var param = e.data[1]  // can be any data type
 
     // !!! Currently the worker is not in use.
     //
@@ -369,9 +531,9 @@ pump.onmessage = function(e) {
 
 
 var splitter_sizes = [75, 25]
-var splitter // will be created by the JS-WATCH_VISIBLE command
+var splitter  // will be created by the JS-WATCH_VISIBLE command
 
-document.addEventListener('DOMContentLoaded', function () { //...don't indent
+document.addEventListener('DOMContentLoaded', function () {  //...don't indent
 
 //=//// DOMContentLoaded Handled ///////////////////////////////////////////=//
 
@@ -398,9 +560,9 @@ replpad.onclick = OnClickReplPad
 // to where it was.
 //
 function MagicUndo() {
-    var div = replpad.lastChild
+    let div = replpad.lastChild
     while (div) {
-        var child = div.lastChild
+        let child = div.lastChild
         while (child) {
             if (child.classList && child.classList.contains("input")) {
                 ActivateInput(child)
@@ -417,13 +579,13 @@ function MagicUndo() {
 }
 
 function CollapseMultiline() {
-    var arrow = input.previousSibling
-    arrow.remove() // scrubs it completely, unlike .detach()
+    let arrow = input.previousSibling
+    arrow.remove()  // scrubs it completely, unlike .detach()
     input.classList.remove("multiline")
 }
 
 onInputKeyDown = function(e) {
-    e = e || window.event // !!! "ensure not null"... necessary? :-/
+    e = e || window.event  // !!! "ensure not null"... necessary? :-/
 
     if (!input || !input.classList.contains("input")) {
         alert("key down but div class isn't input")
@@ -442,7 +604,7 @@ onInputKeyDown = function(e) {
             // we only toggle multiline *on* from shift enter.  Escape can
             // be used to get out of multiline.
             //
-            var arrow = load(
+            let arrow = load(
                 "<span class='multiline-arrow'>[Ctrl-Enter to evaluate]</span>"
             )
             input.parentNode.insertBefore(arrow, input)
@@ -482,16 +644,16 @@ onInputKeyDown = function(e) {
         // Do in steps; tweak the HTML of a copy, then get the textContent.
         // https://stackoverflow.com/a/5959455
         //
-        var clone_children = true
-        var temp = input.cloneNode(clone_children)
-        temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n");
-        temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n");
-        temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n");
+        let clone_children = true
+        let temp = input.cloneNode(clone_children)
+        temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n")
+        temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n")
+        temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n")
 
         // Note: textContent is different from innerText
         // http://perfectionkills.com/the-poor-misunderstood-innerText/
         //
-        var text = temp.textContent
+        let text = temp.textContent
         DeactivateInput()
 
         // We want the replpad to act equivalently to what's generally possible
@@ -500,7 +662,7 @@ onInputKeyDown = function(e) {
         // that way for plain INPUT.  Richer choices should be available, but
         // one wants a standard program to work standardly.
         //
-        var new_line = load("<div class='line'>&zwnj;</div>")
+        let new_line = load("<div class='line'>&zwnj;</div>")
         replpad.appendChild(new_line)
 
         // !!! Due to limitations of the emterpreter, EXPORTED_FUNCTIONS may
@@ -516,7 +678,7 @@ onInputKeyDown = function(e) {
         })
         input_resolve = undefined
 
-        e.preventDefault() // Allowing enter puts a <br>
+        e.preventDefault()  // Allowing enter puts a <br>
         return
     }
 
@@ -534,8 +696,8 @@ onInputKeyDown = function(e) {
     if ((e.which == 90 || e.keyCode == 90) && e.ctrlKey) {
         input.classList.add("magic-undo")
 
-        var observer = new MutationObserver(function (mutations) {
-            var changed = false
+        let observer = new MutationObserver(function (mutations) {
+            let changed = false
             mutations.forEach(function (m) {
                 // "You can check the actual changes here"
             })
@@ -554,7 +716,7 @@ onInputKeyDown = function(e) {
                 // already clear.
                 //
                 if (input.classList.contains("multiline"))
-                    CollapseMultiline();
+                    CollapseMultiline()
                 if (input.innerText != "") {
                     input.innerText = ""
                     input.focus()
@@ -575,11 +737,11 @@ onInputKeyDown = function(e) {
                 }
 
                 if (input == first_input)
-                    input.innerHTML = null // don't undo first input
+                    input.innerHTML = null  // don't undo first input
                 else {
-                    input.parentNode.removeChild(input) // make search easier
+                    input.parentNode.removeChild(input)  // make search easier
                     input = "<magic-undo-should-reset>"
-                    MagicUndo() // go backwards to search for last input div
+                    MagicUndo()  // go backwards to search for last input div
                 }
             }
         }, 0)
@@ -590,14 +752,14 @@ onInputKeyDown = function(e) {
 function OnClickReplPad(e) {
     // https://stackoverflow.com/q/31982407
     if (window.getSelection().toString())
-        return // selections aren't clicks
+        return  // selections aren't clicks
 
     // https://stackoverflow.com/a/9183467
-    if (e.target !== this) // make sure it's repl, not a child element
+    if (e.target !== this)  // make sure it's repl, not a child element
         return
 
-    console.log("It's the target");
-    if (!input) // if there's no C_REQUEST_INPUT in progress, do nothing
+    console.log("It's the target")
+    if (!input)  // if there's no C_REQUEST_INPUT in progress, do nothing
         return
 
     input.focus()
@@ -620,14 +782,14 @@ function AbandonEscapeMode() {
     }
 }
 
-function selectText(container) { // https://stackoverflow.com/a/1173319
-    if (document.selection) { // IE
-        var range = document.body.createTextRange();
+function selectText(container) {  // https://stackoverflow.com/a/1173319
+    if (document.selection) {  // IE
+        let range = document.body.createTextRange()
         range.moveToElementText(container)
         range.select()
     }
     else if (window.getSelection) {
-        var range = document.createRange()
+        let range = document.createRange()
         range.selectNode(container)
         window.getSelection().removeAllRanges()
         window.getSelection().addRange(range)
@@ -635,7 +797,7 @@ function selectText(container) { // https://stackoverflow.com/a/1173319
 }
 
 function getSelectionText() {
-    var text = ""
+    let text = ""
     if (window.getSelection)
         text = window.getSelection().toString()
     else if (document.selection && document.selection.type != "Control")
@@ -680,7 +842,7 @@ function OnEscape() {
         //
         if (input.innerText != "") {
             undo_escape_input = input
-            var new_input = load("<div class='input'></div>")
+            let new_input = load("<div class='input'></div>")
             input.parentNode.replaceChild(new_input, input)
             DeactivateInput()
             ActivateInput(new_input)
@@ -730,10 +892,10 @@ function OnEscape() {
         return
     }
 
-    console.log("queueing halt");
+    console.log("queueing halt")
 
     if (sleep_timeout_id)
-        clearTimeout(sleep_timeout_id) // forget JS_EVENT_SLEEP_COMPLETE
+        clearTimeout(sleep_timeout_id)  // forget JS_EVENT_SLEEP_COMPLETE
 
     queueEventToC('JS_EVENT_HALTED')
 }
@@ -741,7 +903,7 @@ function OnEscape() {
 
 document.onkeydown = function(e) {
     // https://stackoverflow.com/a/3369743/211160
-    var isEscape = false
+    let isEscape = false
     if ("key" in e)
         isEscape = (e.key == "Escape" || e.key == "Esc")
     else
@@ -753,43 +915,41 @@ document.onkeydown = function(e) {
     }
 
     AbandonEscapeMode()
-};
+}
 
 
-placeCaretAtEnd = function(el) { // https://stackoverflow.com/a/4238971
+placeCaretAtEnd = function(el) {  // https://stackoverflow.com/a/4238971
     el.focus()
     if (
         typeof window.getSelection != "undefined"
         && typeof document.createRange != "undefined"
     ){
-        var range = document.createRange()
+        let range = document.createRange()
         range.selectNodeContents(el)
         range.collapse(false)
-        var sel = window.getSelection()
+        let sel = window.getSelection()
         sel.removeAllRanges()
         sel.addRange(range)
     }
     else if (typeof document.body.createTextRange != "undefined") {
-        var textRange = document.body.createTextRange()
+        let textRange = document.body.createTextRange()
         textRange.moveToElementText(el)
         textRange.collapse(false)
         textRange.select()
     }
 }
 
-//
-//
-function replaceSelectedText(newText) { https://stackoverflow.com/a/3997896
+function replaceSelectedText(newText) { // https://stackoverflow.com/a/3997896
     if (window.getSelection) {
-        var sel = window.getSelection()
+        let sel = window.getSelection()
         if (sel.rangeCount) {
-            var range = sel.getRangeAt(0)
+            let range = sel.getRangeAt(0)
             range.deleteContents()
             range.insertNode(document.createTextNode(newText))
         }
     }
     else if (document.selection && document.selection.createRange) {
-        var range = document.selection.createRange()
+        let range = document.selection.createRange()
         range.text = newText
     }
 }
@@ -852,9 +1012,13 @@ function clearAll() {
 //=//// RIGHT-CLICK MENU ///////////////////////////////////////////////////=//
 //
 // Taken from:
-// https://stackoverflow.com/a/35730445/211160
+// https://stackoverflow.com/a/35730445
 //
+// !!! This was an experiment, but it's genuinely annoying to take away the
+// user's browser menu (e.g. to right click links and open a new tab).
+// Review the motivation for doing this.
 
+/*
 var i = document.getElementById("menu").style
 document.addEventListener('contextmenu', function(e) {
     var posX = e.clientX
@@ -893,9 +1057,10 @@ OnMenuPaste = function() {
     else
         replaceSelectedText(clipboard)
 }
+*/
 
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
 
-onGuiInitialized();
+onGuiInitialized()
 
 }) // lame to indent nearly this entire file, just to put it in the handler
