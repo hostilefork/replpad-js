@@ -48,12 +48,12 @@
 // GUI could stay queued indefinitely.
 //
 
-'use strict' // <-- FIRST statement! https://stackoverflow.com/q/1335851
+'use strict'  // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
 
 function queueRequestToGUI(id, str) {
     if (str === undefined)
-        str = null // although `undefined == null`, canonize to null
+        str = null  // although `undefined == null`, canonize to null
 
     // This will eventually run `pump.onmessage` in the code that instantiated
     // the pump worker.  So if that code said:

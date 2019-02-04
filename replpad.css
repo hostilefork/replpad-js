@@ -6,7 +6,7 @@
  *
  ******************************************************************************
  *
- * Copyright (c) 2018 hostilefork.com
+ * Copyright (c) 2018-2019 hostilefork.com
  *
  * See README.md and CREDITS.md for more information
  *
@@ -70,9 +70,9 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * it needs to be able to get clicks in big empty space regions in order to
  * focus the cursor...since the input span can be small and hard to click.
  *
- * https://stackoverflow.com/a/7049918 // sizing to 100%
- * https://stackoverflow.com/a/9183467 // get clicks on replpad, not children
- * https://stackoverflow.com/q/31982407 // selections aren't clicks
+ * https://stackoverflow.com/a/7049918  ; sizing to 100%
+ * https://stackoverflow.com/a/9183467  ; get clicks on replpad, not children
+ * https://stackoverflow.com/q/31982407  ; selections aren't clicks
  */
 
 
@@ -87,15 +87,14 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      * images--if those could be displayed inline?
      */
     /* https://stackoverflow.com/q/13777013/ */
-    overflow-y: scroll !important; /* always show */
-    overflow-x: auto; /* show if necessary (but most spans will word wrap) */
+    overflow-y: scroll !important;  /* always show */
+    overflow-x: auto;  /* show if necessary (but most spans will word wrap) */
 
-    font-family: sans-serif; /* try proportional font for now */
+    font-family: sans-serif;  /* try proportional font for now */
 
-    padding: 5px; /* put a little space around the edge and from splitter */
+    padding: 5px;  /* put a little space around the edge and from splitter */
 
-    /*
-     * There needs to be more empty space at the bottom, because it's visually
+    /* There needs to be more empty space at the bottom, because it's visually
      * difficult to be typing on the very absolute bottom.  Also, when you
      * hover a hyperlink or do various things, browsers like Chrome will do
      * an impromptu status bar overlaying what you're typing--which is annoying
@@ -137,37 +136,37 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 
 .input:focus {
     /* https://stackoverflow.com/a/2260788 */
-    outline: 0px solid transparent; /* avoid border on contenteditable div */
+    outline: 0px solid transparent;  /* avoid border on contenteditable div */
 }
 
 .input.multiline {
     display: block;
-    padding: 4px 4px; 
+    padding: 4px 4px;
     border-radius: 4px;
-    border: 1px solid transparent; /* accounts for total size if not focused */
-    text-decoration: none; 
+    border: 1px solid transparent;  /* accounts for total size if unfocused */
+    text-decoration: none;
 }
 .input.multiline:focus {
     /* https://stackoverflow.com/a/11426967 */
-    border: 1px solid #eee; /* light rounded box on multiline input */ 
+    border: 1px solid #eee;  /* light rounded box on multiline input */
 }
-.multiline-arrow { /* downward pointing arrow at the multiline box */
-    color: #aaa; /* not as light a gray as the rounded multiline border */
-    font-size: 80%; /* percentage of what it would be otherwise */
+.multiline-arrow {  /* downward pointing arrow at the multiline box */
+    color: #aaa;  /* not as light a gray as the rounded multiline border */
+    font-size: 80%;  /* percentage of what it would be otherwise */
     vertical-align: bottom;
     padding-bottom: 2px;
     padding-left: 0px;
 
-    /* Don't want this visual hint selected in the transcript by copy/paste */
-    /* https://css-tricks.com/almanac/properties/u/user-select/ */
-    -webkit-user-select: none; /* Chrome all / Safari all */
+    /* Don't want this visual hint selected in the transcript by copy/paste
+     * https://css-tricks.com/almanac/properties/u/user-select/
+     */
+    -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none; /* "future" */
+    -ms-user-select: none;  /* IE 10+ */
+    user-select: none;  /* "future" */
 }
 
-/*
- * There's no way to disable the key shortcuts for making things bold or italic
+/* There's no way to disable the key shortcuts for making things bold or italic
  * in contentEditable, short of hooking key codes.  But since <b> and <i> are
  * what's used, you can just style those out.  Likely going to need a
  * process of canonization anyway.
@@ -211,12 +210,13 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * WATCHLIST
  */
 
-table.watchlist { /* the overall table itself */
-  border-collapse: separate; /* one line between cells, not cells-in-boxes */
-  border-spacing: 0; /* don't space cells out on the table background */
+table.watchlist {  /* the overall table itself */
+  border-collapse: separate;  /* one line between cells, not cells-in-boxes */
+  border-spacing: 0;  /* don't space cells out on the table background */
 
   /* The cells get this background color, which is set here and not on the
-   cell so that the .selected style shows up. */
+   * cell so that the .selected style shows up.
+   */
   background: #fff;
 
   max-width: 100%;
@@ -226,19 +226,19 @@ table.watchlist { /* the overall table itself */
 .watchlist td:nth-child(1), /* first column */
 .watchlist th /* first row */
 {
-    color: #888; /* dark gray text */
-    background: #eee; /* light gray background */
+    color: #888;  /* dark gray text */
+    background: #eee;  /* light gray background */
 
-    font-weight: normal; /* default <th> bolding is too heavy for watchlist */
-    font-size: 12px; /* header is mostly just there for resizing, be small */
-    font-family: sans-serif; /* distinguishing font for headers looks nice */
-    text-align: center; /* center text horizontally in cell */
-    vertical-align: middle; /* center text vertically in cell */
+    font-weight: normal;  /* default <th> bolding is too heavy for watchlist */
+    font-size: 12px;  /* header is mostly just there for resizing, be small */
+    font-family: sans-serif;  /* distinguishing font for headers looks nice */
+    text-align: center;  /* center text horizontally in cell */
+    vertical-align: middle;  /* center text vertically in cell */
 
-    padding: 2px; /* headers don't need as much padding as the cells */
+    padding: 2px;  /* headers don't need as much padding as the cells */
     height: 100%;
 }
-.watchlist td:nth-child(1) { /* first column */
+.watchlist td:nth-child(1) {  /* first column */
     /*
      * !!! It appears that min-width and max-width are ignored in table cells,
      * but width is heeded.  Ideally this would say "be only as large as the
@@ -251,7 +251,7 @@ table.watchlist { /* the overall table itself */
      */
     width: 24px;
 
-    padding-left: 8px; /* want padding to look consistent with other columns */
+    padding-left: 8px;  /* want padding consistent with other columns */
     padding-right: 8px;
 }
 
@@ -259,11 +259,12 @@ table.watchlist { /* the overall table itself */
     /* cells inherit white background from table, .select overrides */
     text-align: left;
     vertical-align: top;
-    padding: 8px; /* give the cells a healthy amount of padding */
+    padding: 8px;  /* give the cells a healthy amount of padding */
 }
 
-/* put lines on the bottom and left of each cell--the left border will help
- separate from the splitter */
+/* Put lines on the bottom and left of each cell--the left border will help
+ * separate from the splitter
+*/
 .watchlist th,
 .watchlist td {
     line-height:18px;
@@ -276,9 +277,9 @@ table.watchlist { /* the overall table itself */
     border-left:1px solid #ddd;
 }
 
-.selected { /* for use with https://stackoverflow.com/a/17966381 */
+.selected {  /* for use with https://stackoverflow.com/a/17966381 */
     background: lightBlue;
-    border-left: 0; /* !!! doesn't work yet, specificity issue, investigate */
+    border-left: 0;  /* !!! doesn't work yet, specificity issue, investigate */
 }
 
 
@@ -312,13 +313,13 @@ table.watchlist { /* the overall table itself */
 
 .gutter {
     background-color: #eee;
-    border-right: 1px solid #E8E8E8; /* softer than gray, harder than white */
-    border-left: 1px solid #E8E8E8; /* ^-- */
+    border-right: 1px solid #E8E8E8;  /* softer than gray, harder than white */
+    border-left: 1px solid #E8E8E8;  /* same --^ */
 
     background-repeat: no-repeat;
     background-position: 50%;
 
-    width: 10px; /* make same size as custom scroll bar */
+    width: 10px;  /* make same size as custom scroll bar */
 }
 
 .gutter.gutter-horizontal {
@@ -339,7 +340,7 @@ table.watchlist { /* the overall table itself */
 
 /*
  * TABLE RESIZING BY DRAGGING COLUMN HEADERS
- * 
+ *
  * This doesn't actually seem to work very well, and needs some development.
  * But of the options on the web, it seems to be the only one that doesn't
  * use jQuery or some abstracted JS build process.
@@ -349,18 +350,18 @@ table.watchlist { /* the overall table itself */
  */
 
 .resize-base {
-    position:relative;
-    height:100%;
-    width:100%;
+    position: relative;
+    height: 100%;
+    width: 100%;
 }
 .resize-elem {
-    position:absolute;
-    height:100%;
-    width:5px;
-    left:100%;
-    margin-left:0;
-    top:0;
-    cursor:ew-resize;
+    position: absolute;
+    height: 100%;
+    width: 5px;
+    left: 100%;
+    margin-left: 0;
+    top: 0;
+    cursor: ew-resize;
 }
 .resize-text {
     text-overflow: ellipsis;
@@ -378,7 +379,7 @@ table.watchlist { /* the overall table itself */
  * from here, changed to match the splitter more closely.
  *
  * https://scotch.io/tutorials/customize-the-browsers-scrollbar-with-css
- * 
+ *
  * !!! This technique doesn't work on Firefox, but so long as the worst that
  * happens is "you just get the default OS scroll bar" that is fine.
  */
@@ -394,7 +395,7 @@ table.watchlist { /* the overall table itself */
   /*border: 1px solid #ccc;*/
 
     /* let splitter provide right border */
-    border-left: 1px solid #E8E8E8; /* softer than gray, harder than white */
+    border-left: 1px solid #E8E8E8;  /* softer than gray, harder than white */
 }
 
 #replpad::-webkit-scrollbar-thumb {
@@ -402,7 +403,7 @@ table.watchlist { /* the overall table itself */
   /*background: linear-gradient(left, #fff, #e4e4e4); */
   background: #ddd;
   color: #ddd;
-  border: 1px solid #ddd; /* match the lines of the watchlist */
+  border: 1px solid #ddd;  /* match the lines of the watchlist */
 }
 
 #replpad::-webkit-scrollbar-thumb:hover {

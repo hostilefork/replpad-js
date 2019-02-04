@@ -1,27 +1,25 @@
-;;
-;; File: %replpad.reb
-;; Summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
-;; Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
-;; Homepage: https://github.com/hostilefork/replpad-js/
-;;
-;;=;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;=;;
-;;
-;; Copyright (c) 2018 hostilefork.com
-;;
-;; See README.md and CREDITS.md for more information
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU Affero General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; https://www.gnu.org/licenses/agpl-3.0.en.html
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU Affero General Public License for more details.
-;;
+;
+; File: %replpad.reb
+; Summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
+; Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+; Homepage: https://github.com/hostilefork/replpad-js/
+;
+; Copyright (c) 2018-2019 hostilefork.com
+;
+; See README.md and CREDITS.md for more information
+;
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU Affero General Public License as
+; published by the Free Software Foundation, either version 3 of the
+; License, or (at your option) any later version.
+;
+; https://www.gnu.org/licenses/agpl-3.0.en.html
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU Affero General Public License for more details.
+;
 
 
 !!: js-native [
@@ -43,7 +41,7 @@ replpad-reset: js-awaiter [
     // always somewhere the first output can stick to.
     //
     replpad.innerHTML = "<div class='line'>&zwnj;</div>"
-    setTimeout(resolve, 0) // to see result synchronously, yield to browser
+    setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
 
@@ -64,7 +62,7 @@ replpad-write: js-awaiter [
         replpad.appendChild(
             load("<div class='line'>&zwnj;</div>")
         )
-        setTimeout(resolve, 0) // to see result synchronously, yield to browser
+        setTimeout(resolve, 0)  // yield to browser to see result synchronously
         return
     }
 
@@ -77,7 +75,7 @@ replpad-write: js-awaiter [
     // only "one piece") then no divs will be added.
     //
     var pieces = param.split("\n")
-    line.innerHTML += pieces.shift() // shift() takes first element
+    line.innerHTML += pieces.shift()  // shift() takes first element
     while (pieces.length)
         replpad.appendChild(
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
@@ -86,7 +84,7 @@ replpad-write: js-awaiter [
     // !!! scrollIntoView() is supposedly experimental.
     replpad.lastChild.scrollIntoView()
 
-    setTimeout(resolve, 0) // to see result synchronously, yield to browser
+    setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
 lib/write-stdout: write-stdout: function [
@@ -99,19 +97,14 @@ lib/write-stdout: write-stdout: function [
 
 lib/print: print: function [
     {Helper that writes data and a newline to the ReplPad}
-    line [blank! text! block!]
+    line [<blank> text! block! char!]
 ][
-    text: switch type of line [
-        blank! [return null]
-        text! [line]
-        block! [spaced line]
-        default [fail]
+    if char? line [
+        if line <> newline [fail "PRINT only supports CHAR! of newline"]
+        return write-stdout newline
     ]
 
-    ; Performance-wise, it's better to go ahead and build the string with the
-    ; newline, vs pay for multiple JS-AWAITER calls to REPLPAD-WRITE.
-    ;
-    write-stdout (append text newline)
+    (write-stdout spaced line) then [write-stdout newline]
 ]
 
 
@@ -200,7 +193,7 @@ js-watch-visible: js-awaiter [
 }
 
 watch: function [
-     :arg [
+    :arg [
         word! get-word! path! get-path!
         block! group!
         integer! tag! refinement!
@@ -208,16 +201,19 @@ watch: function [
         {word to watch or other legal parameter, see documentation)}
 ][
     ; REFINEMENT!s are treated as instructions.  `watch /on` seems easy...
-    refinement? :arg and [switch :arg [
+    ;
+    switch arg [
         /on [js-watch-visible true]
         /off [js-watch-visible false]
-    ] then [return] else [fail ["Bad command:" :arg]]]
+
+        fail ["Bad command:" arg]
+    ]
 ]
 
 
 main: function [
     {The Read, Eval, Print Loop}
-    return: [] ;-- at the moment, an infinite loop--does not return
+    return: []  ; at the moment, an infinite loop--does not return
 ][
     !! "MAIN executing (this should show in browser console log)"
 
@@ -236,22 +232,29 @@ main: function [
 
         {Discuss it on} unspaced [{<a href="} chat {">StackOverflow chat</a>}]
         {or join the} unspaced [{<a href="} forum {">Discourse forum</a>.}]
+
+        {<br><br>}
+
+        {<i>(Note: SHIFT-ENTER to type in multi-line code, Ctrl-Z to undo)</i>}
     ]
 
     forever [
-        replpad-write {<b>&gt;&gt;</b>&nbsp;} ;-- the bolded >> prompt
+        replpad-write {<b>&gt;&gt;</b>&nbsp;}  ; the bolded >> prompt
+
         text: input
-        trap/with [
-            set* (quote result:) do text
+        trap [
+            set* 'result: do text  ; may be VOID!, need special assignment
+
             switch type of :result [
-                null [print [";-- null"]]
                 void! []
+                null [print "; null"]
             ] else [
                 print ["==" mold :result]
             ]
-        ] error => [
+        ] then (error => [
             print form error
-        ]
-        print []
+        ])
+
+        print newline
     ]
 ]

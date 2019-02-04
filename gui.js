@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright (c) 2018 hostilefork.com
+// Copyright (c) 2018-2019 hostilefork.com
 //
 // See README.md and CREDITS.md for more information
 //
@@ -67,6 +67,7 @@ var is_localhost = ( // helpful to put certain debug behaviors under this flag
 if (is_localhost) {
     var old_alert = window.alert
     window.alert = function(message) {
+        console.error(message)
         old_alert(message)
         debugger
     }
@@ -211,23 +212,32 @@ bytecode_promiser()
     console.log('Executing Rebol boot code...')
     rebStartup()
 
+    // There is currently no method to dynamically load extensions with
+    // r3.js, so the only extensions you can load are those that are picked
+    // to be built-in while compiling the lib.  The "JavaScript extension" is
+    // essential--it contains JS-NATIVE and JS-AWAITER.
+    //
+    // !!! Upcoming changes hope to include the console extension, to offer
+    // the same skinnable console logic...including debug behavior.  For now,
+    // it is not built in, and a simple loop of Rebol code in %replpad.reb
+    // just prints a prompt and does evaluations in a loop.
+    //
     console.log('Initializing extensions')
-    var extensions = rebBuiltinExtensions() // e.g. JS-NATIVE extension
     rebElide(
-        "for-each [init quit]", extensions,
-            "[load-extension ensure handle! init]"
+        "for-each collation builtin-extensions",
+            "[load-extension collation]"
     )
 
     console.log('Fetching %replpad.reb...')
-    return fetch('replpad.reb') // contains JS-NATIVE/JS-AWAITER declarations
+    return fetch('replpad.reb')  // contains JS-NATIVE/JS-AWAITER declarations
 
 }).then(function(response) {
 
     // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
     if (!response.ok)
-        throw Error(response.statusText) // handled by .catch() below
+        throw Error(response.statusText)  // handled by .catch() below
 
-    return response.text() // text() method also a promise ("USVString")
+    return response.text()  // text() method also a promise ("USVString")
 
 }).then(function(text) {
 

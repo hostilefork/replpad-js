@@ -1,13 +1,13 @@
 # REPLPAD-JS
 
-Copyright (c) 2018 hostilefork.com
+Copyright (c) 2018-2019 hostilefork.com
 
 This project is an effort to build an interactive GUI console that runs in
 a web browser, for the Ren-C branch of Rebol3:
 
 http://github.com/metaeducation/ren-c
 
-It is based on a prior non-web effort circa 2015, written in Qt:
+It is inspired by a prior non-web effort circa 2015, written in Qt:
 
 https://www.youtube.com/watch?v=0exDvv5WEv
 
@@ -37,7 +37,7 @@ https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html
 Thanks to that project, getting a sufficiently standards-compliant C codebase
 to merely *execute* in a browser is not difficult.  One simply uses the
 `emcc` front-end instead of plain `gcc` or `clang`.  Having this "just work"
-mostly has to do with minding one's p's and q's about issues of alignment and
+mostly has to do with minding one's p's and `*`'s about issues of alignment and
 aliasing (which C developers should have been doing anyway).
 
 What makes it tricky is when your C code was written in a synchronous style,
