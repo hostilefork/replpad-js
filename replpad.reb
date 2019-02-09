@@ -49,14 +49,28 @@ replpad-write: js-awaiter [
     {Print a string of text to the REPLPAD (no newline)}
     param [text!]
     /note "Format with CSS yellow sticky-note class"
+    /html
 ]{
-    var param = rebSpell(rebR(rebArg('param')))
-    var note = rebDid(rebR(rebArg('note')))
+    let param = rebSpell(rebR(rebArg('param')))
+    let note = rebDid(rebR(rebArg('note')))
+    let html = rebDid(rebR(rebArg('html')))
+
+    // If not /HTML and just code, for now assume that any TAG-like things
+    // should not be interpreted by the browser.  So escape--but do so using
+    // the browser's internal mechanisms.
+    //
+    // https://stackoverflow.com/q/6234773/
+    //
+    if (!html) {
+        let escaper = document.createElement('p')
+        escaper.innerText = param  // assignable property, assumes literal text
+        param = escaper.innerHTML  // so <my-tag> now becomes &lt;my-tag&gt;
+    }
 
     if (note) {
         replpad.appendChild(load(
             "<div class='note'><p>"
-            + param
+            + param  // not escaped, so any TAG!-like things are HTML
             + "</p><div>"
         ))
         replpad.appendChild(
@@ -66,7 +80,7 @@ replpad-write: js-awaiter [
         return
     }
 
-    var line = replpad.lastChild
+    let line = replpad.lastChild
 
     // Split string into pieces.  Note that splitting a string of just "\n"
     // will give ["", ""].
@@ -74,7 +88,7 @@ replpad-write: js-awaiter [
     // Each newline means making a new div, but if there's no newline (e.g.
     // only "one piece") then no divs will be added.
     //
-    var pieces = param.split("\n")
+    let pieces = param.split("\n")
     line.innerHTML += pieces.shift()  // shift() takes first element
     while (pieces.length)
         replpad.appendChild(
@@ -98,13 +112,14 @@ lib/write-stdout: write-stdout: function [
 lib/print: print: function [
     {Helper that writes data and a newline to the ReplPad}
     line [<blank> text! block! char!]
+    /html
 ][
     if char? line [
         if line <> newline [fail "PRINT only supports CHAR! of newline"]
         return write-stdout newline
     ]
 
-    (write-stdout spaced line) then [write-stdout newline]
+    (write-stdout/(html) spaced line) then [write-stdout newline]
 ]
 
 
@@ -122,7 +137,7 @@ lib/input: input: js-awaiter [
     //
     replpad.lastChild.appendChild(load("&zwnj;"))
 
-    var new_input = load("<div class='input'></div>")
+    let new_input = load("<div class='input'></div>")
     replpad.lastChild.appendChild(new_input)
 
     ActivateInput(new_input)
@@ -159,9 +174,9 @@ lib/write: write: lib/read: read: function [
 js-watch-visible: js-awaiter [
     visible [logic!]
 ]{
-    var visible = rebDid(rebR(rebArg('visible')))
+    let visible = rebDid(rebR(rebArg('visible')))
 
-    var right_div = document.getElementById('right')
+    let right_div = document.getElementById('right')
 
     // Suggestion from author of split.js is destroy/recreate to hide/show
     // https://github.com/nathancahill/Split.js/issues/120#issuecomment-428050178
@@ -223,7 +238,7 @@ main: function [
     chat: https://chat.stackoverflow.com/rooms/291/rebol
     forum: https://forum.rebol.info
 
-    replpad-write/note spaced [
+    replpad-write/note/html spaced [
         {<b><i>Guess what...</i></b> this REPL is actually written in Rebol!}
         {Check out the} unspaced [{<a href="} git {">source on GitHub</a>.}]
 
@@ -239,7 +254,7 @@ main: function [
     ]
 
     forever [
-        replpad-write {<b>&gt;&gt;</b>&nbsp;}  ; the bolded >> prompt
+        replpad-write/html {<b>&gt;&gt;</b>&nbsp;}  ; the bolded >> prompt
 
         text: input
         trap [
