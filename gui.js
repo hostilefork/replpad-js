@@ -138,7 +138,7 @@ else {
 // configure your server correctly.
 //
 function libRebolComponentURL(extension) {
-    let components = [".js", ".wasm", ".bytecode"]
+    let components = [".js", ".wasm", ".wast", ".temp.asm.js", ".bytecode"]
 
     if (!components.includes(extension))
         throw Error("Unknown libRebol component extension: " + extension)
@@ -187,6 +187,17 @@ var Module = {
         //
         if (s == "libr3.wasm")
             return libRebolComponentURL(".wasm")
+
+        // !!! These files should only be generated if you are debugging, and
+        // are optional.  But it seems locateFile() can be called to ask for
+        // them anyway--even if it doesn't try to fetch them (e.g. no entry in
+        // the network tab that tried and failed).  Review build settings to
+        // see if there's a way to formalize this better to know what's up.
+        //
+        if (s == "libr3.wast")
+            return libRebolComponentURL(".wast")
+        if (s == "libr3.temp.asm.js")
+            return libRebolComponentURL(".temp.asm.js")
 
         throw Error("Module.locateFile() doesn't recognize" + s)
     },
@@ -249,11 +260,14 @@ var runtime_init_promise = new Promise(function(resolve, reject) {
 //
 var bytecode_promiser
 if (!using_emterpreter)
-    bytecode_promiser = () => Promise.resolve()
+    bytecode_promiser = () => {
+        console.log("Not emterpreted libr3.js, not requesting bytecode")
+        return Promise.resolve()
+    }
 else {
     bytecode_promiser = () => {
         let url = libRebolComponentURL(".bytecode")
-        console.log("Requesting bytecode from:" + url)
+        console.log("Emterpreted libr3.js, requesting bytecode from:" + url)
 
         return fetch(url)
           .then(function(response) {
