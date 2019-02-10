@@ -165,8 +165,37 @@ lib/write: write: lib/read: read: function [
     print [
         {For various reasons (many of them understandable) there are some}
         {pretty strict limitations on web browsers being able to make HTTP}
-        {requests or read local files.  There are workarounds but none are}
-        {implemented yet for this demo.  But see: https://enable-cors.org/}
+        {requests or read local files.  It's possible to read from GitHub URLs}
+        {or other things that use CORS.  Such features are already used by the}
+        {REPL and will be added to READ, see: https://enable-cors.org/}
+    ]
+]
+
+lib/browse: browse: function [
+    {Provide a clickable link to the user to open in the browser}
+    url [url!]
+][
+    comment {
+        // !!! This is how we would open a window in a JS-AWAITER, but it will
+        // say popups are blocked.  The user has to configure accepting those,
+        // or click on the link we give them.
+        //
+        // https://stackoverflow.com/a/11384018/
+        //
+        let url = rebSpell(rebR(rebArg('url')))
+
+        if (false) {
+            let win = window.open(url, '_blank');
+            win.focus();
+        }
+    }
+
+    ; Our alternative is we give a link in the console they can click.  Not
+    ; very useful if they typed BROWSE literally, but if a command tried to
+    ; open a window it's the sort of thing that would give them an option.
+    ;
+    replpad-write/html unspaced [
+        {Click here: <a href="} url {" target="_blank">} url {</a>}
     ]
 ]
 
@@ -225,11 +254,39 @@ watch: function [
     ]
 ]
 
+; !!! The ABOUT command was not made part of the console extension, since
+; non-console builds might want to be able to ask it from the command line.
+; But it was put in HOST-START and not the mezzanine/help in general.  This
+; needs to be rethought, but including ABOUT doing *something* since it is
+; mentioned when the console starts up.
+;
+about: does [
+    print [
+        {This Rebol is running completely in your browser!  The evaluations}
+        {aren't being sent to a remote server--the interpreter is client side!}
+        newline newline
 
-main: function [
-    {The Read, Eval, Print Loop}
-    return: []  ; at the moment, an infinite loop--does not return
-][
+        {To accomplish the feat of synchronous I/O you are seeing to do the}
+        {console, it's currently having to do some circuitous stuff.  It is}
+        {using the "Emterpreter" from the Emscripten project--a bytecode}
+        {interpreted by JavaScript, as opposed to running WebAssembly direct.}
+        {This means it's bigger and slower than it needs to be, so switching}
+        {it over to use another model (e.g. SharedArrayBuffer and pthreads)}
+        {is high on the agenda.}
+        newline newline
+
+        {Please don't hesitate to submit any improvements, no matter how}
+        {small...and come join the discussion on the forum and chat!}
+    ]
+]
+
+; We don't want a deep stack when reporting errors or running user code.  So
+; a rebPromise("main") is run.
+;
+; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
+; https://github.com/hostilefork/replpad-js/issues/10
+;
+main: adapt 'console [
     !! "MAIN executing (this should show in browser console log)"
 
     replpad-reset
@@ -253,23 +310,5 @@ main: function [
         {<i>(Note: SHIFT-ENTER to type in multi-line code, Ctrl-Z to undo)</i>}
     ]
 
-    forever [
-        replpad-write/html {<b>&gt;&gt;</b>&nbsp;}  ; the bolded >> prompt
-
-        text: input
-        trap [
-            set* 'result: do text  ; may be VOID!, need special assignment
-
-            switch type of :result [
-                void! []
-                null [print "; null"]
-            ] else [
-                print ["==" mold :result]
-            ]
-        ] then (error => [
-            print form error
-        ])
-
-        print newline
-    ]
+    ; Fall through to normal CONSOLE loop handling
 ]
