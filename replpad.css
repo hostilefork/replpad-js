@@ -121,8 +121,6 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 }
 
 #replpad {
-    font-family: sans-serif;  /* try proportional font for now */
-
     padding: 5px;  /* put a little space around the edge and from splitter */
 
     /* There needs to be more empty space at the bottom, because it's visually
@@ -137,6 +135,16 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 .escaped {
     cursor: 'none';
     background-color: #D8D8D8;
+}
+
+/* Currently everything that's not a .note in the ReplPad is a line.  This is
+ * likely to become more fine-grained, but for now input is underneath line
+ * and must undo any settings from it that it doesn't like.
+ */
+.line {
+    font-family: 'Inconsolata', monospace;
+    font-weight: 600;  /* semibold */
+    color: #404040;  /* lighten a little to weaken the boldness */
 }
 
 .input {
@@ -163,11 +171,29 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      */
     min-width: 30px;
     display: inline;
+
+    font-weight: normal;
+    color: #000000;
 }
 
 .input:focus {
     /* https://stackoverflow.com/a/2260788 */
     outline: 0px solid transparent;  /* avoid border on contenteditable div */
+}
+
+/* There's no way to disable the key shortcuts for making things bold or italic
+ * in contentEditable, short of hooking key codes.  But since <b> and <i> are
+ * what's used, you can just style those out.  Likely going to need a
+ * process of canonization anyway.
+ *
+ * https://stackoverflow.com/a/34961662/211160
+ */
+
+.input b {
+    font-weight: normal;
+}
+.input i {
+    font-style: normal;
 }
 
 .input.multiline {
@@ -195,29 +221,8 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     -moz-user-select: none; /* Firefox all */
     -ms-user-select: none;  /* IE 10+ */
     user-select: none;  /* "future" */
-}
 
-/* There's no way to disable the key shortcuts for making things bold or italic
- * in contentEditable, short of hooking key codes.  But since <b> and <i> are
- * what's used, you can just style those out.  Likely going to need a
- * process of canonization anyway.
- *
- * https://stackoverflow.com/a/34961662/211160
- */
-.input b {
-    font-weight: normal;
-}
-.input i {
-    font-style: normal;
-}
-
-.prompt {
-    color: purple;
-}
-
-.output {
-    color: #696969;
-    font-family: monospace;
+    font-family: sans-serif;  /* currently it's text, show proportional */
 }
 
 
@@ -234,6 +239,9 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     border-color: #f6b73c;
     border-left-width: 5px;
     border-left-style: solid;
+
+    font-family: 'Noto Sans', sans-serif;  /* Because it's a note-o :-) */
+    font-weight: normal;
 }
 
 
