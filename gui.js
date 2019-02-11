@@ -395,24 +395,8 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
 
   }).then(function() {  // emscripten's onRuntimeInitialized() has no args
 
-    console.log('Executing Rebol boot code...')
+    console.log('Executing Rebol boot code and initializing extensions...')
     rebStartup()
-
-    // There is currently no method to dynamically load extensions with
-    // r3.js, so the only extensions you can load are those that are picked
-    // to be built-in while compiling the lib.  The "JavaScript extension" is
-    // essential--it contains JS-NATIVE and JS-AWAITER.
-    //
-    // !!! Upcoming changes hope to include the console extension, to offer
-    // the same skinnable console logic...including debug behavior.  For now,
-    // it is not built in, and a simple loop of Rebol code in %replpad.reb
-    // just prints a prompt and does evaluations in a loop.
-    //
-    console.log('Initializing extensions')
-    rebElide(
-        "for-each collation builtin-extensions",
-            "[load-extension collation]"
-    )
   })
   .then(replpad_reb_promiser)
   .then(function(text) {
