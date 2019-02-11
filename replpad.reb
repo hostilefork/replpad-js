@@ -95,9 +95,6 @@ replpad-write: js-awaiter [
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
         )
 
-    // !!! scrollIntoView() is supposedly experimental.
-    replpad.lastChild.scrollIntoView()
-
     setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
@@ -212,9 +209,9 @@ js-watch-visible: js-awaiter [
     //
     if (visible) {
         if (!splitter) {
-            replpad.classList.add("split-horizontal")
+            replcontainer.classList.add("split-horizontal")
             right_div.style.display = 'block'
-            splitter = Split(['#replpad', '#right'], {
+            splitter = Split(['#replcontainer', '#right'], {
                 sizes: splitter_sizes,
                 minSize: 200
             })
@@ -225,7 +222,7 @@ js-watch-visible: js-awaiter [
         // watchlist comes up the same percent of the screen when shown again.
         //
         if (splitter) {
-            replpad.classList.remove("split-horizontal")
+            replcontainer.classList.remove("split-horizontal")
             splitter_sizes = splitter.getSizes()
             right_div.style.display = 'none'
             splitter.destroy()

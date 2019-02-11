@@ -75,10 +75,39 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * https://stackoverflow.com/q/31982407  ; selections aren't clicks
  */
 
+/* Weird but essential UI trick: the `replpad` div is split in two parts.  The
+ * outer container is flipped vertically, and then we flip the inner part
+ * vertically to undo the transformation.  This maniacal trick is needed to
+ * pull off a cross-browser behavior that makes the scroll bar appear "sticky"
+ * wherever the user put it...including to track the latest output if it was
+ * "stuck to the bottom":
+ *
+ * https://stackoverflow.com/a/34345634/
+ *
+ * A side effect is that this reverses the mouse wheel direction, which has to
+ * be undone with code JavaScript in the .js file.  If you have an easier way
+ * to do this, then be my guest...but other approaches were not working:
+ *
+ * https://stackoverflow.com/q/54626982/
+ *
+ * (Note: It's a sad commentary on the state of browser design that such a
+ * convolutedd workaround is needed to get such common sense UI behavior.)
+ */
+#replpad, #replcontainer {
+    transform: scale(1,-1);
+}
 
-#replpad {
-    /*
-     * There's not really much point in ever hiding the vertical scroll bar;
+#replcontainer {
+    height: 100%;
+    overflow: auto;
+
+    /* Part of flip-and-flip-again trick for scroll bar, mentioned above.
+     * https://stackoverflow.com/a/34345634/
+     */
+    display: flex;
+    flex-direction: column;
+
+    /* There's not really much point in ever hiding the vertical scroll bar;
      * it will show up in pretty much any session, and that causes a jarring
      * moment where it appears.  It's smoother to just have it.
      *
@@ -89,7 +118,9 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* https://stackoverflow.com/q/13777013/ */
     overflow-y: scroll !important;  /* always show */
     overflow-x: auto;  /* show if necessary (but most spans will word wrap) */
+}
 
+#replpad {
     font-family: sans-serif;  /* try proportional font for now */
 
     padding: 5px;  /* put a little space around the edge and from splitter */

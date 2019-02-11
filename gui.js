@@ -513,8 +513,18 @@ function ActivateInput(el) {
     if (!first_input)
         first_input = el  // will stop magic-undo from undoing
 
-    el.focus()
-    placeCaretAtEnd(el)
+    // Don't set the focus or scroll if the user is not on the bottom of the
+    // terminal output.  Note that scroll positions don't seem to be precise
+    // science, sometimes they're fractional pixels and off in various ways.
+    //
+    // Note: The reversal trick means *bottom* scroll position is actually 0!
+    // https://stackoverflow.com/a/34345634/
+    //
+    if (replcontainer.scrollTop < 3) {
+        replcontainer.scrollTop = 0  // go ahead and snap to bottom
+        el.focus()
+        placeCaretAtEnd(el)
+    }
 
     input = el
 }
@@ -543,7 +553,7 @@ pump.onmessage = function(e) {
 
 
 var splitter_sizes = [75, 25]
-var splitter  // will be created by the JS-WATCH_VISIBLE command
+var splitter  // will be created by the JS-WATCH-VISIBLE command
 
 document.addEventListener('DOMContentLoaded', function () {  //...don't indent
 
@@ -562,8 +572,27 @@ new TableResize(
     {distance: 100, minWidth: 60, restoreState: true, fixed: true}
 )
 
+var replcontainer = document.getElementById('replcontainer')
 replpad = document.getElementById('replpad')
 replpad.onclick = OnClickReplPad
+
+// As part of a complex trick that flips the repl upside down and back again
+// to get decent scroll bar behavior, we have to compensate for the reversed
+// mouse wheel direction.  See CSS file for notes on this.
+// https://stackoverflow.com/a/34345634
+//
+document.querySelector("#replcontainer").addEventListener("wheel",
+    function(e) {
+        if (e.deltaY) {
+            let target = e.currentTarget
+            let fontsize = parseFloat(
+                getComputedStyle(target).getPropertyValue('font-size')
+            )
+            e.preventDefault();
+            target.scrollTop -= fontsize * (e.deltaY < 0 ? -1 : 1) * 2;
+        }
+    }
+);
 
 
 // MagicUndo is a feature from Ren Garden.  It would notice when the undo list
@@ -767,7 +796,8 @@ function OnClickReplPad(e) {
         return  // selections aren't clicks
 
     // https://stackoverflow.com/a/9183467
-    if (e.target !== this)  // make sure it's repl, not a child element
+    // make sure it's repl, not a child element
+    if (e.target !== replpad && e.target !== replcontainer)
         return
 
     console.log("It's the target")
@@ -923,10 +953,32 @@ document.onkeydown = function(e) {
 
     if (isEscape) {
         OnEscape()
-        return
+        return false
     }
 
     AbandonEscapeMode()
+
+    if (!input)
+        return true
+
+    if (document.activeElement == input)
+        return true
+
+    // Activate input if a printable key is pressed
+
+    var c = e.keyCode
+    var printable =  // https://stackoverflow.com/q/12467240/
+        (c > 47 && c < 58) ||  // number keys
+        c == 32 || c == 13 ||  // spacebar & return key(s)
+        (c > 64 && c < 91) ||  // letter keys
+        (c > 95 && c < 112) ||  // numpad keys
+        (c > 185 && c < 193) ||  // ;=,-./` (in order)
+        (c > 218 && c < 223);  // [\]' (in order)
+
+    if (printable)
+        placeCaretAtEnd(input)  // should clear selection, also receive key
+
+    return true
 }
 
 
@@ -977,11 +1029,6 @@ var watchlist = document.getElementById('watchlist')
 var trs = document.getElementById('watchlist')
     .tBodies[0]
     .getElementsByTagName('tr')
-
-// disable text selection
-/*document.onselectstart = function() {
-    return false
-}*/
 
 RowClick = function(currenttr, lock) {
     if (window.event.ctrlKey)
