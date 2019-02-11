@@ -138,7 +138,12 @@ else {
 // configure your server correctly.
 //
 function libRebolComponentURL(extension) {
-    let components = [".js", ".wasm", ".wast", ".temp.asm.js", ".bytecode"]
+    let components = [
+        ".js", ".wasm",  // all builds
+        ".bytecode",  // emterpreter builds only
+        ".js.mem",  // non-emterpreter builds only
+        ".wast", ".temp.asm.js",  // debug only
+    ]
 
     if (!components.includes(extension))
         throw Error("Unknown libRebol component extension: " + extension)
@@ -188,6 +193,15 @@ var Module = {
         if (s == "libr3.wasm")
             return libRebolComponentURL(".wasm")
 
+        if (s == "libr3.js.mem") {
+            if (using_emterpreter)
+                throw Error(
+                    "Module.locateFile() asked for libr3.js.mem"
+                    + " in an emterpreter build (should only be for pthreads)"
+                )
+            return libRebolComponentURL(".js.mem")
+        }
+
         // !!! These files should only be generated if you are debugging, and
         // are optional.  But it seems locateFile() can be called to ask for
         // them anyway--even if it doesn't try to fetch them (e.g. no entry in
@@ -199,7 +213,7 @@ var Module = {
         if (s == "libr3.temp.asm.js")
             return libRebolComponentURL(".temp.asm.js")
 
-        throw Error("Module.locateFile() doesn't recognize" + s)
+        throw Error("Module.locateFile() doesn't recognize " + s)
     },
 
     // This is a callback that happens sometime after you load the emscripten
