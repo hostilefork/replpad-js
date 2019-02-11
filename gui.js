@@ -685,11 +685,14 @@ onInputKeyDown = function(e) {
         // Do in steps; tweak the HTML of a copy, then get the textContent.
         // https://stackoverflow.com/a/5959455
         //
+        // `/g` is global replace, `/gi` is global replace case-insensitively
+        //
         let clone_children = true
         let temp = input.cloneNode(clone_children)
         temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n")
         temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n")
         temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n")
+        temp.innerHTML = temp.innerHTML.replace(/&nbsp;/gi, ' ')
 
         // Note: textContent is different from innerText
         // http://perfectionkills.com/the-poor-misunderstood-innerText/
