@@ -693,7 +693,7 @@ onInputKeyDown = function(e) {
         temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n")
         temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n")
         temp.innerHTML = temp.innerHTML.replace(/&nbsp;/gi, ' ')
-        temp.innerHTML = temp.innerHTML.replace(/\u200C/gi, ' ')
+        temp.innerHTML = temp.innerHTML.replace(/\u200C/g, ' ')
 
         // Note: textContent is different from innerText
         // http://perfectionkills.com/the-poor-misunderstood-innerText/
