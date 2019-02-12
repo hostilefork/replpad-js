@@ -130,6 +130,22 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      * in things like chat programs that don't account for it.
      */
     padding-bottom: 64px;
+
+    height: auto;
+}
+
+/* Due to the transformation trick, the replpad starts out at the bottom with
+ * available space pinned to the top.  `justify-content: flex-start` etc. seem
+ * to be no help with this...there has to be another element to consume the
+ * available space.  To do this we put a filler element before the replpad,
+ * which after the scale transformation below it appears *below* it.  Then
+ * we tell it to take any remaining space (if there's enough content to scroll,
+ * this should be *no* space).
+ *
+ * https://www.whitebyte.info/programming/css/how-to-make-a-div-take-the-remaining-height
+ */
+#filler {
+    flex-grow: 1;
 }
 
 .escaped {
@@ -209,7 +225,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 }
 .multiline-arrow {  /* downward pointing arrow at the multiline box */
     color: #aaa;  /* not as light a gray as the rounded multiline border */
-    font-size: 80%;  /* percentage of what it would be otherwise */
+    font-size: 75%;  /* percentage of what it would be otherwise */
     vertical-align: bottom;
     padding-bottom: 2px;
     padding-left: 0px;
@@ -222,6 +238,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     -ms-user-select: none;  /* IE 10+ */
     user-select: none;  /* "future" */
 
+    font-weight: normal;
     font-family: sans-serif;  /* currently it's text, show proportional */
 }
 

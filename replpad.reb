@@ -36,11 +36,20 @@
 replpad-reset: js-awaiter [
     {Clear contents of the browser window}
 ]{
-    // The output strategy is to merge content into the last div, until
-    // a newline is seen.  Kick it off with an empty div, so there's
-    // always somewhere the first output can stick to.
+    replpad.innerHTML = ""
+
+    // !!! This used to say:
     //
-    replpad.innerHTML = "<div class='line'>&zwnj;</div>"
+    // "The output strategy is to merge content into the last div, until
+    // a newline is seen.  Kick it off with an empty div, so there's
+    // always somewhere the first output can stick to."
+    //
+    // But that was leaving a blank line before the first output note, so the
+    // note wasn't at the top of the screen.  Leaving it out seems to work;
+    // review invariants.
+    //
+    /* replpad.innerHTML = "<div class='line'>&zwnj;</div>" */
+
     setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
