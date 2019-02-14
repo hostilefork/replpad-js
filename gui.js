@@ -163,6 +163,13 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
             )
     }
 
+    // Due to origin policy restrictions, you have to have the libr3.worker.js
+    // in the same place your page is coming from.  Fortunately this is a
+    // fixed file.
+    //
+    if (suffix == ".worker.js")
+        return "libr3" + suffix
+
     // !!! These files should only be generated if you are debugging, and
     // are optional.  But it seems locateFile() can be called to ask for
     // them anyway--even if it doesn't try to fetch them (e.g. no entry in

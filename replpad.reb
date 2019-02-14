@@ -297,19 +297,25 @@ main: adapt 'console [
 
     replpad-reset
 
-    git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
+    replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
+    console-git: https://github.com/metaeducation/ren-c/blob/master/src/extensions/console/ext-console-init.reb
     chat: https://chat.stackoverflow.com/rooms/291/rebol
     forum: https://forum.rebol.info
 
+    link: [href label] => [
+        unspaced [{<a href="} href {" target="_blank">} label {</a>}]
+    ]
+
     replpad-write/note/html spaced [
         {<b><i>Guess what...</i></b> this REPL is actually written in Rebol!}
-        {Check out the} unspaced [{<a href="} git {">source on GitHub</a>.}]
+        {Check out the} (link replpad-git {bridge to JavaScript})
+        {as well as the} unspaced [(link console-git {Console Module}) "."]
 
         {While the techniques are still in early development, they show a}
         {lot of promise for JavaScript/Rebol interoperability.}
 
-        {Discuss it on} unspaced [{<a href="} chat {">StackOverflow chat</a>}]
-        {or join the} unspaced [{<a href="} forum {">Discourse forum</a>.}]
+        {Discuss it on} (link chat {StackOverflow chat})
+        {or join the} unspaced [(link forum {Discourse forum}) "."]
 
         {<br><br>}
 
