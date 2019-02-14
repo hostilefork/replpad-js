@@ -47,19 +47,19 @@
 var pump
 
 
-// Currently, the only way the REPL runs is if you build using "emterpreter":
+// There are two possibilities for how the REPL can accomplish I/O in a way
+// that appears synchronous: using pthreads or using the "Emterpreter":
 //
+// https://emscripten.org/docs/porting/pthreads.html
 // https://github.com/kripken/emscripten/wiki/Emterpreter
 //
-// Future directions would run rebPromise() on a spawned thread, and hold the
-// stack in a suspended state when asynchronous demands are made, then using
-// Atomics.wait() to be signaled when the resolve() or reject() are called by
-// code on the GUI thread.  This requires writing some new code and also the
-// support for SharedArrayBuffer, which many browsers don't have enabled yet:
+// pthreads rely on SharedArrayBuffer and WASM threading, and hence aren't
+// ready in quite all JS environments yet.  However, the resulting build
+// products are half the size of what the emterpreter makes, and around
+// THIRTY TIMES FASTER.  Hence, the emterpreter is not an approach that is
+// likely to stick around any longer than it has to.
 //
-// https://stackoverflow.com/questions/51351983/
-//
-var using_emterpreter = true
+var use_emterpreter = false
 
 var is_localhost = (  // helpful to put certain debug behaviors under this flag
     location.hostname === "localhost"
@@ -125,6 +125,13 @@ else {
     }
 }
 
+var lib_suffixes = [
+    ".js", ".wasm",  // all builds
+    ".wast", ".temp.asm.js",  // debug only
+    ".bytecode",  // emterpreter builds only
+    ".js.mem", ".worker.js"  // non-emterpreter builds only
+]
+
 
 // At this moment, there are 3 files involved in the download of the library:
 // a .JS loader stub, a .WASM loader stub, and a large emterpreter .BYTECODE
@@ -137,16 +144,37 @@ else {
 // it has to be interpreted by JavaScript.  See the README.md for how to
 // configure your server correctly.
 //
-function libRebolComponentURL(extension) {
-    let components = [
-        ".js", ".wasm",  // all builds
-        ".bytecode",  // emterpreter builds only
-        ".js.mem",  // non-emterpreter builds only
-        ".wast", ".temp.asm.js",  // debug only
-    ]
+function libRebolComponentURL(suffix) {  // suffix includes the dot
+    if (!lib_suffixes.includes(suffix))
+        throw Error("Unknown libRebol component extension: " + suffix)
 
-    if (!components.includes(extension))
-        throw Error("Unknown libRebol component extension: " + extension)
+    if (use_emterpreter) {
+        if (suffix == ".worker.js" || suffix == "libr3.js.mem")
+            throw Error(
+                "Asking for " + suffix + " file "
+                + " in an emterpreter build (should only be for pthreads)"
+            )
+    }
+    else {
+        if (suffix == ".bytecode")
+            throw Error(
+                "Asking for " + suffix + " file "
+                + " in an emterpreter build (should only be for pthreads)"
+            )
+    }
+
+    // !!! These files should only be generated if you are debugging, and
+    // are optional.  But it seems locateFile() can be called to ask for
+    // them anyway--even if it doesn't try to fetch them (e.g. no entry in
+    // the network tab that tried and failed).  Review build settings to
+    // see if there's a way to formalize this better to know what's up.
+    //
+    if (false) {
+        if (suffix == ".wast" || suffix == ".temp.asm.js")
+            throw Error(
+                "Asking for " + suffix + " file "
+                + " in a non-debug build (only for debug builds)")
+    }
 
     let dir = libr3_git_short_hash  // empty string ("") is falsey in JS
             ? "http://metaeducation.s3.amazonaws.com/travis-builds/0.16.2/"
@@ -154,7 +182,7 @@ function libRebolComponentURL(extension) {
 
     let opt_dash = libr3_git_short_hash ? "-" : "";
 
-    return dir + "libr3" + opt_dash + libr3_git_short_hash + extension
+    return dir + "libr3" + opt_dash + libr3_git_short_hash + suffix
 }
 
 
@@ -184,36 +212,22 @@ var Module = {
         //
         console.info("Module.locateFile() asking for .wasm address of " + s)
 
+        let stem = s.substr(0, s.indexOf('.'))
+        let suffix = s.substr(s.indexOf('.'))
+
         // Although we rename the files to add the Git Commit Hash before
         // uploading them to S3, it seems that for some reason the .js hard
         // codes the name the file was built under in this request.  :-/
         // So even if the request was for `libr3-xxxxx.js` it will be asked
         // in this routine as "Where is `libr3.wasm`
         //
-        if (s == "libr3.wasm")
-            return libRebolComponentURL(".wasm")
-
-        if (s == "libr3.js.mem") {
-            if (using_emterpreter)
-                throw Error(
-                    "Module.locateFile() asked for libr3.js.mem"
-                    + " in an emterpreter build (should only be for pthreads)"
-                )
-            return libRebolComponentURL(".js.mem")
-        }
-
-        // !!! These files should only be generated if you are debugging, and
-        // are optional.  But it seems locateFile() can be called to ask for
-        // them anyway--even if it doesn't try to fetch them (e.g. no entry in
-        // the network tab that tried and failed).  Review build settings to
-        // see if there's a way to formalize this better to know what's up.
+        // For the moment, sanity check to libr3.  But it should be `rebol`,
+        // or any name you choose to build with.
         //
-        if (s == "libr3.wast")
-            return libRebolComponentURL(".wast")
-        if (s == "libr3.temp.asm.js")
-            return libRebolComponentURL(".temp.asm.js")
+        if (stem != "libr3")
+            throw Error("Unknown libRebol stem: " + stem)
 
-        throw Error("Module.locateFile() doesn't recognize " + s)
+        return libRebolComponentURL(suffix)
     },
 
     // This is a callback that happens sometime after you load the emscripten
@@ -227,7 +241,7 @@ var Module = {
     // You have to get the data into the Module['emterpreterFile'] before
     // trying to load the emscripten'd code.
     //
-    emterpreterFile: "<if `using_emterpreter`, fetch() of %libr3.bytecode>"
+    emterpreterFile: "<if `use_emterpreter`, fetch() of %libr3.bytecode>"
 
     // The rest of these fields will be filled in by the boilerplate of the
     // Emterpreter.js file when %libr3.js loads (it looks for an existing
@@ -273,7 +287,7 @@ var runtime_init_promise = new Promise(function(resolve, reject) {
 // See notes on short_hash_promiser for why this is a "promiser", not a promise
 //
 var bytecode_promiser
-if (!using_emterpreter)
+if (!use_emterpreter)
     bytecode_promiser = () => {
         console.log("Not emterpreted libr3.js, not requesting bytecode")
         return Promise.resolve()
@@ -409,8 +423,24 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
 
   }).then(function() {  // emscripten's onRuntimeInitialized() has no args
 
-    console.log('Executing Rebol boot code and initializing extensions...')
+    console.log('Executing Rebol boot code...')
     rebStartup()
+
+    // There is currently no method to dynamically load extensions with
+    // r3.js, so the only extensions you can load are those that are picked
+    // to be built-in while compiling the lib.  The "JavaScript extension" is
+    // essential--it contains JS-NATIVE and JS-AWAITER.
+    //
+    // !!! Upcoming changes hope to include the console extension, to offer
+    // the same skinnable console logic...including debug behavior.  For now,
+    // it is not built in, and a simple loop of Rebol code in %replpad.reb
+    // just prints a prompt and does evaluations in a loop.
+    //
+    console.log('Initializing extensions')
+    rebElide(
+        "for-each collation builtin-extensions",
+            "[load-extension collation]"
+    )
   })
   .then(replpad_reb_promiser)
   .then(function(text) {
@@ -710,17 +740,28 @@ onInputKeyDown = function(e) {
         let new_line = load("<div class='line'>&zwnj;</div>")
         replpad.appendChild(new_line)
 
-        // !!! Due to limitations of the emterpreter, EXPORTED_FUNCTIONS may
-        // not be called during an emscripten_sleep_with_yield().  This means
-        // that resolving the promise that REPLPAD-INPUT is waiting on can't
-        // be done with a rebText() value, because we can't call rebText()!
-        // hence the resolver takes a function which is called to produce the
-        // value at a time when it is no longer yielding, and it's safe to
-        // call the libRebol API again.
-        //
-        input_resolve(function () {
-            return rebText(text)
-        })
+        if (use_emterpreter) {
+            //
+            // !!! If building with the emterpreter, EXPORTED_FUNCTIONS may
+            // not be called during an emscripten_sleep_with_yield().  This
+            // means resolving the promise that REPLPAD-INPUT is waiting on
+            // can't be done with a rebText() value, because we can't call
+            // rebText()!
+            //
+            // Hence the resolver takes a function which is called to produce
+            // the value at a time when it is no longer yielding, and it's safe
+            // to call the libRebol API again.
+            //
+            input_resolve(function () {
+                return rebText(text)
+            })
+        }
+        else {
+            // If we're using pthreads, we should be able to make API requests
+            // from the GUI, and give the JS-AWAITER's return value directly.
+            //
+            input_resolve(rebText(text))
+        }
         input_resolve = undefined
 
         e.preventDefault()  // Allowing enter puts a <br>
