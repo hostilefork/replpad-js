@@ -27,8 +27,8 @@
     message
 ]{
     console.log(
-        "@" + rebTick() + ": "
-        + rebSpell("form", rebR(rebArg('message')))
+        "@" + reb.Tick() + ": "
+        + reb.Spell("form", reb.R(reb.Arg('message')))
     )
 }
 
@@ -60,9 +60,9 @@ replpad-write: js-awaiter [
     /note "Format with CSS yellow sticky-note class"
     /html
 ]{
-    let param = rebSpell(rebR(rebArg('param')))
-    let note = rebDid(rebR(rebArg('note')))
-    let html = rebDid(rebR(rebArg('html')))
+    let param = reb.Spell(reb.R(reb.Arg('param')))
+    let note = reb.Did(reb.R(reb.Arg('note')))
+    let html = reb.Did(reb.R(reb.Arg('html')))
 
     // If not /HTML and just code, for now assume that any TAG-like things
     // should not be interpreted by the browser.  So escape--but do so using
@@ -161,7 +161,7 @@ lib/wait: wait: js-awaiter [
     {Sleep for the requested number of seconds}
     seconds [integer! decimal!]
 ]{
-    setTimeout(resolve, 1000 * rebUnboxDecimal(rebR(rebArg("seconds"))))
+    setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.R(reb.Arg("seconds"))))
 }
 
 
@@ -188,7 +188,7 @@ lib/browse: browse: function [
         //
         // https://stackoverflow.com/a/11384018/
         //
-        let url = rebSpell(rebR(rebArg('url')))
+        let url = reb.Spell(reb.R(reb.Arg('url')))
 
         if (false) {
             let win = window.open(url, '_blank');
@@ -209,7 +209,7 @@ lib/browse: browse: function [
 js-watch-visible: js-awaiter [
     visible [logic!]
 ]{
-    let visible = rebDid(rebR(rebArg('visible')))
+    let visible = reb.Did(reb.R(reb.Arg('visible')))
 
     let right_div = document.getElementById('right')
 
@@ -287,7 +287,7 @@ about: does [
 ]
 
 ; We don't want a deep stack when reporting errors or running user code.  So
-; a rebPromise("main") is run.
+; a reb.Promise("main") is run.
 ;
 ; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
 ; https://github.com/hostilefork/replpad-js/issues/10

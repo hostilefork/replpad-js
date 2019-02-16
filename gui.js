@@ -377,8 +377,8 @@ else {
             // include a JS base-64 decoder, use the one in Rebol, since it
             // is initialized at this point!
             //
-            let decoded = rebSpell(
-                "as text! debase/base", rebT(json.content), rebI(64)
+            let decoded = reb.Spell(
+                "as text! debase/base", reb.T(json.content), reb.I(64)
             )
             return decoded
           })
@@ -431,7 +431,7 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
   }).then(function() {  // emscripten's onRuntimeInitialized() has no args
 
     console.log('Executing Rebol boot code...')
-    rebStartup()
+    reb.Startup()
 
     // There is currently no method to dynamically load extensions with
     // r3.js, so the only extensions you can load are those that are picked
@@ -444,7 +444,7 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
     // just prints a prompt and does evaluations in a loop.
     //
     console.log('Initializing extensions')
-    rebElide(
+    reb.Elide(
         "for-each collation builtin-extensions",
             "[load-extension collation]"
     )
@@ -453,10 +453,10 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
   .then(function(text) {
 
     console.log("Running %replpad.reb")
-    rebElide(text)
-    console.log("Finished running replpad.reb @ tick " + rebTick())
+    reb.Elide(text)
+    console.log("Finished running replpad.reb @ tick " + reb.Tick())
 
-    return rebPromise("main")
+    return reb.Promise("main")
 
   }).catch(function(error) {
 
@@ -752,22 +752,22 @@ onInputKeyDown = function(e) {
             // !!! If building with the emterpreter, EXPORTED_FUNCTIONS may
             // not be called during an emscripten_sleep_with_yield().  This
             // means resolving the promise that REPLPAD-INPUT is waiting on
-            // can't be done with a rebText() value, because we can't call
-            // rebText()!
+            // can't be done with a reb.Text() value, because we can't call
+            // reb.Text()!
             //
             // Hence the resolver takes a function which is called to produce
             // the value at a time when it is no longer yielding, and it's safe
             // to call the libRebol API again.
             //
             input_resolve(function () {
-                return rebText(text)
+                return reb.Text(text)
             })
         }
         else {
             // If we're using pthreads, we should be able to make API requests
             // from the GUI, and give the JS-AWAITER's return value directly.
             //
-            input_resolve(rebText(text))
+            input_resolve(reb.Text(text))
         }
         input_resolve = undefined
 
