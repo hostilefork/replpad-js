@@ -125,7 +125,7 @@ lib/print: print: function [
         return write-stdout newline
     ]
 
-    (write-stdout/(html) spaced line) then [write-stdout newline]
+    (write-stdout/(html) try spaced line) then [write-stdout newline]
 ]
 
 
@@ -270,15 +270,6 @@ about: does [
     print [
         {This Rebol is running completely in your browser!  The evaluations}
         {aren't being sent to a remote server--the interpreter is client side!}
-        newline newline
-
-        {To accomplish the feat of synchronous I/O you are seeing to do the}
-        {console, it's currently having to do some circuitous stuff.  It is}
-        {using the "Emterpreter" from the Emscripten project--a bytecode}
-        {interpreted by JavaScript, as opposed to running WebAssembly direct.}
-        {This means it's bigger and slower than it needs to be, so switching}
-        {it over to use another model (e.g. SharedArrayBuffer and pthreads)}
-        {is high on the agenda.}
         newline newline
 
         {Please don't hesitate to submit any improvements, no matter how}

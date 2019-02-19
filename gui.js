@@ -438,11 +438,6 @@ libr3_git_hash_promiser()  // don't ()-invoke other promisers, pass by value!
     // to be built-in while compiling the lib.  The "JavaScript extension" is
     // essential--it contains JS-NATIVE and JS-AWAITER.
     //
-    // !!! Upcoming changes hope to include the console extension, to offer
-    // the same skinnable console logic...including debug behavior.  For now,
-    // it is not built in, and a simple loop of Rebol code in %replpad.reb
-    // just prints a prompt and does evaluations in a loop.
-    //
     console.log('Initializing extensions')
     reb.Elide(
         "for-each collation builtin-extensions",
