@@ -149,7 +149,7 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
         throw Error("Unknown libRebol component extension: " + suffix)
 
     if (use_emterpreter) {
-        if (suffix == ".worker.js" || suffix == "libr3.js.mem")
+        if (suffix == ".worker.js" || suffix == ".js.mem")
             throw Error(
                 "Asking for " + suffix + " file "
                 + " in an emterpreter build (should only be for pthreads)"
