@@ -754,4 +754,90 @@ OnMenuPaste = function() {
 
 onGuiInitialized()
 
+r3_ready_promise.then(replpad_reb_promiser)
+  .catch(function(error) {
+
+    console.error(error)  // shows stack trace (if user opens console...)
+    alert(error.toString())  // notifies user w/no console open
+
+  })
+
 }) // lame to indent nearly this entire file, just to put it in the handler
+
+
+// %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
+// run after the JavaScript extension has been loaded.
+//
+// When editing locally, one wants the local server to provide the replpad.reb
+// file.  It's just an ordinary fetch.  But using the GitHub API to fetch
+// files from elsewhere has the advantage of potentially letting people do
+// their own development, push changes there, and ask (via some URL fragment)
+// to run that.
+//
+var replpad_reb_promiser
+if (is_localhost) {
+    replpad_reb_promiser = () => {
+        console.log("Fetching %replpad.reb from localhost (not GitHub)")
+        console.log("(This is based on detection, see gui.js for override)")
+
+        return fetch('replpad.reb')
+          .then(function(response) {
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.text()  // text() method a promise ("USVString")
+          }).then(function(text) {
+
+            console.log("Running %replpad.reb")
+            reb.Elide(text)
+            console.log("Finished running replpad.reb @ tick " + reb.Tick())
+
+            return reb.Promise("main")
+          })
+    }
+}
+else {
+    // GitHub's response is a little weirder, as JSON, and you have to
+    // extract the blob out of it.
+    //
+    replpad_reb_promiser = () => {
+        console.log("Fetching %replpad.reb from GitHub (not localhost)")
+        console.log("(This is based on detection, see gui.js for override)")
+
+        let owner = "hostilefork"
+        let repo = "replpad-js"
+        let branch = "master"  // !!! look into API for branch choice here
+
+        let url = "https://api.github.com/repos/" + owner + "/" + repo
+            + "/contents/" + 'replpad.reb'
+
+        return fetch(url)
+          .then(function (response) {
+
+            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+            if (!response.ok)
+                throw Error(response.statusText)  // handled by .catch() below
+
+            return response.json()
+
+          }).then(function (json) {
+            //
+            // The JSON request from GitHub comes back as Base64.  Rather than
+            // include a JS base-64 decoder, use the one in Rebol, since it
+            // is initialized at this point!
+            //
+            let decoded = reb.Spell(
+                "as text! debase/base", reb.T(json.content), reb.I(64)
+            )
+            return decoded
+          }).then(function(text) {
+
+            console.log("Running %replpad.reb")
+            reb.Elide(text)
+            console.log("Finished running replpad.reb @ tick " + reb.Tick())
+
+            return reb.Promise("main")
+          })
+    }
+}
