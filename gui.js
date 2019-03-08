@@ -755,7 +755,12 @@ OnMenuPaste = function() {
 onGuiInitialized()
 
 r3_ready_promise.then(replpad_reb_promiser)
-  .catch(function(error) {
+  .then(function() {
+
+    console.log("Calling rebShutdown()")
+    reb.Shutdown()
+
+  }).catch(function(error) {
 
     console.error(error)  // shows stack trace (if user opens console...)
     alert(error.toString())  // notifies user w/no console open

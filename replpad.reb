@@ -315,3 +315,18 @@ main: adapt 'console [
 
     ; Fall through to normal CONSOLE loop handling
 ]
+
+
+; Having QUIT exit the interpreter can be useful in some debug builds which
+; check various balances of state.
+; https://github.com/hostilefork/replpad-js/issues/17
+;
+hijack 'quit adapt copy :quit [
+    replpad-write/note/html spaced [
+        {<b><i>Sorry to see you go...</i></b>}
+
+        {<a href=".">click to restart interpreter</a>}
+    ]
+
+    ; Fall through to normal QUIT handling
+]
