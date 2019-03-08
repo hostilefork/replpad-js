@@ -60,9 +60,9 @@ replpad-write: js-awaiter [
     /note "Format with CSS yellow sticky-note class"
     /html
 ]{
-    let param = reb.Spell(reb.R(reb.Arg('param')))
-    let note = reb.Did(reb.R(reb.Arg('note')))
-    let html = reb.Did(reb.R(reb.Arg('html')))
+    let param = reb.Spell(reb.ArgR('param'))
+    let note = reb.Did(reb.ArgR('note'))
+    let html = reb.Did(reb.ArgR('html'))
 
     // If not /HTML and just code, for now assume that any TAG-like things
     // should not be interpreted by the browser.  So escape--but do so using
@@ -161,7 +161,7 @@ lib/wait: wait: js-awaiter [
     {Sleep for the requested number of seconds}
     seconds [integer! decimal!]
 ]{
-    setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.R(reb.Arg("seconds"))))
+    setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR("seconds")))
 }
 
 
@@ -188,7 +188,7 @@ lib/browse: browse: function [
         //
         // https://stackoverflow.com/a/11384018/
         //
-        let url = reb.Spell(reb.R(reb.Arg('url')))
+        let url = reb.Spell(rebArgR('url'))
 
         if (false) {
             let win = window.open(url, '_blank');
