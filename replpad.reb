@@ -165,17 +165,131 @@ lib/wait: wait: js-awaiter [
 }
 
 
-lib/write: write: lib/read: read: function [
+lib/write: write: function [
     source [any-value!]
+    data [any-value!]
 ][
-    print [
-        {For various reasons (many of them understandable) there are some}
-        {pretty strict limitations on web browsers being able to make HTTP}
-        {requests or read local files.  It's possible to read from GitHub URLs}
-        {or other things that use CORS.  Such features are already used by the}
-        {REPL and will be added to READ, see: https://enable-cors.org/}
+    fail 'source [
+        {WRITE is not supported in the web console yet, due to the browser's}
+        {imposition of a security model (e.g. no local filesystem access).}
+        {Features may be added in a more limited sense, for doing HTTP POST}
+        {in form submissions.  Get involved if you know how!}
     ]
 ]
+
+
+github-read: js-awaiter [
+    owner [text!]
+    repo [text!]
+    branch [text!]
+    path [text!]  ; FILE! ?  Require leading slash?
+]{
+    let owner = reb.Spell(reb.ArgR("owner"))
+    let repo = reb.Spell(reb.ArgR("repo"))
+    let branch = reb.Spell(reb.ArgR("branch"))
+    if (branch != "master")
+        console.error("!!! API handling for non-master branch needed")
+    let path = reb.Spell(reb.ArgR("path"))
+
+    let url = "https://api.github.com/repos/" + owner + "/" + repo
+        + "/contents" + path
+
+    console.log("Fetching GitHub file: " + url)
+
+    return fetch(url)
+      .then(function (response) {
+
+        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+        if (!response.ok)
+            throw Error(response.statusText)  // handled by .catch() below
+
+        return response.json()
+
+      }).then(function (json) {  // GitHub gives back Base64 in JSON envelope
+
+        resolve(function () {
+            return reb.Run("debase/base", reb.T(json.content), reb.I(64))
+        })  // if using emterpreter, need callback to use APIs in resolve()
+
+      }).catch(function(e) {
+
+        console.error(e)
+
+      })
+}
+
+
+file-read-text: js-awaiter [
+    return: [text!]
+    location [file!]
+]{
+    let location = reb.Spell(reb.ArgR("location"))
+
+    return fetch(location)  // can be relative
+      .then(function (response) {
+
+        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+        if (!response.ok)
+            throw Error(response.statusText)  // handled by .catch() below
+
+        return response.text()
+
+      }).then(function (text) {
+
+        resolve(function () {
+            return reb.Text(text)
+        })  // if using emterpreter, need callback to use APIs in resolve()
+
+      }).catch(function(e) {
+
+        console.error(e)
+
+      })
+}
+
+
+lib/read: read: function [
+    source [any-value!]
+    /string
+][
+    if url? source [
+        parse source [
+            "https://github.com/"
+                copy owner: to "/" skip
+                copy repo: to "/" skip
+                "blob/"
+                copy branch: to "/"
+                copy path: to end  ; include the leading /
+        ] else [
+            fail 'source [
+                {There are strict limitations on web browsers being able to}
+                {request URLs.  For the moment, READ works on a GitHub "blob"}
+                {URL only, using CORS.  https://enable-cors.org/}
+            ]
+        ]
+
+        ; !!! Questionable behavior being overturned: COPY out of a URL!
+        ; makes a URL! and not a TEXT!.  Work around it for now.
+
+        owner: as text! owner
+        repo: as text! repo
+        branch: as text! branch
+        path: as text! path
+
+        data: github-read owner repo branch path
+        return either string [as text! data] [data]
+    ]
+
+    if file? source [
+        if not string [
+            fail {ArrayBuffer binary READ of BINARY! not yet implemented}
+        ]
+        return file-read-text source
+    ]
+
+    fail 'source [{Cannot READ value of type} mold type of source]
+]
+
 
 lib/browse: browse: function [
     {Provide a clickable link to the user to open in the browser}
