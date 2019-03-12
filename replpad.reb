@@ -291,6 +291,18 @@ lib/read: read: function [
 ]
 
 
+hijack 'do adapt copy :do [
+    ;
+    ; !!! DO expects to be able to read source as BINARY!, but that feature is
+    ; not yet implemented as it would depend on an API entry point that took
+    ; a JS ArrayBuffer to build a binary out of.  Force read as TEXT!
+    ;
+    if file? :source [
+        source: read/string source
+    ]
+]
+
+
 lib/browse: browse: function [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
