@@ -196,7 +196,7 @@ github-read: js-awaiter [
 
     console.log("Fetching GitHub file: " + url)
 
-    return fetch(url)
+    fetch(url)
       .then(function (response) {
 
         // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
@@ -225,7 +225,7 @@ file-read-text: js-awaiter [
 ]{
     let location = reb.Spell(reb.ArgR("location"))
 
-    return fetch(location)  // can be relative
+    fetch(location)  // can be relative
       .then(function (response) {
 
         // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
