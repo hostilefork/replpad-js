@@ -12,12 +12,30 @@
 // THIRTY TIMES FASTER.  Hence, the emterpreter is not an approach that is
 // likely to stick around any longer than it has to.
 //
-var use_emterpreter = false
+var hasWasm = typeof WebAssembly === "object"
+console.log("Has WebAssembly => " + hasWasm)
+
+var hasShared = typeof SharedArrayBuffer !== "undefined"
+console.log("Has SharedArrayBuffer => " + hasShared)
+
+var hasThreads = false
+if (hasWasm && hasShared) {
+    let test = new WebAssembly.Memory({
+        "initial": 0, "maximum": 0, "shared": true
+    });
+    hasThreads = (test.buffer instanceof SharedArrayBuffer)
+}
+console.log("Has Threads => " + hasThreads)
+
+var use_emterpreter = ! (hasWasm && hasThreads)
+
+console.log("Use Emterpreter => " + use_emterpreter)
 
 var is_localhost = (  // helpful to put certain debug behaviors under this flag
     location.hostname === "localhost"
     || location.hostname === "127.0.0.1"
-    || location.hostname.startsWith("192.168")
+    //|| location.hostname.startsWith("192.168")
+    // disabled, so you can test 'remote' behavior from local net
 )
 if (is_localhost) {
     var old_alert = window.alert
@@ -102,7 +120,7 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
         throw Error("Unknown libRebol component extension: " + suffix)
 
     if (use_emterpreter) {
-        if (suffix == ".worker.js" || suffix == ".js.mem")
+        if (suffix == ".worker.js")
             throw Error(
                 "Asking for " + suffix + " file "
                 + " in an emterpreter build (should only be for pthreads)"
@@ -135,10 +153,10 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
                 "Asking for " + suffix + " file "
                 + " in a non-debug build (only for debug builds)")
     }
-
     let dir = libr3_git_short_hash  // empty string ("") is falsey in JS
-            ? "https://metaeducation.s3.amazonaws.com/travis-builds/0.16.2/"
-            : "../ren-c/make/"  // assumes replpad-js/ is peer to ren-c/ dir
+            ? "http://metaeducation.s3.amazonaws.com/travis-builds/"
+            : "./"
+    dir += use_emterpreter ? "0.16.1/" : "0.16.2/"
 
     let opt_dash = libr3_git_short_hash ? "-" : "";
 
@@ -312,8 +330,12 @@ var r3_ready_promise = libr3_git_hash_promiser()  // don't ()-invoke other promi
     return gui_init_promise
 
   }).then(function() {  // our onGuiInitialized() message currently has no args
+    let msg = 'Loading/Running ' + libRebolComponentURL(".js") + '...'
+    if (use_emterpreter) {
+        msg +=("\nUsing Emterpreter is SLOW! Be patient...")
+    }
+    console.log(msg)
 
-    console.log('Loading/Running %libr3.js...')
     return runtime_init_promise
 
   }).then(function() {  // emscripten's onRuntimeInitialized() has no args
