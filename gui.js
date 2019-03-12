@@ -754,10 +754,73 @@ OnMenuPaste = function() {
 
 onGuiInitialized()
 
-r3_ready_promise.then(replpad_reb_promiser)
-  .then(function() {
+r3_ready_promise.then(function() {
 
-    console.log("Calling rebShutdown()")
+    // %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
+    // run after libr3 is loaded and the JavaScript extension is initialized.
+
+    console.log("fetch()-ing %replpad.reb from host")
+
+    return fetch('replpad.reb')
+      .then(function(response) {
+
+        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+        if (!response.ok)
+            throw Error(response.statusText)  // handled by .catch() below
+
+        return response.text()  // text() method a promise ("USVString")
+
+      }).then(function(text) {
+
+        // Note that %replpad.reb contains JS-NATIVE/JS-AWAITER declarations,
+        // so it can only run after libr3 and JavaScript extension are loaded.
+
+        console.log("Running %replpad.reb")
+        reb.Elide(text)
+        console.log("Finished running replpad.reb @ tick " + reb.Tick())
+
+        // Running replpad.reb defines MAIN, which is an adaptation of the
+        // CONSOLE command from the Console Extension.
+        //
+        // The entire console session (with many INPUT and PRINT commands) is
+        // run in one long Promise.  If you are using a wasm/pthread build,
+        // then all the Rebol code will be running on a JavaScript worker...
+        // which will suspend that worker stack any time a synchronous need of
+        // JavaScript comes up--and that synchronous need will be run via a
+        // setTimeout()-based handler on the GUI thread.  This is because most
+        // anything you want to do with JavaScript is going to involve data
+        // and functions available only on the GUI thread.
+        //
+        // Hence this long call to main only actually "fullfills the promise"
+        // when the whole interactive session is finished.
+        //
+        // See also: "On Giving libRebol JS More Powers than JavaScript"
+        // https://forum.rebol.info/t/849
+
+        return reb.Promise("main")
+      })
+
+}).then(function(exit_code) {
+
+    // You can QUIT and wind up here.  That raises the question of what "QUIT"
+    // means on a web page:
+    //
+    // https://github.com/hostilefork/replpad-js/issues/17
+    //
+    // In C, the console returns an integer result to the shell.  Not clear
+    // what good that value does us here, but...we do get it.  :-/
+
+    console.log("CONSOLE exited with " + reb.UnboxInteger(exit_code))
+    reb.Release(exit_code)
+
+    // In theory, this is a good time to use the various debug/shutdown checks
+    // that everything balances to 0.  But in practice, it's rather prohibitive
+    // to do a full debug build in emscripten (the emterpreter version,
+    // especially).  See also concerns here:
+    //
+    // https://github.com/hostilefork/replpad-js/issues/22
+
+    console.log("Calling reb.Shutdown()")
     reb.Shutdown()
 
   }).catch(function(error) {
@@ -768,81 +831,3 @@ r3_ready_promise.then(replpad_reb_promiser)
   })
 
 }) // lame to indent nearly this entire file, just to put it in the handler
-
-
-// %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
-// run after the JavaScript extension has been loaded.
-//
-// When editing locally, one wants the local server to provide the replpad.reb
-// file.  It's just an ordinary fetch.  But using the GitHub API to fetch
-// files from elsewhere has the advantage of potentially letting people do
-// their own development, push changes there, and ask (via some URL fragment)
-// to run that.
-//
-var replpad_reb_promiser
-if (is_localhost) {
-    replpad_reb_promiser = () => {
-        console.log("Fetching %replpad.reb from localhost (not GitHub)")
-        console.log("(This is based on detection, see gui.js for override)")
-
-        return fetch('replpad.reb')
-          .then(function(response) {
-            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-            if (!response.ok)
-                throw Error(response.statusText)  // handled by .catch() below
-
-            return response.text()  // text() method a promise ("USVString")
-          }).then(function(text) {
-
-            console.log("Running %replpad.reb")
-            reb.Elide(text)
-            console.log("Finished running replpad.reb @ tick " + reb.Tick())
-
-            return reb.Promise("main")
-          })
-    }
-}
-else {
-    // GitHub's response is a little weirder, as JSON, and you have to
-    // extract the blob out of it.
-    //
-    replpad_reb_promiser = () => {
-        console.log("Fetching %replpad.reb from GitHub (not localhost)")
-        console.log("(This is based on detection, see gui.js for override)")
-
-        let owner = "hostilefork"
-        let repo = "replpad-js"
-        let branch = "master"  // !!! look into API for branch choice here
-
-        let url = "https://api.github.com/repos/" + owner + "/" + repo
-            + "/contents/" + 'replpad.reb'
-
-        return fetch(url)
-          .then(function (response) {
-
-            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-            if (!response.ok)
-                throw Error(response.statusText)  // handled by .catch() below
-
-            return response.json()
-
-          }).then(function (json) {
-            //
-            // The JSON request from GitHub comes back as Base64.  Rather than
-            // include a JS base-64 decoder, use the one in Rebol, since it
-            // is initialized at this point!
-            //
-            let decoded = reb.Spell(
-                "as text! debase/base", reb.T(json.content), reb.I(64)
-            )
-            return decoded
-          }).then(function(text) {
-
-            console.log("Running %replpad.reb")
-            reb.Elide(text)
-            console.log("Finished running replpad.reb @ tick " + reb.Tick())
-
-            return reb.Promise("main")
-          })
-    }
-}
