@@ -196,26 +196,19 @@ github-read: js-awaiter [
 
     console.log("Fetching GitHub file: " + url)
 
-    fetch(url)
-      .then(function (response) {
+    let response = await fetch(url)
 
-        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-        if (!response.ok)
-            throw Error(response.statusText)  // handled by .catch() below
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText)  // handled by .catch() below
 
-        return response.json()
+    let json = await response.json()
 
-      }).then(function (json) {  // GitHub gives back Base64 in JSON envelope
+    // GitHub gives back Base64 in JSON envelope
 
-        resolve(function () {
-            return reb.Run("debase/base", reb.T(json.content), reb.I(64))
-        })  // if using emterpreter, need callback to use APIs in resolve()
-
-      }).catch(function(e) {
-
-        console.error(e)
-
-      })
+    resolve(function () {
+        return reb.Run("debase/base", reb.T(json.content), reb.I(64))
+    })  // if using emterpreter, need callback to use APIs in resolve()
 }
 
 
@@ -225,26 +218,17 @@ file-read-text: js-awaiter [
 ]{
     let location = reb.Spell(reb.ArgR("location"))
 
-    fetch(location)  // can be relative
-      .then(function (response) {
+    let response = await fetch(location)  // can be relative
 
-        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-        if (!response.ok)
-            throw Error(response.statusText)  // handled by .catch() below
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText)
 
-        return response.text()
+    let text = await response.text()
 
-      }).then(function (text) {
-
-        resolve(function () {
-            return reb.Text(text)
-        })  // if using emterpreter, need callback to use APIs in resolve()
-
-      }).catch(function(e) {
-
-        console.error(e)
-
-      })
+    resolve(function () {
+        return reb.Text(text)
+    })  // if using emterpreter, need callback to use APIs in resolve()
 }
 
 
@@ -267,14 +251,6 @@ lib/read: read: function [
                 {URL only, using CORS.  https://enable-cors.org/}
             ]
         ]
-
-        ; !!! Questionable behavior being overturned: COPY out of a URL!
-        ; makes a URL! and not a TEXT!.  Work around it for now.
-
-        owner: as text! owner
-        repo: as text! repo
-        branch: as text! branch
-        path: as text! path
 
         data: github-read owner repo branch path
         return either string [as text! data] [data]
