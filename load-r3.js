@@ -137,7 +137,7 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
     }
 
     let dir = libr3_git_short_hash  // empty string ("") is falsey in JS
-            ? "https://metaeducation.s3.amazonaws.com/travis-builds/0.16.2/"
+            ? "https://metaeducation.s3.amazonaws.com/travis-builds/0.16.1/"
             : "../ren-c/make/"  // assumes replpad-js/ is peer to ren-c/ dir
 
     let opt_dash = libr3_git_short_hash ? "-" : "";
