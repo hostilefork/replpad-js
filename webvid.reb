@@ -20,9 +20,9 @@ REBOL [
 ]
 
 init-webvid: js-awaiter [] {
-    // 
+    //
     // https://stackoverflow.com/a/577002
-    // 
+    //
     /* reb.Elide("print {Loading %webvid.css}") */  // !!! review
     var head  = document.getElementsByTagName('head')[0]
     var link  = document.createElement('link')
@@ -35,14 +35,16 @@ init-webvid: js-awaiter [] {
 
     // https://stackoverflow.com/a/14521482
     //
-    var script = document.createElement('script')
-    script.onload = function() {  // resolve() can't use onload()'s arg
-        resolve(function() {
-            /* reb.Elide("print {%webvid.js Loaded}") */  // !!! review
-        })  // printing to test using an emterpreter callback
-    }
-    script.src = 'webvid.js'
-    document.head.appendChild(script)
+    return new Promise(function(resolve, reject) {
+        var script = document.createElement('script')
+        script.src = 'webvid.js'
+        script.onload = function() {  // resolve() can't use onload()'s arg
+            resolve(function() {
+                /* reb.Elide("print {%webvid.js Loaded}") */  // !!! review
+            })  // printing to test using an emterpreter callback
+        }
+        document.head.appendChild(script)
+    })
 }
 
 init-webvid

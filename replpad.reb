@@ -49,8 +49,6 @@ replpad-reset: js-awaiter [
     // review invariants.
     //
     /* replpad.innerHTML = "<div class='line'>&zwnj;</div>" */
-
-    setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
 
@@ -85,7 +83,6 @@ replpad-write: js-awaiter [
         replpad.appendChild(
             load("<div class='line'>&zwnj;</div>")
         )
-        setTimeout(resolve, 0)  // yield to browser to see result synchronously
         return
     }
 
@@ -103,8 +100,6 @@ replpad-write: js-awaiter [
         replpad.appendChild(
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
         )
-
-    setTimeout(resolve, 0)  // yield to browser to see result synchronously
 }
 
 lib/write-stdout: write-stdout: function [
@@ -153,7 +148,9 @@ lib/input: input: js-awaiter [
     // JavaScript.  We save it in a global variable so that the page's event
     // callbacks dealing with input can call it when input is finished.
     //
-    input_resolve = resolve
+    return new Promise(function(resolve, reject) {
+        input_resolve = resolve
+    })
 }
 
 
@@ -161,7 +158,9 @@ lib/wait: wait: js-awaiter [
     {Sleep for the requested number of seconds}
     seconds [integer! decimal!]
 ]{
-    setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR("seconds")))
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR("seconds")))
+    })
 }
 
 
@@ -206,9 +205,9 @@ github-read: js-awaiter [
 
     // GitHub gives back Base64 in JSON envelope
 
-    resolve(function () {
+    return function () {
         return reb.Run("debase/base", reb.T(json.content), reb.I(64))
-    })  // if using emterpreter, need callback to use APIs in resolve()
+    }  // if using emterpreter, need callback to use APIs in resolve()
 }
 
 
@@ -226,9 +225,9 @@ file-read-text: js-awaiter [
 
     let text = await response.text()
 
-    resolve(function () {
+    return function () {
         return reb.Text(text)
-    })  // if using emterpreter, need callback to use APIs in resolve()
+    }  // if using emterpreter, need callback to use APIs in resolve()
 }
 
 
@@ -340,8 +339,6 @@ js-watch-visible: js-awaiter [
             splitter = undefined
         }
     }
-
-    setTimeout(resolve, 0)
 }
 
 watch: function [
