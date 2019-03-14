@@ -177,40 +177,6 @@ lib/write: write: function [
 ]
 
 
-github-read: js-awaiter [
-    owner [text!]
-    repo [text!]
-    branch [text!]
-    path [text!]  ; FILE! ?  Require leading slash?
-]{
-    let owner = reb.Spell(reb.ArgR("owner"))
-    let repo = reb.Spell(reb.ArgR("repo"))
-    let branch = reb.Spell(reb.ArgR("branch"))
-    if (branch != "master")
-        console.error("!!! API handling for non-master branch needed")
-    let path = reb.Spell(reb.ArgR("path"))
-
-    let url = "https://api.github.com/repos/" + owner + "/" + repo
-        + "/contents" + path
-
-    console.log("Fetching GitHub file: " + url)
-
-    let response = await fetch(url)
-
-    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-    if (!response.ok)
-        throw Error(response.statusText)  // handled by .catch() below
-
-    let json = await response.json()
-
-    // GitHub gives back Base64 in JSON envelope
-
-    return function () {
-        return reb.Run("debase/base", reb.T(json.content), reb.I(64))
-    }  // if using emterpreter, need callback to use APIs in resolve()
-}
-
-
 file-read-text: js-awaiter [
     return: [text!]
     location [file!]
@@ -235,31 +201,12 @@ lib/read: read: function [
     source [any-value!]
     /string
 ][
-    if url? source [
-        parse source [
-            "https://github.com/"
-                copy owner: to "/" skip
-                copy repo: to "/" skip
-                "blob/"
-                copy branch: to "/"
-                copy path: to end  ; include the leading /
-        ] else [
-            fail 'source [
-                {There are strict limitations on web browsers being able to}
-                {request URLs.  For the moment, READ works on a GitHub "blob"}
-                {URL only, using CORS.  https://enable-cors.org/}
-            ]
-        ]
-
-        data: github-read owner repo branch path
-        return either string [as text! data] [data]
-    ]
-
-    if file? source [
+    if match [file! url!] source [
         if not string [
-            fail {ArrayBuffer binary READ of BINARY! not yet implemented}
+            js-do {console.log("Warning: can't READ non-UTF8 binaries yet")}
         ]
-        return file-read-text source
+        text: file-read-text as file! source
+        return either string [text] [as binary! text]
     ]
 
     fail 'source [{Cannot READ value of type} mold type of source]
