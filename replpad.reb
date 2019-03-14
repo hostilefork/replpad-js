@@ -278,6 +278,71 @@ hijack 'do adapt copy :do [
 ]
 
 
+js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
+    url [text!]
+]{
+    let script = document.createElement('script')
+    script.src = reb.Spell(reb.ArgR('url'))
+
+    return new Promise(function(resolve, reject) {
+        script.onload = function() {
+            resolve()  // needs REBVAL, can't accept onload()'s arg directly
+        }
+        document.head.appendChild(script)
+    })
+}
+
+js-do: function [
+    {Execute a JavaScript file or evaluate a string of JavaScript source}
+
+    source [text! file! url!]
+][
+    if text? source [
+        eval js-native [] source
+    ] else [
+        js-do-url-helper as text! source
+    ]
+]
+
+
+css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
+    text [text!]
+]{
+    let css = document.createElement('style')
+    /* css.id = ... */  // could be good for no duplicates, deleting later
+    css.type = 'text/css'
+    css.innerHTML = reb.Spell(reb.argR('text'))
+    document.head.appendChild(css)
+}
+
+css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
+    url [text!]
+]{
+    let link = document.createElement('link')
+    /* link.id = ... */  // could be good for no duplicates, deleting later
+    link.id = 'testing'
+    link.rel = 'stylesheet'
+    link.type = 'text/css'
+    link.href = reb.Spell(reb.ArgR('url'))
+    link.media = 'all'
+    document.head.appendChild(link)
+}
+
+css-do: function [
+    {Incorporate a CSS file or a snippet of CSS source into the page}
+
+    return: <void>  ; Could return an auto-generated ID for later removing (?)
+    ; :id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
+    source [text! file! url!]
+][
+    if text? source [
+        css-do-text-helper source
+    ] else [
+        css-do-url-helper as text! source
+    ]
+]
+
+
 lib/browse: browse: function [
     {Provide a clickable link to the user to open in the browser}
     url [url!]

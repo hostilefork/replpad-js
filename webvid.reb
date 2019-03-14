@@ -19,35 +19,8 @@ REBOL [
     }
 ]
 
-init-webvid: js-awaiter [] {
-    //
-    // https://stackoverflow.com/a/577002
-    //
-    /* reb.Elide("print {Loading %webvid.css}") */  // !!! review
-    var head  = document.getElementsByTagName('head')[0]
-    var link  = document.createElement('link')
-    link.id   = 'vidcss'
-    link.rel  = 'stylesheet'
-    link.type = 'text/css'
-    link.href = 'webvid.css'  // can be arbitrary URL
-    link.media = 'all'
-    head.appendChild(link)
-
-    // https://stackoverflow.com/a/14521482
-    //
-    return new Promise(function(resolve, reject) {
-        var script = document.createElement('script')
-        script.src = 'webvid.js'
-        script.onload = function() {  // resolve() can't use onload()'s arg
-            resolve(function() {
-                /* reb.Elide("print {%webvid.js Loaded}") */  // !!! review
-            })  // printing to test using an emterpreter callback
-        }
-        document.head.appendChild(script)
-    })
-}
-
-init-webvid
+css-do %webvid.css
+js-do %webvid.js
 
 show-dialog: js-native [] {
     setDialog("open", {
