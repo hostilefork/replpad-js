@@ -756,6 +756,14 @@ onGuiInitialized()
 
 r3_ready_promise.then(function() {
 
+    // As an expedient way of beginning a more formal test process, a small
+    // script that must be run outside of a rebPromise() is loaded by this
+    // point.  Invoke it at top level before doing anything with the ReplPad.
+
+    console.log("Performing some basic tests from %toplevel.test.js")
+    if (!toplevelTest())
+        throw ("Test failure encountered in %toplevel.test.js")
+
     // %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
     // run after libr3 is loaded and the JavaScript extension is initialized.
 
