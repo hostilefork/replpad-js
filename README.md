@@ -11,18 +11,46 @@ It is inspired by a prior non-web effort circa 2015, written in Qt:
 
 https://www.youtube.com/watch?v=0exDvv5WEv
 
-To get this project to run, you will need to have these build products from the
-Ren-C interpreter, which are produced via the %emscripten.r config file:
-
-* `%libr3.js`
-* `%libr3.wasm`
-* `%libr3.bytecode`
-
-This project is at a a very early stage of development.  For support, please
+This project is at a very early stage of development.  For support, please
 visit the StackOverflow chat room or Rebol Discourse Forum:
 
 * https://chat.stackoverflow.com/rooms/291/rebol
 * https://forum.rebol.info
+
+
+## Dependencies
+
+ReplPad depends on libRebol.js, which is the JavaScript version of Ren-C's
+"lightweight" API.
+
+The libRebol.js loader is being designed to load hosted files from the web,
+and automatically detect browser features to see if it needs the emterpreter
+(OS-ID = 0.16.1) or the WebAssembly/WASM-Threads version (OS-ID = 0.16.2)
+But if you want to run against a local version you build or download yourself,
+the libraries and related support files should be in subdirectories with
+these names:
+
+* `%0.16.1/libr3.js`
+* `%0.16.1/libr3.wasm`
+* `%0.16.1/libr3.bytecode`
+
+* `%0.16.2/libr3.js`
+* `%0.16.2/libr3.wasm`
+* `%0.16.2/libr3.js.mem`
+
+It is possible to tell rebmake to do an "out of source build" and put its
+build products in any directory you want.  So you might say something along
+the lines of:
+
+    mkdir 0.16.1
+    cd 0.16.1
+    r3-make ${REN-C-DIR}/make/make.r \
+        config: ${REN-C-DIR}/make/configs/emterpreter.r \
+        target: makefile 
+
+    make
+
+*(It may be helpful to create a script that does this, e.g. `./jsmake`)*
 
 
 ## Mechanics
