@@ -154,7 +154,7 @@ function libRebolComponentURL(suffix) {  // suffix includes the dot
                 + " in a non-debug build (only for debug builds)")
     }
     let dir = libr3_git_short_hash  // empty string ("") is falsey in JS
-            ? "http://metaeducation.s3.amazonaws.com/travis-builds/"
+            ? "https://metaeducation.s3.amazonaws.com/travis-builds/"
             : "./"
     dir += use_emterpreter ? "0.16.1/" : "0.16.2/"
 
