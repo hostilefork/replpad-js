@@ -268,6 +268,19 @@ lib/read: read: function [
 
 hijack 'do adapt copy :do [
     ;
+    ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
+    ; by name in a registry.  This is an experimental concept (which was in
+    ; line with changing DO to always mean "do code you get from a source" and
+    ; not something that should just fall through generically such that
+    ; DO <TAG> would be <TAG>)
+    ;
+    ; The tag registry is maintained remotely, but hook with a few exceptions
+    ; here to shorten calling demos and get them out of the root directory.
+    ;
+    source: maybe switch source [
+        <popupdemo> [%popupdemo/popupdemo.reb]
+    ]
+
     ; !!! DO expects to be able to read source as BINARY!, but that feature is
     ; not yet implemented as it would depend on an API entry point that took
     ; a JS ArrayBuffer to build a binary out of.  Force read as TEXT!
@@ -298,7 +311,7 @@ js-do: function [
     source [text! file! url!]
 ][
     if text? source [
-        eval js-native [] source
+        eval js-native [] source  ; !!! slightly inefficient, works for now
     ] else [
         js-do-url-helper as text! source
     ]
