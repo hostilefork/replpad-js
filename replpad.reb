@@ -159,7 +159,7 @@ lib/wait: wait: js-awaiter [
     seconds [integer! decimal!]
 ]{
     return new Promise(function(resolve, reject) {
-        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR("seconds")))
+        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR('seconds')))
     })
 }
 
@@ -181,7 +181,7 @@ file-read-text: js-awaiter [
     return: [text!]
     location [file!]
 ]{
-    let location = reb.Spell(reb.ArgR("location"))
+    let location = reb.Spell(reb.ArgR('location'))
 
     let response = await fetch(location)  // can be relative
 
@@ -344,7 +344,7 @@ js-watch-visible: js-awaiter [
     //
     if (visible) {
         if (!splitter) {
-            replcontainer.classList.add("split-horizontal")
+            replcontainer.classList.add('split-horizontal')
             right_div.style.display = 'block'
             splitter = Split(['#replcontainer', '#right'], {
                 sizes: splitter_sizes,
@@ -357,7 +357,7 @@ js-watch-visible: js-awaiter [
         // watchlist comes up the same percent of the screen when shown again.
         //
         if (splitter) {
-            replcontainer.classList.remove("split-horizontal")
+            replcontainer.classList.remove('split-horizontal')
             splitter_sizes = splitter.getSizes()
             right_div.style.display = 'none'
             splitter.destroy()
