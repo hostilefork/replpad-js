@@ -177,13 +177,13 @@ lib/write: write: function [
 ]
 
 
-file-read-text: js-awaiter [
+read-url-string-helper: js-awaiter [
     return: [text!]
-    location [file!]
+    url [text!]
 ]{
-    let location = reb.Spell(reb.ArgR('location'))
+    let url = reb.Spell(reb.ArgR('url'))
 
-    let response = await fetch(location)  // can be relative
+    let response = await fetch(url)  // can be relative
 
     // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
     if (!response.ok)
@@ -196,17 +196,35 @@ file-read-text: js-awaiter [
     }  // if using emterpreter, need callback to use APIs in resolve()
 }
 
+read-url-binary-helper: js-awaiter [
+    return: [text!]
+    url [text!]
+]{
+    let url = reb.Spell(reb.ArgR('url'))
+
+    let response = await fetch(url)  // can be relative
+
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText)
+
+    let buffer = await response.arrayBuffer()
+
+    return function () {
+        return reb.Binary(buffer)
+    }  // if using emterpreter, need callback to use APIs in resolve()
+}
 
 lib/read: read: function [
     source [any-value!]
     /string
 ][
     if match [file! url!] source [
-        if not string [
-            js-do {console.log("Warning: can't READ non-UTF8 binaries yet")}
+        return either string [
+            read-url-string-helper as text! source
+        ][
+            read-url-binary-helper as text! source
         ]
-        text: file-read-text as file! source
-        return either string [text] [as binary! text]
     ]
 
     fail 'source [{Cannot READ value of type} mold type of source]
