@@ -220,6 +220,31 @@ lib/read: read: function [
     /string
 ][
     if match [file! url!] source [
+        ;
+        ; While raw.github.com links are offered via CORS, raw gitlab.com links
+        ; (specified by a /raw/ in their URL) are not.  However, GitLab offers
+        ; CORS via an API...so for our GitLab open source brothers & sisters we
+        ; level the playing field by simulating raw url fetch() via API.
+        ;
+        ; (At the DO level, the "/blob" links to decorated HTML are proxied in
+        ; both cases, since you presumably weren't DO'ing HTML...though you
+        ; could have been trying to READ it)
+        ;
+        if parse source [
+            "http" opt ["s" (secure: true) | (secure: false)] "://gitlab.com/"
+            copy user: to "/" skip
+            copy repo: to "/" skip
+            "raw/" copy branch: to "/"  ; leave slash to include in file_path
+            copy file_path: to end
+        ][
+            if not secure [print "Converting to secure URL..."]
+            source: as url! unspaced [
+                https://gitlab.com/api/v4/projects/
+                user "%2F" repo  ; surrogate for numeric id, use escaped `/`
+                "/repository/files" file_path "/raw?ref=" branch
+            ]
+        ]
+
         return either string [
             read-url-string-helper as text! source
         ][
@@ -243,15 +268,7 @@ hijack 'do adapt copy :do [
     ; here to shorten calling demos and get them out of the root directory.
     ;
     source: maybe switch source [
-        <popupdemo> [%popupdemo/popupdemo.reb]
-    ]
-
-    ; !!! DO expects to be able to read source as BINARY!, but that feature is
-    ; not yet implemented as it would depend on an API entry point that took
-    ; a JS ArrayBuffer to build a binary out of.  Force read as TEXT!
-    ;
-    if file? :source [
-        source: read/string source
+        <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
     ]
 ]
 
@@ -335,8 +352,8 @@ lib/browse: browse: function [
         let url = reb.Spell(rebArgR('url'))
 
         if (false) {
-            let win = window.open(url, '_blank');
-            win.focus();
+            let win = window.open(url, '_blank')
+            win.focus()
         }
     }
 
