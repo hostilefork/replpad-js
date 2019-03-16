@@ -277,16 +277,21 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 js-do: function [
     {Execute a JavaScript file or evaluate a string of JavaScript source}
 
+    return: <void>  ; What useful return result could there be?
     source [text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
-    if automime and [not text? source] [
-        source: as text! read CORSify-if-gitlab-url source
-    ]
     if text? source [
         eval js-native [] source  ; !!! slightly inefficient, works for now
     ] else [
-        js-do-url-helper as text! source
+        if file? source [  ; make absolute w.r.t. *current* script URL location
+            source: join (ensure url! what-dir) source
+        ]
+        if automime [
+            eval js-native [] as text! read CORSify-if-gitlab-url source
+        ] else [
+            js-do-url-helper as text! source
+        ]
     ]
 ]
 
@@ -322,13 +327,17 @@ css-do: function [
     source [text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
-    if automime and [not text? source] [
-        source: as text! read CORSify-if-gitlab-url source
-    ]
     if text? source [
         css-do-text-helper source
     ] else [
-        css-do-url-helper as text! source
+        if file? source [  ; make absolute w.r.t. *current* script URL location
+            source: join (ensure url! what-dir) source
+        ]
+        if automime [
+            css-do-text-helper as text! read CORSify-if-gitlab-url source
+        ] else [
+            css-do-url-helper as text! source
+        ]
     ]
 ]
 
