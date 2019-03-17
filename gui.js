@@ -575,6 +575,27 @@ function OnEscape() {
 }
 
 
+// !!! We wish to be able to notice when the user is scrolled to some random
+// point in the document with a selection, but hits a printable key...and jump
+// to the input in that case.  But we do not want Ctrl-C to do this (for
+// example) so there has to be some set of filters for it.  keypress() would
+// be the right tool for the job, if it were not "deprecated".  But no
+// suitable replacement has been offered for these kinds of scenarios:
+//
+// https://stackoverflow.com/q/43877434
+//
+// Since `onkeypress()` going away would break many existing sites, we will
+// take that deprecation with a grain of salt and use it anyway.
+//
+document.addEventListener('keypress', function(e) {
+    //
+    // Activate input if a printable key is pressed
+    // Shouldn't have to AbandonEscapeMode(), onkeydown should do that
+    //
+    if (input)
+        placeCaretAtEnd(input)  // should clear selection, also receive key
+});
+
 document.onkeydown = function(e) {
     // https://stackoverflow.com/a/3369743/211160
     let isEscape = false
@@ -595,20 +616,6 @@ document.onkeydown = function(e) {
 
     if (document.activeElement == input)
         return true
-
-    // Activate input if a printable key is pressed
-
-    var c = e.keyCode
-    var printable =  // https://stackoverflow.com/q/12467240/
-        (c > 47 && c < 58) ||  // number keys
-        c == 32 || c == 13 ||  // spacebar & return key(s)
-        (c > 64 && c < 91) ||  // letter keys
-        (c > 95 && c < 112) ||  // numpad keys
-        (c > 185 && c < 193) ||  // ;=,-./` (in order)
-        (c > 218 && c < 223);  // [\]' (in order)
-
-    if (printable)
-        placeCaretAtEnd(input)  // should clear selection, also receive key
 
     return true
 }
