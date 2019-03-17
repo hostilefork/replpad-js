@@ -218,7 +218,7 @@ CORSify-if-gitlab-url: function [
         copy file_path: to end
     ] then [
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
-
+        replace/all file_path "." "%2E"
         if not secure [
             print ["Converting non-HTTPS URL to HTTPS:" url]
         ]
