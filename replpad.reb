@@ -214,10 +214,12 @@ CORSify-if-gitlab-url: function [
         "http" opt ["s" (secure: true) | (secure: false)] "://gitlab.com/"
         copy user: to "/" skip
         copy repo: to "/" skip
-        "raw/" copy branch: to "/"  ; leave slash to include in file_path
+        "raw/" copy branch: to "/" skip  ; skip slash, file_path would %-encode
         copy file_path: to end
     ] then [
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
+
+        replace/all file_path "/" "%2F"  ; API uses slashes for its delimiting
 
         if not secure [
             print ["Converting non-HTTPS URL to HTTPS:" url]
@@ -225,7 +227,7 @@ CORSify-if-gitlab-url: function [
         join-all [
             https://gitlab.com/api/v4/projects/
             user "%2F" repo  ; surrogate for numeric id, use escaped `/`
-            "/repository/files" file_path "/raw?ref=" branch
+            "/repository/files/" file_path "/raw?ref=" branch
         ]
     ] else [
         url
