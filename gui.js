@@ -592,7 +592,7 @@ document.addEventListener('keypress', function(e) {
     // Activate input if a printable key is pressed
     // Shouldn't have to AbandonEscapeMode(), onkeydown should do that
     //
-    if (input)
+    if (input && document.activeElement != input)
         placeCaretAtEnd(input)  // should clear selection, also receive key
 });
 
