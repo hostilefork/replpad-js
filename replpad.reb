@@ -298,6 +298,49 @@ js-do: function [
 ]
 
 
+js-head-helper: js-awaiter [
+    return: [object!]
+    url [text!]
+]{
+    let url = reb.Spell(reb.ArgR('url'))
+
+    let response = await fetch(url, {method: 'HEAD'})  // can be relative
+
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText)
+
+    let headers = response.headers
+
+    return function () {
+        let obj = reb.Run("make object! []")
+        headers.forEach(function(value, key) {
+            reb.Elide(
+                "append", obj, "[",
+                    reb.R(reb.Run("as set-word!", reb.T(key))),  // !!! reb.V
+                    reb.T(value),
+                "]"
+            )
+        })
+        return obj
+    }  // if using emterpreter, need callback to use APIs in resolve()
+}
+
+js-head: function [
+    {Perform an HTTP HEAD request of an absolute URL! or relative FILE! path}
+    return: "OBJECT! of key=>value response header strings"
+        [object!]
+    source [url! file!]
+][
+    either file? source [
+        source: unspaced [what-dir source]
+    ][
+        source: as text! source
+    ]
+    return js-head-helper source
+]
+
+
 css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
     text [text!]
 ]{
