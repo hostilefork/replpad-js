@@ -36,17 +36,6 @@
 'use strict'  // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
 
-// Worker message pump, created once runtime is loaded
-//
-// !!! The worker is no longer in use, since only one thread is able to call
-// the EXPORTED_FUNCTIONS...and it's too important to be able to mix libRebol
-// APIs directly with code on the GUI thread.  However, code for instantiating
-// it is kept around for the moment, to make it easier to use a worker if a
-// need for one comes up.
-//
-var pump
-
-
 // Lets us do something like jQuery $("<div class='foo'>content</div>").
 // load("&lt;") gives `<` while document.createTextNode("&lt;") gives `&lt;`
 //
@@ -97,22 +86,6 @@ var OnMenuPaste
 var OnMenuCopy
 
 
-//=//// PUMP FOR HANDLING WORKER MESSAGES //////////////////////////////////=//
-
-// `pump` was created with `new Worker('worker.js')` in index.html, so that it
-// could start loading as soon as possible.  The only way to communicate with
-// a web worker is by posting messages to it, and having it post messages
-// back--which are received by the pump.onmessage handler.
-//
-// This wraps pump.postMessage to make what the pump is *for* more clear.
-//
-function queueEventToWorker(id, str) {  // str `undefined` if not passed in
-    if (str === undefined)
-        str = null  // although `undefined == null`, canonize to null
-
-    pump.postMessage([id, str])  // argument will be e.data in onmessage(e)
-}
-
 
 function ActivateInput(el) {
     el.onkeydown = onInputKeyDown
@@ -151,21 +124,6 @@ function DeactivateInput() {
     input = null
     el.onkeydown = null
     el.contentEditable = false
-}
-
-// There is apparently no race condition by setting the onmessage after
-// the pump has already been spawned.  No messages will be lost:
-//
-// https://stackoverflow.com/a/3416386/211160
-//
-pump.onmessage = function(e) {
-    var id = e.data[0]
-    var param = e.data[1]  // can be any data type
-
-    // !!! Currently the worker is not in use.
-    //
-    switch (id) {
-    }
 }
 
 

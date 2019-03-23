@@ -54,22 +54,6 @@
     >
     <!-- See https://fonts.google.com/ -->
 
-    <script>
-      //
-      // "Web workers" always load from their own script URL.  Chrome won't
-      // load them from local `file://` URLs, see README.md for workaround.
-      //
-      // Start loading the worker directly from this first html file, don't
-      // wait for a second fetch of a script to then have *that script* do the
-      // fetch.
-      //
-      // !!! This method of declaring a global var is contentious with modules
-      // in JavaScript, which seem to be a nightmare and don't actually work.
-      // But if someday they do work, this probably needs rethinking.
-      //
-      var pump = new Worker('worker.js');
-    </script>
-
     <!-- https://github.com/nathancahill/Split.js -->
     <script src="./lib/split.js"></script>
     <!-- splitter css in replpad.css -->
@@ -78,7 +62,7 @@
     <script src="./lib/table-resize.js"></script>
     <!-- table resize css in replpad.css -->
 
-    <script src="./load-r3.js"></script>
+    <script src="http://metaeducation.s3.amazonaws.com/travis-builds/load-r3.js"></script>
     <script src="./gui.js"></script>
 
     <!-- For pragmatic reasons, replpad does some tests before REPL starts -->
