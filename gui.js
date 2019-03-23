@@ -775,17 +775,16 @@ r3_ready_promise.then(function() {
     // an idea of what the "current directory is" when they are running.  Then
     // resources are fetched by path relative to that.
     //
-    // Method chosen for getting the URL dir was one that included the slash:
+    // Method chosen for getting the URL dir adapted one that included slash:
     // https://stackoverflow.com/a/16985358
     //
     let url = document.URL
     let base_url
-    if (url.charAt(url.length - 1) === '/') {
-        base_url = url.slice(0, url.lastIndexOf('/'))
-        base_url = base_url.slice(0, base_url.lastIndexOf('/')) + '/'
-    } else {
+    if (url.charAt(url.length - 1) === '/')
+        base_url = url
+    else
         base_url = url.slice(0, url.lastIndexOf('/')) + '/'
-    }
+
     reb.Elide("change-dir system/options/path: as url!", reb.T(base_url))
 
     // %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
