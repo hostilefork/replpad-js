@@ -721,14 +721,6 @@ onGuiInitialized()
 
 r3_ready_promise.then(function() {
 
-    // As an expedient way of beginning a more formal test process, a small
-    // script that must be run outside of a rebPromise() is loaded by this
-    // point.  Invoke it at top level before doing anything with the ReplPad.
-
-    console.log("Performing some basic tests from %toplevel.test.js")
-    if (!toplevelTest())
-        throw ("Test failure encountered in %toplevel.test.js")
-
     // !!! This isn't the ideal place to put this, but scripts have to have
     // an idea of what the "current directory is" when they are running.  Then
     // resources are fetched by path relative to that.
