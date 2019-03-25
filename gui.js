@@ -804,11 +804,16 @@ r3_ready_promise.then(function() {
     console.log("Calling reb.Shutdown()")
     reb.Shutdown()
 
-  }).catch(function(error) {
-
-    console.error(error)  // shows stack trace (if user opens console...)
-    alert(error.toString())  // notifies user w/no console open
-
   })
+  // !!! We could put a catch clause here, e.g.
+  //
+  //    .catch(function(error) {
+  //        console.error(error)  // shows stack trace (if console open)
+  //        alert(error.toString())  // notifies user w/no console open
+  //    }
+  //
+  // However, allowing code to error at the spot where a problem happens
+  // offers easier debugging.  Consider having a "release version" that does
+  // something friendlier, perhaps offering to restart the console.
 
 }) // lame to indent nearly this entire file, just to put it in the handler
