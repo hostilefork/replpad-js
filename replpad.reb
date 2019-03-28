@@ -501,6 +501,9 @@ main: adapt 'console [
     chat: https://chat.stackoverflow.com/rooms/291/rebol
     forum: https://forum.rebol.info
 
+    wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
+    instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
+
     link: [href label] => [
         unspaced [{<a href="} href {" target="_blank">} label {</a>}]
     ]
@@ -519,6 +522,25 @@ main: adapt 'console [
         {<br><br>}
 
         {<i>(Note: SHIFT-ENTER to type in multi-line code, Ctrl-Z to undo)</i>}
+    ]
+
+    if system/version = 2.102.0.16.1 [
+        replpad-write/html spaced [
+            {!!! Heads Up 😮 !!!  Your browser is <i>not</i> configured for}
+            unspaced [(link wasm-threads {WebAssembly with Threads}) "."]
+
+            {Threads are used so side-effects like this PRINT statement show}
+            {in the web browser without having to terminate the Rebol stack.}
+            {What you're using now is a VERY slow and kludgey workaround.}
+
+            {<br><br>}
+
+            {To run at speeds up to 30x faster, enable SharedArrayBuffer}
+            {and WASM threads:} (link instructions {<b>INSTRUCTIONS HERE</b>})
+
+            {<hr>}
+            {<br>}
+        ]
     ]
 
     ; Fall through to normal CONSOLE loop handling
