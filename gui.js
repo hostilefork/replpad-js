@@ -151,23 +151,42 @@ var replcontainer = document.getElementById('replcontainer')
 replpad = document.getElementById('replpad')
 replpad.onclick = OnClickReplPad
 
+
+// When pasting is performed, we want to strip off the formatting to get plain
+// text (so it does not corrupt the ReplPad's structure).  Also, we do not
+// want people copying out code samples to get the formatting (e.g. the subtle
+// difference of bold for PRINT output, and normal weight for user input.)
+//
+// https://stackoverflow.com/q/12027137/
+//
+replpad.addEventListener("paste", (e) => {
+    e.preventDefault();  // cancel HTML-based paste
+    var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+    document.execCommand("insertText", false, text);  // insertText is new-ish
+});
+
+replpad.addEventListener('copy', (e) => {
+    const selection = document.getSelection();
+    e.clipboardData.setData('text/plain', selection.toString());
+    e.preventDefault();  // cancel HTML-based paste
+});
+
+
 // As part of a complex trick that flips the repl upside down and back again
 // to get decent scroll bar behavior, we have to compensate for the reversed
 // mouse wheel direction.  See CSS file for notes on this.
 // https://stackoverflow.com/a/34345634
 //
-document.querySelector("#replcontainer").addEventListener("wheel",
-    function(e) {
-        if (e.deltaY) {
-            let target = e.currentTarget
-            let fontsize = parseFloat(
-                getComputedStyle(target).getPropertyValue('font-size')
-            )
-            e.preventDefault();
-            target.scrollTop -= fontsize * (e.deltaY < 0 ? -1 : 1) * 2;
-        }
+document.querySelector("#replcontainer").addEventListener("wheel", (e) => {
+    if (e.deltaY) {
+        let target = e.currentTarget
+        let fontsize = parseFloat(
+            getComputedStyle(target).getPropertyValue('font-size')
+        )
+        e.preventDefault();
+        target.scrollTop -= fontsize * (e.deltaY < 0 ? -1 : 1) * 2;
     }
-);
+});
 
 
 // MagicUndo is a feature from Ren Garden.  It would notice when the undo list
