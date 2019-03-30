@@ -621,25 +621,7 @@ function replaceSelectedText(newText) { // https://stackoverflow.com/a/3997896
 
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
 
-onGuiInitialized()
-
-r3_ready_promise.then(function() {
-
-    // !!! This isn't the ideal place to put this, but scripts have to have
-    // an idea of what the "current directory is" when they are running.  Then
-    // resources are fetched by path relative to that.
-    //
-    // Method chosen for getting the URL dir adapted one that included slash:
-    // https://stackoverflow.com/a/16985358
-    //
-    let url = document.URL
-    let base_url
-    if (url.charAt(url.length - 1) === '/')
-        base_url = url
-    else
-        base_url = url.slice(0, url.lastIndexOf('/')) + '/'
-
-    reb.Elide("change-dir system/options/path: as url!", reb.T(base_url))
+load_r3.then(() => {
 
     // %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
     // run after libr3 is loaded and the JavaScript extension is initialized.

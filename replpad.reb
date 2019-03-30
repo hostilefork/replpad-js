@@ -28,7 +28,7 @@
 ]{
     console.log(
         "@" + reb.Tick() + ": "
-        + reb.Spell("form", reb.R(reb.Arg('message')))
+        + reb.Spell("spaced", reb.R(reb.Arg('message')))
     )
 }
 
