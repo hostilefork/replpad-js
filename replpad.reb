@@ -490,10 +490,26 @@ main: adapt 'console [
         ]
     ]
 
-    ; Printing fails before REPLPAD-WRITE/HTML (?)
+    ; Fall through to normal CONSOLE loop handling
+]
+
+
+watch: function [:arg] [
+    ;
+    ; We don't want to pay for loading the watchlist unless it's used.  So
+    ; delayed-load it on first use.
+    ;
+    ; Note: When it was being automatically loaded, it was observed that it
+    ; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
+    ;
+    print "Loading watchlist extension for first use..."
     do %watchlist/main.reb
 
-    ; Fall through to normal CONSOLE loop handling
+    ; !!! Watch hard quotes its argument...need some kind of variadic
+    ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
+    ; but be able to inline WATCH to gather args)
+    ;
+    do compose [watch (:arg)]
 ]
 
 
