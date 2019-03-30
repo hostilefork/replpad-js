@@ -415,59 +415,6 @@ lib/browse: browse: function [
     ]
 ]
 
-
-js-watch-visible: js-awaiter [
-    visible [logic!]
-]{
-    let visible = reb.Did(reb.R(reb.Arg('visible')))
-
-    let right_div = document.getElementById('right')
-
-    // Suggestion from author of split.js is destroy/recreate to hide/show
-    // https://github.com/nathancahill/Split.js/issues/120#issuecomment-428050178
-    //
-    if (visible) {
-        if (!splitter) {
-            replcontainer.classList.add('split-horizontal')
-            right_div.style.display = 'block'
-            splitter = Split(['#replcontainer', '#right'], {
-                sizes: splitter_sizes,
-                minSize: 200
-            })
-        }
-    }
-    else {
-        // While destroying the splitter, remember the size ratios so that the
-        // watchlist comes up the same percent of the screen when shown again.
-        //
-        if (splitter) {
-            replcontainer.classList.remove('split-horizontal')
-            splitter_sizes = splitter.getSizes()
-            right_div.style.display = 'none'
-            splitter.destroy()
-            splitter = undefined
-        }
-    }
-}
-
-watch: function [
-    :arg [
-        word! get-word! path! get-path!
-        block! group!
-        integer! tag! refinement!
-    ]
-        {word to watch or other legal parameter, see documentation)}
-][
-    ; REFINEMENT!s are treated as instructions.  `watch /on` seems easy...
-    ;
-    switch arg [
-        /on [js-watch-visible true]
-        /off [js-watch-visible false]
-
-        fail ["Bad command:" arg]
-    ]
-]
-
 ; !!! The ABOUT command was not made part of the console extension, since
 ; non-console builds might want to be able to ask it from the command line.
 ; But it was put in HOST-START and not the mezzanine/help in general.  This
@@ -542,6 +489,9 @@ main: adapt 'console [
             {<br>}
         ]
     ]
+
+    ; Printing fails before REPLPAD-WRITE/HTML (?)
+    do %watchlist/main.reb
 
     ; Fall through to normal CONSOLE loop handling
 ]

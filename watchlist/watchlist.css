@@ -1,0 +1,172 @@
+/*
+ * WATCHLIST
+ */
+
+table.watchlist {  /* the overall table itself */
+  border-collapse: separate;  /* one line between cells, not cells-in-boxes */
+  border-spacing: 0;  /* don't space cells out on the table background */
+
+  /* The cells get this background color, which is set here and not on the
+   * cell so that the .selected style shows up.
+   */
+  background: #fff;
+
+  max-width: 100%;
+  width: 100%;
+}
+
+.watchlist td:nth-child(1), /* first column */
+.watchlist th /* first row */
+{
+    color: #888;  /* dark gray text */
+    background: #eee;  /* light gray background */
+
+    font-weight: normal;  /* default <th> bolding is too heavy for watchlist */
+    font-size: 12px;  /* header is mostly just there for resizing, be small */
+    font-family: sans-serif;  /* distinguishing font for headers looks nice */
+    text-align: center;  /* center text horizontally in cell */
+    vertical-align: middle;  /* center text vertically in cell */
+
+    padding: 2px;  /* headers don't need as much padding as the cells */
+    height: 100%;
+}
+.watchlist td:nth-child(1) {  /* first column */
+    /*
+     * !!! It appears that min-width and max-width are ignored in table cells,
+     * but width is heeded.  Ideally this would say "be only as large as the
+     * content requires" (e.g. the number in the column) but that's not what
+     * `width: 100%;` means and I don't know what would.  Estimate the number
+     * is 8 pixels wide and then account for 8px padding, for the moment.
+     *
+     * https://stackoverflow.com/a/18375283
+     * https://stackoverflow.com/a/8465980
+     */
+    width: 24px;
+
+    padding-left: 8px;  /* want padding consistent with other columns */
+    padding-right: 8px;
+}
+
+.watchlist td {
+    /* cells inherit white background from table, .select overrides */
+    text-align: left;
+    vertical-align: top;
+    padding: 8px;  /* give the cells a healthy amount of padding */
+}
+
+/* Put lines on the bottom and left of each cell--the left border will help
+ * separate from the splitter
+*/
+.watchlist th,
+.watchlist td {
+    line-height:18px;
+    border-bottom:1px solid #ddd;
+}
+.watchlist th + th,
+.watchlist td + td,
+.watchlist th + td,
+.watchlist td + th {
+    border-left:1px solid #ddd;
+}
+
+.selected {  /* for use with https://stackoverflow.com/a/17966381 */
+    background: lightBlue;
+    border-left: 0;  /* !!! doesn't work yet, specificity issue, investigate */
+}
+
+
+/*
+ * TABLE RESIZING BY DRAGGING COLUMN HEADERS
+ *
+ * This doesn't actually seem to work very well, and needs some development.
+ * But of the options on the web, it seems to be the only one that doesn't
+ * use jQuery or some abstracted JS build process.
+ *
+ * https://github.com/irhc/table-resize
+ * https://github.com/irhc/table-resize/blob/master/table-resize.css
+ */
+
+.resize-base {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+.resize-elem {
+    position: absolute;
+    height: 100%;
+    width: 5px;
+    left: 100%;
+    margin-left: 0;
+    top: 0;
+    cursor: ew-resize;
+}
+.resize-text {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+
+/*
+ * RIGHT-CLICK MENU
+ *
+ * While right-click menus are part of the HTML5 spec (such that even if one
+ * has JavaScript disabled, you should see them)...only Firefox implements
+ * them.  They're fairly important in an IDE/REPL, so this adds them.
+ *
+ * https://stackoverflow.com/a/35730445/211160
+ */
+
+#menu {
+  visibility: hidden;
+  opacity: 0;
+  position: fixed;
+  background: #fff;
+  color: #555;
+  font-family: sans-serif;
+  font-size: 11px;
+  -webkit-transition: opacity .5s ease-in-out;
+  -moz-transition: opacity .5s ease-in-out;
+  -ms-transition: opacity .5s ease-in-out;
+  -o-transition: opacity .5s ease-in-out;
+  transition: opacity .5s ease-in-out;
+  -webkit-box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  -moz-box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  box-shadow: 2px 2px 2px 0px rgba(143, 144, 145, 1);
+  padding: 0px;
+  border: 1px solid #C6C6C6;
+}
+
+#menu a {
+  display: block;
+  color: #555;
+  text-decoration: none;
+  padding: 6px 8px 6px 30px;
+  width: 250px;
+  position: relative;
+}
+
+#menu a img,
+#menu a i.fa {
+  height: 20px;
+  font-size: 17px;
+  width: 20px;
+  position: absolute;
+  left: 5px;
+  top: 2px;
+}
+
+#menu a span {
+  color: #BCB1B3;
+  float: right;
+}
+
+#menu a:hover {
+  color: #fff;
+  background: #3879D9;
+}
+
+#menu hr {
+  border: 1px solid #EBEBEB;
+  border-bottom: 0;
+}

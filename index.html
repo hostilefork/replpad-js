@@ -54,13 +54,6 @@
     >
     <!-- See https://fonts.google.com/ -->
 
-    <!-- https://github.com/nathancahill/Split.js -->
-    <script src="./lib/split.js"></script>
-    <!-- splitter css in replpad.css -->
-
-    <!-- https://github.com/irhc/table-resize -->
-    <script src="./lib/table-resize.js"></script>
-    <!-- table resize css in replpad.css -->
 
     <script src="https://metaeducation.s3.amazonaws.com/travis-builds/load-r3.js"></script>
     <script src="./gui.js"></script>
@@ -97,60 +90,6 @@
           </div>
         </div>
       </div>
-      <!-- Just putting a table here with the splitter to get a feel for how
-        compatible the approach is in various browsers; there's a bunch of
-        more important things to get in place before making the watchlist
-        actually work...one aspect is to make it use the libRebol from JS
-        vs. need to be in C that gets recompiled on each change...  -->
-      <div id="right" class="split split-horizontal" style='display: none;'>
-        <table id='watchlist' class='watchlist'>
-          <thead>
-            <tr>
-              <th></th><!-- superfluous to label this with # or similar -->
-              <th>Watch</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr onmousedown="RowClick(this,false);">
-              <td>1</td>
-              <td>x</td>
-              <td>300</td>
-            </tr>
-            <tr onmousedown="RowClick(this,false);">
-              <td>2</td>
-              <td>(x + 4)</td>
-              <td>304</td>
-            </tr>
-            <tr onmousedown="RowClick(this,false);">
-              <td>3</td>
-              <td>&lt;before&gt;</td>
-              <td>[a b c]</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="menu">
-      <a href="https://chat.stackoverflow.com/rooms/291/">
-        <img src="https://rebolsource.net/favicon.ico" />
-        Rebol Chat
-        <span>Ctrl + ?!</span>
-      </a>
-      <hr />
-      <a href="#" onclick="OnMenuCut();">
-        Cut
-        <span>Ctrl + ?!</span>
-      </a>
-      <a href="#" onclick="OnMenuCopy();">
-        Copy
-        <span>Ctrl + ?!</span>
-      </a>
-      <a href="#" onclick="OnMenuPaste();">
-        Paste
-        <span>Ctrl + ?!</span>
-      </a>
     </div>
   </body>
 </html>

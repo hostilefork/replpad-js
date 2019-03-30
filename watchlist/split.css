@@ -1,0 +1,53 @@
+/*
+ * SPLITTER WIDGET
+ *
+ * https://github.com/nathancahill/Split.js
+ *
+ * There was no canon demonstration CSS for the splitter widget.  This was
+ * reverse-engineered from the project page's site.
+ */
+
+.container {
+    height: 100vh;
+}
+
+/* So contents don't crash right up against the gutter or border */
+.split p, .split-flex p {
+    padding: 20px;
+}
+
+/* Not entirely sure what this does--from split.js homepage */
+.split, .split-flex {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.gutter {
+    background-color: #eee;
+    border-right: 1px solid #E8E8E8;  /* softer than gray, harder than white */
+    border-left: 1px solid #E8E8E8;  /* same --^ */
+
+    background-repeat: no-repeat;
+    background-position: 50%;
+
+    width: 10px;  /* make same size as custom scroll bar */
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('grips/vertical.png');
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('grips/horizontal.png');
+    cursor: ns-resize;
+}
+
+.split.split-horizontal, .gutter.gutter-horizontal {
+    height: 100%;
+    float: left;
+}
