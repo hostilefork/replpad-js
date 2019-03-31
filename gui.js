@@ -288,28 +288,7 @@ onInputKeyDown = function(e) {
         let new_line = load("<div class='line'>&zwnj;</div>")
         replpad.appendChild(new_line)
 
-        if (use_emterpreter) {
-            //
-            // !!! If building with the emterpreter, EXPORTED_FUNCTIONS may
-            // not be called during an emscripten_sleep_with_yield().  This
-            // means resolving the promise that REPLPAD-INPUT is waiting on
-            // can't be done with a reb.Text() value, because we can't call
-            // reb.Text()!
-            //
-            // Hence the resolver takes a function which is called to produce
-            // the value at a time when it is no longer yielding, and it's safe
-            // to call the libRebol API again.
-            //
-            input_resolve(function () {
-                return reb.Text(text)
-            })
-        }
-        else {
-            // If we're using pthreads, we should be able to make API requests
-            // from the GUI, and give the JS-AWAITER's return value directly.
-            //
-            input_resolve(reb.Text(text))
-        }
+        input_resolve(text)
         input_resolve = undefined
 
         e.preventDefault()  // Allowing enter puts a <br>

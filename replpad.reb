@@ -149,7 +149,17 @@ lib/input: input: js-awaiter [
     // callbacks dealing with input can call it when input is finished.
     //
     return new Promise(function(resolve, reject) {
-        input_resolve = resolve
+        input_resolve = function(text) {
+            //
+            // Note that the awaiter is still in effect when this resolve
+            // function is called (it hasn't been resolved, hence not finished)
+            // This means the emterpreted build still has the bytecode
+            // interpreter tied up, so evaluative functions aren't available.
+            // reb.Text() is legal, and resolving with a reb.Promise() should
+            // also be legal eventually...
+            //
+            resolve(reb.Text(text))
+        }
     })
 }
 
@@ -190,10 +200,7 @@ read-url-helper: js-awaiter [
         throw Error(response.statusText)
 
     let buffer = await response.arrayBuffer()
-
-    return function () {
-        return reb.Binary(buffer)
-    }  // if using emterpreter, need callback to use APIs in resolve()
+    return reb.Binary(buffer)
 }
 
 
