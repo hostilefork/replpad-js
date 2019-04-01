@@ -285,7 +285,7 @@ onInputKeyDown = function(e) {
         // that way for plain INPUT.  Richer choices should be available, but
         // one wants a standard program to work standardly.
         //
-        let new_line = load("<div class='line'>&zwnj;</div>")
+        let new_line = load("<div class='line'></div>")
         replpad.appendChild(new_line)
 
         input_resolve(text)
