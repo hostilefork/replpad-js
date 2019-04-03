@@ -135,6 +135,9 @@ var replcontainer = document.getElementById('replcontainer')
 replpad = document.getElementById('replpad')
 replpad.onclick = OnClickReplPad
 
+var filler = document.getElementById('filler')
+filler.onclick = OnClickReplPad
+
 
 // When pasting is performed, we want to strip off the formatting to get plain
 // text (so it does not corrupt the ReplPad's structure).  Also, we do not
@@ -363,18 +366,18 @@ onInputKeyDown = function(e) {
 
 
 function OnClickReplPad(e) {
-    // https://stackoverflow.com/q/31982407
-    if (window.getSelection().toString())
-        return  // selections aren't clicks
+    if (window.getSelection().toString())  // selections aren't clicks
+        return  // https://stackoverflow.com/q/31982407
 
-    // https://stackoverflow.com/a/9183467
-    // make sure it's repl, not a child element
-    if (e.target !== replpad && e.target !== replcontainer)
+    if (!input)  // if there's no input in progress, do nothing
         return
 
-    console.log("It's the target")
-    if (!input)  // if there's no C_REQUEST_INPUT in progress, do nothing
+    if (e.target == input)  // clicks to the input sub-element handle themseves
         return
+
+    let inputTop = input.getBoundingClientRect().top
+    if (e.clientY < inputTop)  // don't jump the cursor if click is above input
+        return  // (hence a bum selection attempt won't lose your scroll pos)
 
     input.focus()
     placeCaretAtEnd(input)
