@@ -110,7 +110,7 @@ this is `emscripten_sleep_with_yield()`.
 
 ## License
 
-A "strong" share-alike license was chosen for this project: the Affero GPL v3.
+A share-alike license was chosen for this project: the GNU Lesser GPL v3.
 This is based on the hope that it will grow to be more substantial, and that
 any reasonable fork/clone shouldn't have a problem sharing their improvements.
 
@@ -121,8 +121,8 @@ Just ask.  Or if you don't feel like asking, use common sense; it's not like
 we're Oracle.  9 lines of code doth not a lawsuit make.  *(Unless you ARE
 Oracle...in which case, heck yeah we'll sue you!)*
 
-In time, the license might be weakened to something more liberal.  Until such
-time as a truly principled significant contributor demands that the project
+Initially the project was Affero GPL but relaxed to LGPL, which seems fair
+enough.  Until a principled significant contributor demands that the project
 *not* be relicensed, it's asked that all contributors agree that a more liberal
 license could be chosen.  The only rule is that there won't be any "special
 treatment" licenses--e.g. a more liberal license for people who pay.  Any

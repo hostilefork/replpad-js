@@ -1,25 +1,43 @@
-;
-; File: %replpad.reb
-; Summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
-; Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
-; Homepage: https://github.com/hostilefork/replpad-js/
-;
-; Copyright (c) 2018-2019 hostilefork.com
-;
-; See README.md and CREDITS.md for more information
-;
-; This program is free software: you can redistribute it and/or modify
-; it under the terms of the GNU Affero General Public License as
-; published by the Free Software Foundation, either version 3 of the
-; License, or (at your option) any later version.
-;
-; https://www.gnu.org/licenses/agpl-3.0.en.html
-;
-; This program is distributed in the hope that it will be useful,
-; but WITHOUT ANY WARRANTY; without even the implied warranty of
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-; GNU Affero General Public License for more details.
-;
+Rebol [
+    File: %replpad.reb
+    Summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
+    Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    Homepage: https://github.com/hostilefork/replpad-js/
+
+    Rights: {
+        Copyright (c) 2018-2019 hostilefork.com
+        See README.md and CREDITS.md for more information
+    }
+
+    License: {
+        Licensed under the Lesser GPL, Version 3.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+        https://www.gnu.org/licenses/lgpl-3.0.html
+    }
+
+    Description: {
+        This file originated as the first .reb code file that was fetch()'d
+        over the web and run in a browser.  It has been an ongoing process to
+        try and start factoring the reusable bits out of this into some kind
+        of library which other programs can use.
+
+        HOWEVER--!--the *near-term* (2020) goal for this project is to improve
+        the console itself into an online tutorial and demo for the system.
+        This is not to say that making a web framework for arbitrary Ren-C
+        programs in WebAssembly isn't interesting.  Just that it is a vast task
+        which needs to be approached in a measured way.
+
+        Hence improving the contents of this file and running other programs
+        from it using DO is a preferable alternative to trying to factor its
+        functionality out too early...
+    }
+
+    Notes: {
+        * Use `debugger;` for programmatic breakpoints in JavaScript code.
+    }
+]
 
 
 !!: js-native [
