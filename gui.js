@@ -53,6 +53,8 @@ var replpad
 //
 var input = null
 var input_resolve
+var input_history = []
+var input_history_index = -1
 var first_input = null
 var onInputKeyDown
 var placeCaretAtEnd
@@ -208,7 +210,7 @@ onInputKeyDown = function(e) {
         return
     }
 
-    if (e.key == 'Enter' || e.keycode == 13) { // !!! 13 is enter, standard??
+    if (e.key == 'Enter' || e.keyCode == 13) { // !!! 13 is enter, standard??
 
         // https://stackoverflow.com/a/6015906
         if (e.shiftKey && !input.classList.contains("multiline")) {
@@ -287,9 +289,33 @@ onInputKeyDown = function(e) {
 
         input_resolve(text)
         input_resolve = undefined
-
+        
+        input_history.push(text)
+        input_history_index = input_history.length
+        
         e.preventDefault()  // Allowing enter puts a <br>
         return
+    } else if (e.keyCode == 38) { // arrow - up
+        if (!input.classList.contains("multiline")) {
+            if (input_history_index > 0) {
+                input_history_index--
+                input.innerHTML = input_history[input_history_index]
+            }
+            
+            e.preventDefault()
+        }
+    } else if (e.keyCode == 40) { // arrow - down
+        if (!input.classList.contains("multiline")) {
+            if (input_history_index < input_history.length - 1) {
+                input_history_index++
+                input.innerHTML = input_history[input_history_index]
+            } else {
+                input_history_index = input_history.length
+                input.innerHTML = ''
+            }
+            
+            e.preventDefault()
+        }
     }
 
     // The trick for "magic undo" is to notice when Ctrl-Z is a no-op, and
