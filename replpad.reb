@@ -36,6 +36,11 @@ Rebol [
 
     Notes: {
         * Use `debugger;` for programmatic breakpoints in JavaScript code.
+
+        * This project uses contentEditable on purpose, in order to leave room
+          in the future for richer formatting than a TEXTAREA would provide.
+          It may seem annoying considering it generally does only monospace
+          in the code parts...but that's just one application.
     }
 ]
 
@@ -90,6 +95,12 @@ replpad-write: js-awaiter [
         let escaper = document.createElement('p')
         escaper.innerText = param  // assignable property, assumes literal text
         param = escaper.innerHTML  // so <my-tag> now becomes &lt;my-tag&gt;
+
+        // If we don't translate the spaces into `&nbsp;` then they'll get
+        // collapsed by the div, but we have to do it after the escaping to
+        // keep it from literally saying `&nbsp;`
+        //
+        param = param.replace(/ /gi, "&nbsp;");
     }
 
     if (note) {
@@ -115,6 +126,10 @@ replpad-write: js-awaiter [
     let pieces = param.split("\n")
     line.innerHTML += pieces.shift()  // shift() takes first element
     while (pieces.length)
+
+    line.innerHTML += pieces.shift()  // Add FIRST line (shift() takes first)
+
+    while (pieces.length)  // Add a div for each remaining line (if any)
         replpad.appendChild(
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
         )
