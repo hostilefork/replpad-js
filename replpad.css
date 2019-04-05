@@ -180,7 +180,9 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      * as a note to try and find a better answer.
      */
     min-width: 30px;
-    display: inline;
+    min-height: 17px;
+    vertical-align: top;
+    display: inline-block;
 
     font-weight: normal;
     color: #000000;
