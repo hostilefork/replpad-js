@@ -289,10 +289,10 @@ onInputKeyDown = function(e) {
 
         input_resolve(text)
         input_resolve = undefined
-        
+
         input_history.push(text)
         input_history_index = input_history.length
-        
+
         e.preventDefault()  // Allowing enter puts a <br>
         return
     } else if (e.keyCode == 38) { // arrow - up
@@ -301,7 +301,7 @@ onInputKeyDown = function(e) {
                 input_history_index--
                 input.innerHTML = input_history[input_history_index]
             }
-            
+
             e.preventDefault()
         }
     } else if (e.keyCode == 40) { // arrow - down
@@ -313,7 +313,7 @@ onInputKeyDown = function(e) {
                 input_history_index = input_history.length
                 input.innerHTML = ''
             }
-            
+
             e.preventDefault()
         }
     }

@@ -207,10 +207,41 @@ lib/wait: wait: js-awaiter [
 }
 
 
+copy-to-clipboard-helper: js-native [
+    {https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f}
+    data [any-value!]
+]{
+    // interface to clipboard is `execCommand` which copies a selection.  We
+    // must preserve the current selection, make an invisible text area with
+    // the data, select it, run execCommand(), and then restore the selection.
+    //
+    const el = document.createElement('textarea')
+    el.value = reb.Spell(reb.ArgR('data'))
+    el.setAttribute('readonly', '')
+    el.style.position = 'absolute'
+    el.style.left = '-9999px'
+    document.body.appendChild(el)
+    const selected = document.getSelection().rangeCount > 0
+        ? document.getSelection().getRangeAt(0)
+        : false
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    if (selected) {
+        document.getSelection().removeAllRanges()
+        document.getSelection().addRange(selected)
+    }
+}
+
 lib/write: write: function [
-    source [any-value!]
+    destination [any-value!]
     data [any-value!]
 ][
+    if parse destination ["clipboard:"] [
+        copy-to-clipboard-helper data
+        return
+    ]
+
     fail 'source [
         {WRITE is not supported in the web console yet, due to the browser's}
         {imposition of a security model (e.g. no local filesystem access).}
