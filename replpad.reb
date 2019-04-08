@@ -333,16 +333,53 @@ hijack 'do adapt copy :do [
 ]
 
 
-js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
-    url [text!]
-]{
-    let script = document.createElement('script')
-    script.src = reb.Spell(reb.ArgR('url'))
+js-do-global-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
+    {Run JS code via a <script> tag, effectively making it global in scope}
 
+    source [text!] "URL or JavaScript code"
+    /url "If true, source is a URL"
+]{
     return new Promise(function(resolve, reject) {
-        script.onload = function() {
-            resolve()  // needs REBVAL, can't accept onload()'s arg directly
+        let script = document.createElement('script')
+
+        let source = reb.Spell(reb.ArgR('source'))
+        if (reb.Did(reb.ArgR('url'))) {
+            script.src = source
+            script.onload = function() {
+                script.parentNode.removeChild(script)  // !!! necessary for GC?
+                resolve()  // can't take onload()'s arg directly
+            }
         }
+        else {
+            // Loading from a URL will give us an onload() event.  But there's
+            // no standard "afterscriptexecute" event for if we are using text.
+            // We have to add our resolve call to the code itself somehow.
+            //
+            // Make up a globally accessible ID for the resolver:
+            // https://stackoverflow.com/q/1320568
+
+            let num = Math.floor(Math.random() * 10000000000000001)
+            let id = "js_do_global_" + num + "_after"
+
+            let unpoke = new Function("delete window." + id)
+
+            let after = function() {
+                script.parentNode.removeChild(script)  // !!! necessary for GC?
+                resolve()  // can't take onload()'s arg directly
+                unpoke()  // get rid of globally visible resolve handler
+            }
+
+            let poke = new Function(
+                'after',  // argument
+                "window." + id + " = after"  // function body
+            )
+            poke(after)  // use eval to dynamically name global handler
+
+            // Tack on a call to the global alias for the resolver in the code
+            script.innerHTML = source + "\n" + "window." + id + "()\n"
+        }
+        // HTML5 discourages use of .type field to redundantly specify JS
+
         document.head.appendChild(script)
     })
 }
@@ -353,17 +390,27 @@ js-do: function [
     return: <void>  ; What useful return result could there be?
     source [text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
+    /local "Run code in a local scope, rather than global"
 ][
-    if text? source [
-        eval js-native [] source  ; !!! slightly inefficient, works for now
-    ] else [
+    either text? source [
+        either local [
+            eval js-native [] source  ; !!! slightly inefficient, works for now
+        ][
+            js-do-global-helper source
+        ]
+    ][
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
-        if automime [
-            eval js-native [] as text! read CORSify-if-gitlab-url source
+        any [automime local] then [
+            code: as text! read CORSify-if-gitlab-url source
+            if local [
+                eval js-native [] code  ; !!! again, slightly inefficient
+            ] else [
+                js-do-global-helper code
+            ]
         ] else [
-            js-do-url-helper as text! source
+            js-do-global-helper/url as text! source
         ]
     ]
 ]
