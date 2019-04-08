@@ -46,7 +46,7 @@ the lines of:
     cd 0.16.1
     r3-make ${REN-C-DIR}/make/make.r \
         config: ${REN-C-DIR}/make/configs/emterpreter.r \
-        target: makefile 
+        target: makefile
 
     make
 
@@ -86,7 +86,12 @@ browser does not have a mechanism for information from DOM manipulations to
 reach code in such a synchronous style.  It must yield to the browser, and be
 called back.
 
-So to have code in this style work, one must:
+This is technically possible to do if the C code was running on a JavaScript
+"web worker".  It can suspend itself--leaving the stack state intact--and
+wait for a wakeup message to come from the GUI thread.  That solution is
+implemented in the JavaScript extension for Rebol via the `rebPromise()` API.
+
+But if threads aren't availablein the browser, it's a bit more complex:
 
 * Queue a request to the browser, to be called back from later
 * Save the entire state of the C stack--putting it into "suspended animation"
@@ -106,6 +111,9 @@ stack in the browser's JavaScript interpreter.  It merely updates the embedded
 interpreter's state, which is being processed by `emterpret()`.  Emterpreter
 is designed to be suspended at any time...the function in the C called to do
 this is `emscripten_sleep_with_yield()`.
+
+The threading approach is preferred, and over the long run will hopefully be
+supported in more browsers.
 
 
 ## License
