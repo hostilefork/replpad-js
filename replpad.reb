@@ -333,6 +333,7 @@ hijack 'lib/do adapt copy :lib/do [
     ;
     source: maybe switch source [
         <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
+        <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
     ]
 ]
 
@@ -612,7 +613,19 @@ main: adapt 'console [
         ]
     ]
 
-    ; Fall through to normal CONSOLE loop handling
+    ; Fall through to normal CONSOLE loop handling, but use a skin that gives
+    ; a custom message (other customizations could be done here, prompt/etc.,
+    ; and it's hoped the tutorial itself would be done with such hooks)
+
+    skin: make console! [  ; /SKIN is a refinement to CONSOLE
+        greeting:
+{Welcome to Rebol.  For more information please type in the commands below:
+
+  HELP    - For starting information
+  ABOUT   - Information about your Rebol
+  REDBOL  - Experimental emulation of Rebol2/Red conventions}
+
+    ]
 ]
 
 
@@ -649,6 +662,20 @@ hijack 'lib/quit adapt copy :lib/quit [
     ; Fall through to normal QUIT handling
 ]
 
+redbol: function [return: <void>] [
+    print [
+        LF
+        "This partial Rebol2 emulation redefines things like COMPOSE" LF
+        "or APPEND in the user context, and cannot be reversed (unless you" LF
+        "reload the page).  Functions like LIB/COMPOSE or LIB/APPEND need" LF
+        "to be running Ren-C expectations to keep the mezzanine working." LF
+        "Discuss this experiment on the chat/forum--and help if you can!" LF
+    ]
+    print "Fetching %redbol.reb from GitHub..."
+    do <redbol>
+    system/console/prompt: "redbol>>"
+]
+
 sys/export [
     js-do
     css-do
@@ -656,4 +683,5 @@ sys/export [
     watch
     about
     main
+    redbol
 ]
