@@ -645,7 +645,7 @@ load_r3.then(() => {
         // so it can only run after libr3 and JavaScript extension are loaded.
 
         console.log("Running %replpad.reb")
-        reb.Elide(text)
+        reb.Elide("do {" + text + "}")
         console.log("Finished running replpad.reb @ tick " + reb.Tick())
 
         // Running replpad.reb defines MAIN, which is an adaptation of the

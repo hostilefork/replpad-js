@@ -4,6 +4,10 @@ Rebol [
     Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
     Homepage: https://github.com/hostilefork/replpad-js/
 
+    Type: Module
+    Name: ReplPad  ; !!! seems needed to get into system/modules list
+    Options: [isolate]  ; user redefinitions of IF, etc. can't break the REPL!
+
     Rights: {
         Copyright (c) 2018-2019 hostilefork.com
         See README.md and CREDITS.md for more information
@@ -316,7 +320,7 @@ lib/read: read: function [
 ]
 
 
-hijack 'do adapt copy :do [
+hijack 'lib/do adapt copy :lib/do [
     ;
     ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
     ; by name in a registry.  This is an experimental concept (which was in
@@ -635,7 +639,7 @@ watch: function [:arg] [
 ; check various balances of state.
 ; https://github.com/hostilefork/replpad-js/issues/17
 ;
-hijack 'quit adapt copy :quit [
+hijack 'lib/quit adapt copy :lib/quit [
     replpad-write/note/html spaced [
         {<b><i>Sorry to see you go...</i></b>}
 
@@ -643,4 +647,13 @@ hijack 'quit adapt copy :quit [
     ]
 
     ; Fall through to normal QUIT handling
+]
+
+sys/export [
+    js-do
+    css-do
+    js-head
+    watch
+    about
+    main
 ]
