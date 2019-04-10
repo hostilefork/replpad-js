@@ -684,4 +684,7 @@ sys/export [
     about
     main
     redbol
+
+    replpad-reset  ; not originally exported, but some "apps" are using it
+    replpad-write
 ]
