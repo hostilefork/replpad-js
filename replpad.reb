@@ -436,11 +436,11 @@ js-head-helper: js-awaiter [
     let headers = response.headers
 
     return function () {
-        let obj = reb.Run("make object! []")
+        let obj = reb.Value("make object! []")
         headers.forEach(function(value, key) {
             reb.Elide(
                 "append", obj, "[",
-                    reb.R(reb.Run("as set-word!", reb.T(key))),  // !!! reb.V
+                    reb.V("as set-word!", reb.T(key)),
                     reb.T(value),
                 "]"
             )
