@@ -567,7 +567,7 @@ main: adapt 'console [
     replpad-reset
 
     replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
-    console-git: https://github.com/metaeducation/ren-c/blob/master/src/extensions/console/ext-console-init.reb
+    console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
     chat: https://chat.stackoverflow.com/rooms/291/rebol
     forum: https://forum.rebol.info
 
