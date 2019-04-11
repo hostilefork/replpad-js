@@ -624,51 +624,7 @@ function replaceSelectedText(newText) { // https://stackoverflow.com/a/3997896
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
 
 load_r3.then(() => {
-
-    // %replpad.reb contains JS-NATIVE/JS-AWAITER declarations, so it can only
-    // run after libr3 is loaded and the JavaScript extension is initialized.
-
-    console.log("fetch()-ing %replpad.reb from host")
-
-    return fetch('replpad.reb')
-      .then(function(response) {
-
-        // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-        if (!response.ok)
-            throw Error(response.statusText)  // handled by .catch() below
-
-        return response.text()  // text() method a promise ("USVString")
-
-      }).then(function(text) {
-
-        // Note that %replpad.reb contains JS-NATIVE/JS-AWAITER declarations,
-        // so it can only run after libr3 and JavaScript extension are loaded.
-
-        console.log("Running %replpad.reb")
-        reb.Elide("do {" + text + "}")
-        console.log("Finished running replpad.reb @ tick " + reb.Tick())
-
-        // Running replpad.reb defines MAIN, which is an adaptation of the
-        // CONSOLE command from the Console Extension.
-        //
-        // The entire console session (with many INPUT and PRINT commands) is
-        // run in one long Promise.  If you are using a wasm/pthread build,
-        // then all the Rebol code will be running on a JavaScript worker...
-        // which will suspend that worker stack any time a synchronous need of
-        // JavaScript comes up--and that synchronous need will be run via a
-        // setTimeout()-based handler on the GUI thread.  This is because most
-        // anything you want to do with JavaScript is going to involve data
-        // and functions available only on the GUI thread.
-        //
-        // Hence this long call to main only actually "fullfills the promise"
-        // when the whole interactive session is finished.
-        //
-        // See also: "On Giving libRebol JS More Powers than JavaScript"
-        // https://forum.rebol.info/t/849
-
-        return reb.Promise("main")
-      })
-
+    return reb.Promise("main")
 }).then(function(exit_code) {
 
     // You can QUIT and wind up here.  That raises the question of what "QUIT"
