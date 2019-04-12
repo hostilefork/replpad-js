@@ -139,7 +139,7 @@ replpad-write: js-awaiter [
         )
 }
 
-lib/write-stdout: write-stdout: function [
+write-stdout: function [
     {Writes just text to the ReplPad}
     text [text! char!]
 ][
@@ -147,7 +147,7 @@ lib/write-stdout: write-stdout: function [
     replpad-write text
 ]
 
-lib/print: print: function [
+print: function [
     {Helper that writes data and a newline to the ReplPad}
     line [<blank> text! block! char!]
     /html
@@ -161,7 +161,7 @@ lib/print: print: function [
 ]
 
 
-lib/input: input: js-awaiter [
+input: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
@@ -201,7 +201,7 @@ lib/input: input: js-awaiter [
 }
 
 
-lib/wait: wait: js-awaiter [
+wait: js-awaiter [
     {Sleep for the requested number of seconds}
     seconds [integer! decimal!]
 ]{
@@ -237,7 +237,7 @@ copy-to-clipboard-helper: js-native [
     }
 }
 
-lib/write: write: function [
+write: function [
     destination [any-value!]
     data [any-value!]
 ][
@@ -309,7 +309,7 @@ CORSify-if-gitlab-url: function [
     ]
 ]
 
-lib/read: read: function [
+read: function [
     source [any-value!]
 ][
     if match [file! url!] source [
@@ -320,7 +320,7 @@ lib/read: read: function [
 ]
 
 
-hijack 'lib/do adapt copy :lib/do [
+do: adapt copy :lib/do [
     ;
     ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
     ; by name in a registry.  This is an experimental concept (which was in
@@ -510,7 +510,7 @@ css-do: function [
 ]
 
 
-lib/browse: browse: function [
+browse: function [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
 ][
@@ -652,7 +652,7 @@ watch: function [:arg] [
 ; check various balances of state.
 ; https://github.com/hostilefork/replpad-js/issues/17
 ;
-hijack 'lib/quit adapt copy :lib/quit [
+quit: adapt copy :lib/quit [
     replpad-write/note/html spaced [
         {<b><i>Sorry to see you go...</i></b>}
 
@@ -661,6 +661,7 @@ hijack 'lib/quit adapt copy :lib/quit [
 
     ; Fall through to normal QUIT handling
 ]
+
 
 redbol: function [return: <void>] [
     print [
@@ -676,6 +677,11 @@ redbol: function [return: <void>] [
     system/console/prompt: "redbol>>"
 ]
 
+
+; !!! Being able to annotate declarations with `export` at their point of
+; declaration is a planned module feature.  But currently they must be in the
+; header or done like this.
+;
 sys/export [
     js-do
     css-do
@@ -685,6 +691,20 @@ sys/export [
     main
     redbol
 
+    ; !!! These exports appear to overwrite LIB's definitions (e.g. the JS
+    ; build does not include the EVENT extension, hence does not have WAIT,
+    ; but the wait here seems to appear in both user and lib.)
+    ;
+    wait
+    write-stdout
+    print
+    input
+    read
+    write
+    do
+    browse
+    quit
+
     replpad-reset  ; not originally exported, but some "apps" are using it
-    replpad-write
+    replpad-write  ; for clients who want to write HTML, not just PRINT text
 ]
