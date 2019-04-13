@@ -510,6 +510,73 @@ css-do: function [
 ]
 
 
+; We could use the "Time extension" built for POSIX, because Emscripten will
+; emulate those APIs.  But we can interface with JavaScript directly and cut
+; out the middleman.
+;
+now: js-native [
+    {Returns current date and time with timezone adjustment}
+
+    /year "Returns year only"
+    /month "Returns month only"
+    /day "Returns day of the month only"
+    /time "Returns time only"
+    /zone "Returns time zone offset from UCT (GMT) only"
+    /date "Returns date only"
+    /weekday "Returns day of the week as integer (Monday is day 1)"
+    /yearday "Returns day of the year (Julian)"
+    /precise "High precision time"
+    /utc "Universal time (zone +0:00)"
+    /local "Give time in current zone without including the time zone"
+]{
+    var d = new Date()
+
+    if (reb.Did(reb.ArgR('year')))
+        return reb.Integer(d.getFullYear())
+
+    if (reb.Did(reb.ArgR('month')))
+        return reb.Integer(d.getMonth() + 1)  // add 1 because it's 0-11
+
+    if (reb.Did(reb.ArgR('day')))
+        return reb.Integer(d.getDate())  // "date" (1-31), "day" is weekday
+
+    if (reb.Did(reb.ArgR('time')))
+        return reb.Value(
+            "make time! [",
+                reb.I(d.getHours()),
+                reb.I(d.getMinutes()),
+                reb.I(d.getSeconds()),
+            "]"
+        )
+
+    if (reb.Did(reb.ArgR('weekday')))
+        return reb.Integer(d.getDay() + 1)  // add 1 because it's 0-6
+
+    if (reb.Did(reb.ArgR('yearday')))  // !!! not particularly important
+        throw ("To implement /YEARDAY: https://stackoverflow.com/a/26426761/")
+
+    // !!! For now, punt on timezone issues
+    // https://stackoverflow.com/questions/1091372/
+
+    return reb.Value("ensure date! (make-date-ymdsnz",
+        reb.I(d.getFullYear()),  // year
+        reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
+        reb.I(d.getDate()),  // day
+        reb.I(
+            d.getHours() * 3600
+            + d.getMinutes() * 60
+            + d.getSeconds()
+        ),  // secs
+        "try all [",
+            reb.ArgR('precise'), reb.I(d.getMilliseconds() * 1000),  // nano
+        "]",
+        "try all [",
+            "not", reb.ArgR('local'), reb.I(0),  // zone
+        "]",
+    ")")
+}
+
+
 browse: function [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
@@ -703,6 +770,7 @@ sys/export [
     write
     do
     browse
+    now
     quit
 
     replpad-reset  ; not originally exported, but some "apps" are using it
