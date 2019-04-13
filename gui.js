@@ -120,6 +120,11 @@ function DeactivateInput() {
     input = null
     el.onkeydown = null
     el.contentEditable = false
+    
+    // shrinks the previous input down to a 
+    // minimum size that will fit its contents
+    el.style.width = 'auto'
+    el.style.height = 'auto'
 }
 
 
@@ -130,10 +135,6 @@ document.addEventListener('DOMContentLoaded', function () {  //...don't indent
 var replcontainer = document.getElementById('replcontainer')
 replpad = document.getElementById('replpad')
 replpad.onclick = OnClickReplPad
-
-var filler = document.getElementById('filler')
-filler.onclick = OnClickReplPad
-
 
 // When pasting is performed, we want to strip off the formatting to get plain
 // text (so it does not corrupt the ReplPad's structure).  Also, we do not
