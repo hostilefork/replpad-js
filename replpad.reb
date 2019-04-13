@@ -734,15 +734,24 @@ quit: adapt copy :lib/quit [
 redbol: function [return: <void>] [
     print [
         LF
-        "This partial Rebol2 emulation redefines things like COMPOSE" LF
-        "or APPEND in the user context, and cannot be reversed (unless you" LF
-        "reload the page).  Functions like LIB/COMPOSE or LIB/APPEND need" LF
-        "to be running Ren-C expectations to keep the mezzanine working." LF
+        "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where" LF
+        "OF is an infix version of REFLECT that quotes its left argument to" LF
+        "get the property to reflect!)  Not *all* changes can be easily" LF
+        "'skinned' to provide old behavior, but many (most?) of them can." LF
+        LF
+        "REDBOL is a very experimental Rebol2 emulation.  Eventually it" LF
+        "will use module isolation so emulated code runs side-by-side with" LF
+        "new code.  But for today, it's an irreversible change to the user" LF
+        "context...so you will have to reload the page to get Ren-C back." LF
+        LF
         "Discuss this experiment on the chat/forum--and help if you can!" LF
     ]
     print "Fetching %redbol.reb from GitHub..."
     do <redbol>
-    system/console/prompt: "redbol>>"
+
+    comment [  ; https://github.com/hostilefork/replpad-js/issues/50
+        system/console/prompt: "redbol>>"
+    ]
 ]
 
 
