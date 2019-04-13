@@ -116,30 +116,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 
 #replpad {
     padding: 5px;  /* put a little space around the edge and from splitter */
-
-    /* There needs to be more empty space at the bottom, because it's visually
-     * difficult to be typing on the very absolute bottom.  Also, when you
-     * hover a hyperlink or do various things, browsers like Chrome will do
-     * an impromptu status bar overlaying what you're typing--which is annoying
-     * in things like chat programs that don't account for it.
-     */
-    padding-bottom: 64px;
-
-    height: auto;
-}
-
-/* Due to the transformation trick, the replpad starts out at the bottom with
- * available space pinned to the top.  `justify-content: flex-start` etc. seem
- * to be no help with this...there has to be another element to consume the
- * available space.  To do this we put a filler element before the replpad,
- * which after the scale transformation below it appears *below* it.  Then
- * we tell it to take any remaining space (if there's enough content to scroll,
- * this should be *no* space).
- *
- * https://www.whitebyte.info/programming/css/how-to-make-a-div-take-the-remaining-height
- */
-#filler {
-    flex-grow: 1;
+    flex-grow: 1;  /* allows the replpad to take up the remaining screen space */
 }
 
 .escaped {
@@ -167,20 +144,17 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* autocorrect: "off"; */
     /* autocapitalize: "off"; */
     /* spellcheck: "false"; */
-
-    /*
-     * Empty spans should still show up, and be big enough to click on
-     * Otherwise the focus cursor will look like it's on the previous span
-     *
-     * https://stackoverflow.com/a/25789118
-     *
-     * !!! Actually this wouldn't help once the display was changed to inline
-     * from inline-block; the min-width wasn't being heeded.  So another span
-     * with a zero-no-width-joiner is stuck in front of it.  Leaving this here
-     * as a note to try and find a better answer.
+    
+    /* The width and height gives you a larger copy/paste area.
+     * The width calc uses 25px to accomodate for the width of the prompt.
+     * The 100px for height also provides padding under the prompt so that 
+     * you're not typing at the very bottom of the screen. It is possible to
+     * increase the height to get a larger copy/paste area, but this means 
+     * the scrollbar will show up sooner too.
      */
-    min-width: 30px;
-    min-height: 17px;
+    width: calc(100% - 25px);
+    height: 100px;
+    
     vertical-align: top;
     display: inline-block;
 
