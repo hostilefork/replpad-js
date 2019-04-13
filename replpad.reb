@@ -142,9 +142,10 @@ replpad-write: js-awaiter [
 write-stdout: function [
     {Writes just text to the ReplPad}
     text [text! char!]
+    /html
 ][
     if char? text [text: my to-text]
-    replpad-write text
+    replpad-write/(html) text
 ]
 
 print: function [
