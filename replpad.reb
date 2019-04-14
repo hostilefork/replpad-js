@@ -162,19 +162,30 @@ input: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
-    // !!! It seems that an empty div with contenteditable will stick
-    // the cursor to the beginning of the previous div.  :-/  This does
-    // not happen when the .input CSS class has `display: inline-block;`,
-    // but then that prevents the div from flowing naturally along with
-    // the previous divs...it jumps to its own line if it's too long.
-    // Putting a (Z)ero (W)idth (N)on-(J)oiner before it seems to solve
-    // the issue, so the cursor will jump to that when the input is empty.
-    //
-    replpad.lastChild.appendChild(load("&zwnj;"))
-
+    // The current prompt is always the last child in the last "line" div
+    let prompt = replpad.lastChild.lastChild
+    
+    // The prompt is always a text node, and so we need to create a HTML 
+    // version of it to be able to adjust its layout next to the input
+    var prompt_html = document.createElement("div")
+    prompt_html.innerHTML = prompt.textContent
+    prompt_html.className = "input-prompt"
+    
     let new_input = load("<div class='input'></div>")
-    replpad.lastChild.appendChild(new_input)
-
+    
+    // Add a container to place the prompt and input into. This will allow us to
+    // adjust the width the input takes without causing it to drop to a new line
+    var container = document.createElement("div")
+    container.className = "input-container"
+    container.appendChild(prompt_html)
+    container.appendChild(new_input)
+    
+    // Add the new container before the old prompt
+    prompt.parentNode.insertBefore(container, prompt)
+    
+    // Remove the old prompt
+    prompt.parentNode.removeChild(prompt)
+    
     ActivateInput(new_input)
 
     // This body of JavaScript ending isn't enough to return to the Rebol
