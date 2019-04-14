@@ -1,6 +1,8 @@
 REBOL [
     Title: {Watchlist}
-;    Type: Module  ; !!! Can't be a module yet, working on it...
+    Type: Module
+    Name: 'Watchlist
+    Options: [isolate]
 
     Description: {
         This is a web-based remake of a feature demonstrated in the Qt-Based
@@ -9,9 +11,12 @@ REBOL [
         evaluation step returns you to the console prompt:
 
             https://youtu.be/0exDvv5WEv4?t=474
+
+        !!! As with pretty much all of the Web/WASM-based code, it is an
+        experimental work in progress.
     }
 
-;    Exports: [watch]  ; !!! Can't be a module yet, working on it...
+    Exports: [watch]
 ]
 
 ; https://github.com/nathancahill/Split.js
@@ -44,21 +49,13 @@ make-splitter: function [] [
             </tr>
           </thead>
           <tbody>
-            <tr onmousedown="RowClick(this,false);">
-              <td>1</td>
-              <td>x</td>
-              <td>300</td>
-            </tr>
-            <tr onmousedown="RowClick(this,false);">
-              <td>2</td>
-              <td>(x + 4)</td>
-              <td>304</td>
-            </tr>
-            <tr onmousedown="RowClick(this,false);">
-              <td>3</td>
-              <td>&lt;before&gt;</td>
-              <td>[a b c]</td>
-            </tr>
+            <!--
+             ! <tr onmousedown="RowClick(this,false);">
+             !     <td>2</td>         (Row number)
+             !     <td>(x + 4)</td>   (Expression)
+             !     <td>304</td>       (Value)
+             ! </tr>
+             !-->
           </tbody>
         </table>
       </div>}
@@ -106,6 +103,15 @@ js-watch-visible: js-awaiter [
     }
 }
 
+; Easiest to hold onto the values being watched via Rebol.  Order matches the
+; order of the watches in the JavaScript table.  Trying to associate objects
+; with DOM nodes is tough...the `data-xxx` attributes are only strings, and
+; assigning properties directly is a minefield:
+;
+; http://perfectionkills.com/whats-wrong-with-extending-the-dom/
+;
+watches: []
+
 watch: function [
     :arg [
         word! get-word! path! get-path!
@@ -116,13 +122,51 @@ watch: function [
 ][
     ; REFINEMENT!s are treated as instructions.  `watch /on` seems easy...
     ;
-    switch arg [
-        /on [js-watch-visible true]
-        /off [js-watch-visible false]
+    case [
+        arg = /on [js-watch-visible true]
+        arg = /off [js-watch-visible false]
+
+        ; !!! Would look better in a GROUP!
+        ; https://github.com/metaeducation/ren-c/issues/982
+        ;
+        elide js-watch-visible true  ; all other commands show the watchlist
+
+        word? arg [
+            append watches arg  ; e.g. length is 1 after first addition
+
+            html: unspaced [
+              {<tr data-handle="3423490" onmousedown="RowClick(this,false);">}
+                {<td>} (length of watches) {</td>}  ; starts at 1
+                {<td>} arg {</td>}
+                {<td>...</td>}  ; filled in by UPDATE-WATCHES
+              {</tr>}
+            ]
+
+            js-do/local [{
+              let tbody = document.querySelector("#watchlist > tbody")
+              let tr = load(} spell @html {)
+              tbody.appendChild(tr)
+            }]
+        ]
 
         fail ["Bad command:" arg]
     ]
 ]
+
+
+update-watches: function [] [
+    n: 1
+    for-each w watches [
+        js-do/local [{
+            let td = document.querySelector(
+                "#watchlist > tbody :nth-child(} (n) {) :nth-child(3)"
+            )
+            td.innerHTML = } spell @(if set? w [mold get w] else ["\null\"]) {
+        }]
+        n: n + 1
+    ]
+]
+
 
 ; The right click menu was an experiment which was initially in the ReplPad to
 ; support the watchlist.  It was a frustratingly ugly replacement for the
@@ -153,3 +197,11 @@ rightclick-menu-html: {
       </a>
     </div>
 }
+
+; Add in the hook to the console so that when the result is printed, we do
+; an update of the watches.
+
+system/console/print-result: enclose :system/console/print-result func [f] [
+    do f  ; let the evaluation result get printed first
+    update-watches
+]

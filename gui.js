@@ -33,11 +33,14 @@
 // Lets us do something like jQuery $("<div class='foo'>content</div>").
 // load("&lt;") gives `<` while document.createTextNode("&lt;") gives `&lt;`
 //
-var loader_temp = document.createElement("div")
+// Note that <template> is an HTML5 tag that can have any child (including
+// <td> elements).
+//
+var loader_temp = document.createElement("template")
 function load(html) {
     loader_temp.innerHTML = html
-    var loaded = loader_temp.firstChild
-    loader_temp.removeChild(loaded)  // https://trello.com/c/64iJBijV
+    var loaded = loader_temp.content.firstChild
+    loaded.parentNode.removeChild(loaded)  // https://trello.com/c/64iJBijV
     if (loader_temp.firstChild) {
         alert("load() created more than one element" + loader_temp.innerHTML)
         loader_temp.innerHTML = ""  // https://trello.com/c/1P2jwTmZ
@@ -120,8 +123,8 @@ function DeactivateInput() {
     input = null
     el.onkeydown = null
     el.contentEditable = false
-    
-    // shrinks the previous input down to a 
+
+    // shrinks the previous input down to a
     // minimum size that will fit its contents
     el.style.width = 'auto'
     el.style.height = 'auto'

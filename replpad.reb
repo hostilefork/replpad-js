@@ -831,6 +831,8 @@ watch: function [:arg] [
     ;
     print "Loading watchlist extension for first use..."
     do %watchlist/main.reb
+    watch: :system/modules/Watchlist/watch
+    system/contexts/user/watch: :watch
 
     ; !!! Watch hard quotes its argument...need some kind of variadic
     ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
