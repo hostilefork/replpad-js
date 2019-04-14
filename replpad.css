@@ -146,13 +146,12 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* spellcheck: "false"; */
     
     /* The width and height gives you a larger copy/paste area.
-     * The width calc uses 25px to accomodate for the width of the prompt.
      * The 100px for height also provides padding under the prompt so that 
      * you're not typing at the very bottom of the screen. It is possible to
      * increase the height to get a larger copy/paste area, but this means 
      * the scrollbar will show up sooner too.
      */
-    width: calc(100% - 25px);
+    width: 80%;
     height: 100px;
     
     vertical-align: top;
