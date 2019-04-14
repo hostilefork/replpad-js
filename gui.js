@@ -98,7 +98,12 @@ function ActivateInput(el) {
     el.autocomplete = "off"
     el.autocorrect = "off"
     el.autocapitalize = "off"
-
+    
+    // this should match the styles defined for .input
+    // so that the larger copy/paste area gets restored
+    el.style.width = '100%'
+    el.style.height = '100px'
+    
     if (!first_input)
         first_input = el  // will stop magic-undo from undoing
 
@@ -182,22 +187,37 @@ document.querySelector("#replcontainer").addEventListener("wheel", (e) => {
 // to where it was.
 //
 function MagicUndo() {
-    let div = replpad.lastChild
-    while (div) {
-        let child = div.lastChild
-        while (child) {
-            if (child.classList && child.classList.contains("input")) {
-                ActivateInput(child)
-                return
+    // make sure we have a line to undo
+    if (replpad.querySelectorAll('.line').length > 1) {
+        // get the current line
+        var line = replpad.lastChild
+        
+        while (line) {
+            // remove the current line, which contains 
+            // all output from the previous command
+            replpad.removeChild(line)
+            
+            // get the previous line
+            line = replpad.lastChild
+            
+            if (line) {
+                // get the input from the previous line
+                var prev_input = line.querySelector('.input')
+                
+                // activate the previous input
+                if (prev_input) {
+                    ActivateInput(prev_input)
+                    return
+                }
+                
+                // no input exists and so loop around 
+                // and delete the entire line
             }
-            div.removeChild(child)
-            child = div.lastChild
         }
-        replpad.removeChild(div)
-        div = replpad.lastChild
+        
+        alert("Magic Undo failure, didn't set input")
+        input = null
     }
-    alert("Magic Undo failure, didn't set input")
-    input = null
 }
 
 function CollapseMultiline() {
