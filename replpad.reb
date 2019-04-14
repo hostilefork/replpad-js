@@ -126,8 +126,6 @@ replpad-write: js-awaiter [
     // only "one piece") then no divs will be added.
     //
     let pieces = param.split("\n")
-    line.innerHTML += pieces.shift()  // shift() takes first element
-    while (pieces.length)
 
     line.innerHTML += pieces.shift()  // Add FIRST line (shift() takes first)
 
