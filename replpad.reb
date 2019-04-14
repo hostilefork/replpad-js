@@ -65,17 +65,11 @@ replpad-reset: js-awaiter [
 ]{
     replpad.innerHTML = ""
 
-    // !!! This used to say:
-    //
-    // "The output strategy is to merge content into the last div, until
-    // a newline is seen.  Kick it off with an empty div, so there's
-    // always somewhere the first output can stick to."
-    //
-    // But that was leaving a blank line before the first output note, so the
-    // note wasn't at the top of the screen.  Leaving it out seems to work;
-    // review invariants.
-    //
-    /* replpad.innerHTML = "<div class='line'>&zwnj;</div>" */
+    // The output strategy for plain lines (a la PRINT) is to merge content
+    // into the last div, until a newline is seen.  Originally this was kicked
+    // off here with an empty line...but that meant leaving an empty line at
+    // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
+    // So we now defer adding that first line until it is needed.
 }
 
 
@@ -88,6 +82,9 @@ replpad-write: js-awaiter [
     let param = reb.Spell(reb.ArgR('param'))
     let note = reb.Did(reb.ArgR('note'))
     let html = reb.Did(reb.ArgR('html'))
+
+    if (html && replpad.innerHTML == "<div class='line'>&zwnj;</div>")
+        replpad.innerHTML = ""
 
     // If not /HTML and just code, for now assume that any TAG-like things
     // should not be interpreted by the browser.  So escape--but do so using
@@ -113,13 +110,14 @@ replpad-write: js-awaiter [
             + param  // not escaped, so any TAG!-like things are HTML
             + "</p><div>"
         ))
-        replpad.appendChild(
-            load("<div class='line'>&zwnj;</div>")
-        )
         return
     }
 
-    let line = replpad.lastChild
+    let line = replpad.lastChild  // want to add to last div *if* it's a "line"
+    if (!line || line.className != 'line') {
+        replpad.innerHTML += "<div class='line'>&zwnj;</div>"
+        line = replpad.lastChild
+    }
 
     // Split string into pieces.  Note that splitting a string of just "\n"
     // will give ["", ""].
