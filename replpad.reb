@@ -420,6 +420,41 @@ js-do: function [
 ]
 
 
+; Note: In order to accomplish what it does, JS-DO cannot return a result.
+; (mechanically it must do things like add a <script> tag, to get global
+; evaluative access).  Hence it doesn't try to translate a return value to
+; the caller.  This routine wraps expressions in functions and tries to
+; return a value.
+;
+js-eval: function [
+    {Evaluate JavaScript expression in local environment and return result}
+
+    return: [<opt> void! integer! text!]
+    expression [text!]
+][
+    eval js-native [] unspaced [{
+        let js_eval_ugly_name_so_it_does_not_collide = (} expression {)
+
+        switch (typeof js_eval_ugly_name_so_it_does_not_collide) {
+          case 'undefined':
+            return reb.Void()
+
+          case 'null':
+            return null
+
+          case 'number':
+            return reb.Integer(js_eval_ugly_name_so_it_does_not_collide)
+
+          case 'string':
+            return reb.Text(js_eval_ugly_name_so_it_does_not_collide)
+
+          default:
+            return reb.Void()
+        }
+    }]
+]
+
+
 js-head-helper: js-awaiter [
     return: [object!]
     url [text!]
