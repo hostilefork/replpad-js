@@ -386,14 +386,70 @@ js-do-global-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     })
 }
 
-js-do: function [
-    {Execute a JavaScript file or evaluate a string of JavaScript source}
 
-    return: <void>  ; What useful return result could there be?
-    source [text! file! url!]
+js-do-dialect-helper: function [
+    {Allow Rebol to pass API handle values to JS-DO and JS-EVAL}
+
+    return: [text!]
+    b [block!]
+][
+    unspaced collect [
+        keep-transient: function [t /required [word!]] [
+            switch type of t [
+                sym-word! sym-path! [keep api-transient get t]
+                sym-group! [keep api-transient eval as group! t]
+                default [
+                    assert [required]
+                    fail [required "must have its argument as @..., @(...)"]
+                ]
+            ]
+        ]
+
+        iterate b [
+            switch type of b/1 [
+                text! [keep b/1]
+                group! [keep/only eval b/1]
+
+                sym-word! sym-path! sym-group! [keep-transient b/1]
+
+                word! [switch b/1 [
+                    'spell [
+                        keep "reb.Spell("
+                        b: next b
+                        keep-transient/required try :b/1 'SPELL
+                        keep ")"
+                    ]
+                    'unbox [
+                        keep "reb.Unbox("
+                        b: next b
+                        keep-transient/required try :b/1 'UNBOX
+                        keep ")"
+                    ]
+                    default [
+                        fail ["Unknown JS-DO dialect keyword:" b/1]
+                    ]
+                ]]
+
+                fail [
+                    {JS-DO dialect supports TEXT!, SYM-WORD!, SYM-GROUP!,}
+                    {SYM-PATH!...plus the keywords SPELL and UNBOX}
+                ]
+            ]
+        ]
+    ]
+]
+
+js-do: function [
+    {Execute JavaScript file or evaluate a string of JavaScript source}
+
+    return: [<opt> void!]  ; What useful return result could there be?
+    source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
+        [<blank> block! text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
 ][
+    if block? source [source: my js-do-dialect-helper]
+
     either text? source [
         either local [
             eval js-native [] source  ; !!! slightly inefficient, works for now
@@ -417,7 +473,6 @@ js-do: function [
     ]
 ]
 
-
 ; Note: In order to accomplish what it does, JS-DO cannot return a result.
 ; (mechanically it must do things like add a <script> tag, to get global
 ; evaluative access).  Hence it doesn't try to translate a return value to
@@ -428,17 +483,20 @@ js-eval: function [
     {Evaluate JavaScript expression in local environment and return result}
 
     return: [<opt> void! integer! text!]
-    expression [text!]
+    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
+        [<blank> block! text!]
 ][
+    if block? expression [expression: my js-do-dialect-helper]
+
     eval js-native [] unspaced [{
         let js_eval_ugly_name_so_it_does_not_collide = (} expression {)
+
+        if (null === js_eval_ugly_name_so_it_does_not_collide)
+            return null  // bad typeof: https://stackoverflow.com/a/18808270/
 
         switch (typeof js_eval_ugly_name_so_it_does_not_collide) {
           case 'undefined':
             return reb.Void()
-
-          case 'null':
-            return null
 
           case 'number':
             return reb.Integer(js_eval_ugly_name_so_it_does_not_collide)
@@ -827,6 +885,7 @@ redbol: function [return: <void>] [
 ;
 sys/export [
     js-do
+    js-eval
     css-do
     js-head
     watch
