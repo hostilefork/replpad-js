@@ -656,8 +656,11 @@ about: does [
     ]
 ]
 
+
 ; We don't want a deep stack when reporting errors or running user code.  So
-; a reb.Promise("main") is run.
+; a reb.Promise("main") is run.  (If we called CONSOLE from inside main, then
+; it would look like MAIN>CONSOLE in the stack...or worse, if the call was
+; inside an IF, etc.)
 ;
 ; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
 ; https://github.com/hostilefork/replpad-js/issues/10
@@ -665,7 +668,39 @@ about: does [
 main: adapt 'console [
     !! "MAIN executing (this should show in browser console log)"
 
-    replpad-reset
+    replpad-reset  ; clears the progress messages displayed during load
+
+    ; Note: There is a URLSearchParams() object we could use to parse the
+    ; search location as well (may not be in all browsers?)
+    ;
+    search: js-eval "window.location.search"
+    autorun: _
+    parse search [
+        any ["?" [
+            ["do=" copy autorun: to ["?" | end]]
+            | ["local"]  ; instruction to %load-r3.js, already had effect
+        ]]
+        end
+    ] else [
+        print ["** Bad `window.location.search` string in page URL:" search]
+        print newline
+        print trim/auto mutable {
+            OPTIONS ARE:
+
+            ?local
+            ?do=scriptname
+
+            They may be combined together, e.g.:
+
+            ?local?do=scriptname
+        }
+        return 1
+    ]
+
+    if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
+        do as tag! autorun
+        return 0  ; never actually fall through to console, so no REPL session
+    ]
 
     replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
     console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
