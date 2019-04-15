@@ -164,28 +164,28 @@ input: js-awaiter [
 ]{
     // The current prompt is always the last child in the last "line" div
     let prompt = replpad.lastChild.lastChild
-    
-    // The prompt is always a text node, and so we need to create a HTML 
+
+    // The prompt is always a text node, and so we need to create a HTML
     // version of it to be able to adjust its layout next to the input
     var prompt_html = document.createElement("div")
     prompt_html.innerHTML = prompt.textContent
     prompt_html.className = "input-prompt"
-    
+
     let new_input = load("<div class='input'></div>")
-    
+
     // Add a container to place the prompt and input into. This will allow us to
     // adjust the width the input takes without causing it to drop to a new line
     var container = document.createElement("div")
     container.className = "input-container"
     container.appendChild(prompt_html)
     container.appendChild(new_input)
-    
+
     // Add the new container before the old prompt
     prompt.parentNode.insertBefore(container, prompt)
-    
+
     // Remove the old prompt
     prompt.parentNode.removeChild(prompt)
-    
+
     ActivateInput(new_input)
 
     // This body of JavaScript ending isn't enough to return to the Rebol
@@ -886,9 +886,7 @@ redbol: function [return: <void>] [
     print "Fetching %redbol.reb from GitHub..."
     do <redbol>
 
-    comment [  ; https://github.com/hostilefork/replpad-js/issues/50
-        system/console/prompt: "redbol>>"
-    ]
+    system/console/prompt: "redbol>>"
 ]
 
 
