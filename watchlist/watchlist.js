@@ -1,17 +1,62 @@
 var splitter_sizes = [75, 25]
 var splitter  // will be created by the JS-WATCH-VISIBLE command
 
-// !!! TableResize component is flaky and doesn't seem to work here, but
-// there does not seem to be much in the way of viable non-jQuery codebases
-// that do this.  So taking ownership and cleaning it up is one option, or
-// just including jQuery is another...but the one table resize widget that
-// worked wasn't just jQuery but it involved a build process... so that was
-// a double-whammy.  Review the issue as the ground rules for this evolve.
-//
-new TableResize(
-    document.getElementById('example'),
-    {distance: 100, minWidth: 60, restoreState: true, fixed: true}
+var right_div = load(
+  `<div id='right' class='split split-horizontal'>
+    <table id='watchlist' class='watchlist'>
+      <thead>
+        <tr>
+          <th><!-- empty is fine, don't need # --></th>
+          <th>Watch</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--
+         ! Rows in this table are of the form:
+         !
+         !     <tr onmousedown="RowClick(this,false);">
+         !       <td>2</td>         (Row number)
+         !       <td>(x + 4)</td>   (Expression)
+         !       <td>304</td>       (Value)
+         !     </tr>
+         !-->
+      </tbody>
+    </table>
+  </div>`
 )
+
+replcontainer.parentNode.insertBefore(right_div, replcontainer.nextSibling)
+
+var js_watch_visible = function(visible) {
+    //
+    // Suggestion from author of split.js is destroy/recreate to hide/show
+    // https://github.com/nathancahill/Split.js/issues/120#issuecomment-428050178
+    //
+    if (visible) {
+        if (!splitter) {
+            replcontainer.classList.add('split-horizontal')
+            right_div.style.display = 'block'
+            splitter = Split(['#replcontainer', '#right'], {
+                sizes: splitter_sizes,
+                minSize: 200
+            })
+        }
+    }
+    else {
+        // While destroying the splitter, remember the size ratios so that the
+        // watchlist comes up the same percent of the screen when shown again.
+        //
+        if (splitter) {
+            replcontainer.classList.remove('split-horizontal')
+            splitter_sizes = splitter.getSizes()
+            right_div.style.display = 'none'
+            splitter.destroy()
+            splitter = undefined
+        }
+    }
+}
+
 
 //=//// ROW CLICK WITH MULTI-SELECT ////////////////////////////////////////=//
 //

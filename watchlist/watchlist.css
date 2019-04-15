@@ -47,6 +47,46 @@ table.watchlist {  /* the overall table itself */
     padding-right: 8px;
 }
 
+
+/* Automatic counter for rows (can only appear in the :before or :after)
+ */
+.watchlist {
+    counter-reset: tableCount;
+}
+.watchlist td:nth-child(1):before {  /* first column */
+    content: counter(tableCount);
+    counter-increment: tableCount;
+}
+
+
+/* Getting resizability of table columns in pure CSS seems like it should be a
+ * standard, easy thing.  Even up until very recently it isn't, with very
+ * kludgey code trying to use JavaScript hooks to do it.  Here is an example
+ * that can be broken easily with a few casual dragging tests--and the examples
+ * that pull in the jQuery library aren't much more robust:
+ *
+ * http://irhc.github.io/table-resize/
+ *
+ * Some table widgets have fit and finish and get it right, but the widgets
+ * have download sizes as big as the WASM download of the Rebol interpreter!
+ *
+ * https://github.com/ag-grid/ag-grid/issues/1459
+ *
+ * There's one way in modern browsers, which is to use the "position: sticky"
+ * along with "resize: horizontal", which gives you a tiny corner to grab:
+ *
+ * https://stackoverflow.com/a/54105499
+ *
+ * It's not ideal, but it is better than not being able to resize at all, and
+ * lets this relatively fringe feature be provided by 4 lines instead of 100s.
+ */
+.watchlist thead th { /* first row */
+    position: sticky;  /* requires top, bottom, left, or right to be set! */
+    top: 0;  /* mandatory! https://stackoverflow.com/a/43707215 */
+    overflow: auto;  /* also mandatory for the sticky corners to show */
+    resize: horizontal;
+}
+
 .watchlist td {
     /* cells inherit white background from table, .select overrides */
     text-align: left;
@@ -72,38 +112,6 @@ table.watchlist {  /* the overall table itself */
 .selected {  /* for use with https://stackoverflow.com/a/17966381 */
     background: lightBlue;
     border-left: 0;  /* !!! doesn't work yet, specificity issue, investigate */
-}
-
-
-/*
- * TABLE RESIZING BY DRAGGING COLUMN HEADERS
- *
- * This doesn't actually seem to work very well, and needs some development.
- * But of the options on the web, it seems to be the only one that doesn't
- * use jQuery or some abstracted JS build process.
- *
- * https://github.com/irhc/table-resize
- * https://github.com/irhc/table-resize/blob/master/table-resize.css
- */
-
-.resize-base {
-    position: relative;
-    height: 100%;
-    width: 100%;
-}
-.resize-elem {
-    position: absolute;
-    height: 100%;
-    width: 5px;
-    left: 100%;
-    margin-left: 0;
-    top: 0;
-    cursor: ew-resize;
-}
-.resize-text {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
 }
 
 

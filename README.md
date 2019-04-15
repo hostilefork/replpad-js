@@ -23,12 +23,14 @@ visit the StackOverflow chat room or Rebol Discourse Forum:
 ReplPad depends on libRebol.js, which is the JavaScript version of Ren-C's
 "lightweight" API.
 
-The libRebol.js loader is being designed to load hosted files from the web,
-and automatically detect browser features to see if it needs the emterpreter
+It uses the `load-r3.js` hosted on S3.  This loader detects browser features,
+and knows where to find hosted copies of builds for the empterpreter
 (OS-ID = 0.16.1) or the WebAssembly/WASM-Threads version (OS-ID = 0.16.2)
-But if you want to run against a local version you build or download yourself,
-the libraries and related support files should be in subdirectories with
-these names:
+
+The loader supports parsing the URL requested to load the page and looks for
+`?local`, which requests running against a build relative to the location of
+the page.  If you go with this option, you will need to build or obtain
+copies of the compiled Rebol interpreter in subdirectories with these names:
 
 * `%0.16.1/libr3.js`
 * `%0.16.1/libr3.wasm`
@@ -165,13 +167,15 @@ moves from cut-and-paste to a project of scale will be seen as it goes.
 
 ## Usage Notes
 
-* For plausibly good security reasons, Chrome does not let web pages run local
-  files from web pages.  This means the `new Worker('worker.js')` call has a
-  security problem if you are browsing the page by a local `file://` URL.  To
-  work around this, there's an HTTP server in Python available on most unixes
-  that just serves the files out of the current directory at localhost:
+* If you've built locally and want an easy solution for serving the files,
+  there's an HTTP server in Python available on most unixes that just serves
+  the files out of the current directory at localhost:
 
       python -m SimpleHTTPServer <port>
+
+  A similar project exists which uses Rebol, but it is not "published" at this
+  time.  So to avoid support requests, anyone who doesn't already know
+  about it (who can fix bugs themselves) is asked to use a different server.
 
 * Web Assembly is relatively new, but the MIME type must be served correctly
   for it to work.  You may have to add `application/webassembly wasm` to your

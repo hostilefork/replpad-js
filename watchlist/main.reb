@@ -14,6 +14,8 @@ REBOL [
 
         !!! As with pretty much all of the Web/WASM-based code, it is an
         experimental work in progress.
+
+        https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes
     }
 
     Exports: [watch]
@@ -24,84 +26,9 @@ REBOL [
 js-do %split.js
 css-do %split.css
 
-; https://github.com/irhc/table-resize
-;
-js-do %table-resize.js
-
-; Just putting a table here with the splitter to get a feel for how compatible
-; the approach is in various browsers; there's a bunch of more important things
-; to get in place before making the watchlist actually work...
-;
-make-splitter-helper: js-native [html [text!]] {
-    right = load(reb.Spell(reb.ArgR('html')))
-    replcontainer.parentNode.insertBefore(right, replcontainer.nextSibling)
-}
-
-make-splitter: function [] [
-    html: trim/auto mutable {
-      <div id="right" class="split split-horizontal" style='display: none;'>
-        <table id='watchlist' class='watchlist'>
-          <thead>
-            <tr>
-              <th></th><!-- superfluous to label this with # or similar -->
-              <th>Watch</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!--
-             ! <tr onmousedown="RowClick(this,false);">
-             !     <td>2</td>         (Row number)
-             !     <td>(x + 4)</td>   (Expression)
-             !     <td>304</td>       (Value)
-             ! </tr>
-             !-->
-          </tbody>
-        </table>
-      </div>}
-
-    make-splitter-helper html
-]
-
-make-splitter
-
-
 css-do %watchlist.css
 js-do %watchlist.js
 
-js-watch-visible: js-awaiter [
-    visible [logic!]
-]{
-    let visible = reb.Did(reb.R(reb.Arg('visible')))
-
-    let right_div = document.getElementById('right')
-
-    // Suggestion from author of split.js is destroy/recreate to hide/show
-    // https://github.com/nathancahill/Split.js/issues/120#issuecomment-428050178
-    //
-    if (visible) {
-        if (!splitter) {
-            replcontainer.classList.add('split-horizontal')
-            right_div.style.display = 'block'
-            splitter = Split(['#replcontainer', '#right'], {
-                sizes: splitter_sizes,
-                minSize: 200
-            })
-        }
-    }
-    else {
-        // While destroying the splitter, remember the size ratios so that the
-        // watchlist comes up the same percent of the screen when shown again.
-        //
-        if (splitter) {
-            replcontainer.classList.remove('split-horizontal')
-            splitter_sizes = splitter.getSizes()
-            right_div.style.display = 'none'
-            splitter.destroy()
-            splitter = undefined
-        }
-    }
-}
 
 ; Easiest to hold onto the values being watched via Rebol.  Order matches the
 ; order of the watches in the JavaScript table.  Trying to associate objects
@@ -112,44 +39,80 @@ js-watch-visible: js-awaiter [
 ;
 watches: []
 
+delete-watch: function [
+    return: <void>
+    n [integer!]
+][
+    if n > length of watches [
+        fail ["There is no watch in slot" n]
+    ]
+    js-do/local [{
+        let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
+        tr.parentNode.removeChild(tr)
+    }]
+    remove at watches n
+]
+
 watch: function [
+    {See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes}
+
     :arg [
         word! get-word! path! get-path!
         block! group!
         integer! tag! refinement!
     ]
-        {word to watch or other legal parameter, see documentation)}
 ][
-    ; REFINEMENT!s are treated as instructions.  `watch /on` seems easy...
-    ;
     case [
-        arg = /on [js-watch-visible true]
-        arg = /off [js-watch-visible false]
+        arg = /on [js-eval {js_watch_visible(true)}]
+        arg = /off [js-eval {js_watch_visible(false)}]
 
         ; !!! Would look better in a GROUP!
         ; https://github.com/metaeducation/ren-c/issues/982
         ;
-        elide js-watch-visible true  ; all other commands show the watchlist
+        elide js-eval {js_watch_visible(true)}  ; other commands show watchlist
+
+        integer? arg [
+            case [
+                positive? arg [  ; request to fetch the material
+                    return get (pick watches arg else [
+                        fail ["There is no watch in slot" arg]
+                    ])
+                ]
+                negative? arg [  ; request to delete a watch
+                    delete-watch negate arg
+                ]
+                fail "WATCH 0 has no assigned meaning"
+            ]
+        ]
 
         word? arg [
             append watches arg  ; e.g. length is 1 after first addition
 
-            html: unspaced [
-              {<tr data-handle="3423490" onmousedown="RowClick(this,false);">}
-                {<td>} (length of watches) {</td>}  ; starts at 1
-                {<td>} arg {</td>}
-                {<td>...</td>}  ; filled in by UPDATE-WATCHES
-              {</tr>}
-            ]
-
             js-do/local [{
-              let tbody = document.querySelector("#watchlist > tbody")
-              let tr = load(} spell @html {)
-              tbody.appendChild(tr)
+                let tbody = document.querySelector("#watchlist > tbody")
+                let tr = load(
+                   `<tr onmousedown="RowClick(this,false);"></tr>`
+                )
+
+                // The CSS `counter-increment` feature virtually fills in the
+                // counter for this first column, see %watchlist.css
+                //
+                tr.appendChild(load("<td></td>"))
+
+                // Rebol WORD!s can have chars like `<`, which would not be
+                // good when making HTML from strings.  Use innerText assign.
+                //
+                let td_name = load("<td></td>")
+                td_name.innerText = } spell @(uneval arg) {
+                tr.appendChild(td_name)
+
+                tr.appendChild(load("<td></td>"))  // UPDATE-WATCHES fills in
+
+                tbody.appendChild(tr)
             }]
         ]
 
-        fail ["Bad command:" arg]
+        fail ["Not-yet-implemented WATCH command:" arg]
     ]
 ]
 
@@ -157,11 +120,17 @@ watch: function [
 update-watches: function [] [
     n: 1
     for-each w watches [
+        result: if set? w [mold/limit get w 1000] else ["\null\"]
+
+        ; We update the result, in the 3rd column.  Because the content can
+        ; be arbitrary UTF-8, we set the innerText property via a string
+        ; generated via `reb.Spell()` (convenient in the JS-DO dialect)
+        ;
         js-do/local [{
-            let td = document.querySelector(
-                "#watchlist > tbody :nth-child(} (n) {) :nth-child(3)"
-            )
-            td.innerHTML = } spell @(if set? w [mold get w] else ["\null\"]) {
+            let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
+            let td = tr.childNodes[2]  // 1-based indexing, so 2 is 3rd column
+
+            td.innerText = } spell @result {
         }]
         n: n + 1
     ]
@@ -203,5 +172,10 @@ rightclick-menu-html: {
 
 system/console/print-result: enclose :system/console/print-result func [f] [
     do f  ; let the evaluation result get printed first
-    update-watches
+
+    ; Only update the watches if the watchlist is currently displayed
+    ;
+    if "none" <> js-eval {document.getElementById('right').style.display} [
+        update-watches
+    ]
 ]
