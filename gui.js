@@ -98,12 +98,12 @@ function ActivateInput(el) {
     el.autocomplete = "off"
     el.autocorrect = "off"
     el.autocapitalize = "off"
-    
+
     // this should match the styles defined for .input
     // so that the larger copy/paste area gets restored
     el.style.width = '100%'
     el.style.height = '100px'
-    
+
     if (!first_input)
         first_input = el  // will stop magic-undo from undoing
 
@@ -191,30 +191,30 @@ function MagicUndo() {
     if (replpad.querySelectorAll('.line').length > 1) {
         // get the current line
         var line = replpad.lastChild
-        
+
         while (line) {
-            // remove the current line, which contains 
+            // remove the current line, which contains
             // all output from the previous command
             replpad.removeChild(line)
-            
+
             // get the previous line
             line = replpad.lastChild
-            
+
             if (line) {
                 // get the input from the previous line
                 var prev_input = line.querySelector('.input')
-                
+
                 // activate the previous input
                 if (prev_input) {
                     ActivateInput(prev_input)
                     return
                 }
-                
-                // no input exists and so loop around 
+
+                // no input exists and so loop around
                 // and delete the entire line
             }
         }
-        
+
         alert("Magic Undo failure, didn't set input")
         input = null
     }
@@ -647,26 +647,76 @@ function replaceSelectedText(newText) { // https://stackoverflow.com/a/3997896
 
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
 
-load_r3.then(() => {
 
-    // load_r3 loads all `<script type="text/rebol" ...>` tags and runs them.
-    // Running replpad.reb defines MAIN, which is an adaptation of the
-    // CONSOLE command from the Console Extension.
+//=//// SIMULATED DEVELOPER CONSOLE INSIDE BROWSER WINDOW /////////////////=//
+//
+// Mobile web browsers frequently do not have the "Ctrl-Shift-I" option to
+// open developer tools.  To assist in debugging (or giving more informative
+// status messages while your client is loading), %load-r3.js allows you to
+// pass in a configuration object with log(), info(), error(), and warn().
+//
+// We redirect that output to the replpad element.
+//
+
+let temp_elem = document.createElement("div")
+
+var escape_text = function (text) {
+    // escape text using
+    // the browser's internal mechanisms.
     //
-    // The entire console session (with many INPUT and PRINT commands) is
-    // run in one long Promise.  If you are using a wasm/pthread build,
-    // then all the Rebol code will be running on a JavaScript worker...
-    // which will suspend that worker stack any time a synchronous need of
-    // JavaScript comes up--and that synchronous need will be run via a
-    // setTimeout()-based handler on the GUI thread.  This is because most
-    // anything you want to do with JavaScript is going to involve data
-    // and functions available only on the GUI thread.
+    // https://stackoverflow.com/q/6234773/
     //
-    // Hence this long call to main only actually "fullfills the promise"
-    // when the whole interactive session is finished.
-    //
-    // See also: "On Giving libRebol JS More Powers than JavaScript"
-    // https://forum.rebol.info/t/849
+    temp_elem.innerText = text  // assignable property, assumes literal text
+    return temp_elem.innerHTML  // so <my-tag> now becomes &lt;my-tag&gt;
+}
+
+
+let rewired = function (old_handler, classname) {
+    return (txt) => {
+        replpad.appendChild(load(
+            '<div class="line '
+            + classname + '">'
+            + escape_text(txt)
+            + '</div>'
+        ))
+
+        old_handler(txt)  // also show message in browser developer tools
+    }
+}
+
+
+//=//// STARTUP PROMISE AND HANDLER ////////////////////////////////////////=//
+//
+// The %load-r3.js file gives us `reb.Startup()`, which takes a configuration
+// object as a parameter, and returns a Promise for a running evaluator.
+//
+// reb.Startup() loads all `<script type="text/rebol" ...>` tags and runs them.
+// Running replpad.reb defines MAIN, which is an adaptation of the CONSOLE
+// command from the Console Extension.
+//
+// The entire console session (with many INPUT and PRINT commands) is run in
+// one long Promise.  If you are using a wasm/pthread build, then all the Rebol
+// code will be running on a JavaScript worker... which will suspend that
+// worker stack any time a synchronous need of JavaScript comes up--and that
+// synchronous need will be run via a setTimeout()-based handler on the GUI
+// thread.  This is because most anything you want to do with JavaScript is
+// going to involve data and functions available only on the GUI thread.
+//
+// Hence this long call to main only actually "fullfills the promise" when the
+// whole interactive session is finished.
+//
+// See also: "On Giving libRebol JS More Powers than JavaScript"
+// https://forum.rebol.info/t/849
+//
+
+reb.Startup({
+
+    info: rewired(console.info, "info"),
+    log: rewired(console.log, "log"),
+    warn: rewired(console.warn, "warn"),
+    error:  rewired(console.error, "error")
+
+}).then(() => {
 
     return reb.Promise("main")
 
