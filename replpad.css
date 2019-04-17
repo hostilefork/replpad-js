@@ -129,9 +129,62 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * and must undo any settings from it that it doesn't like.
  */
 .line {
+    /* To make the REPL usable on more screen sizes, we expect the console to
+     * be word-wrap-capable.
+     */
+    word-break: break-word;
+
+    /*
+     * We don't use <pre> or <textarea> to give flexibility in fonts, colors,
+     * and other rendering in the console.  But we still want whitespace to be
+     * preserved.  If we go through and convert it all to non-breaking space
+     * (`&nbsp;`) naively, the non-breaking nature prevents word-wrap at the
+     * word boundaries.
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+     */
+    white-space: pre-wrap;  /* break-spaces not available in Chrome ATM */
+
+    /* We'd like the wrapped portions to be able to be distinguished in some
+     * way, so we use a so-called "hanging indent" where every wrapped part
+     * except the start of the line is indented.
+     *
+     * Mozilla has some experiments with a `hanging` option on `text-indent`,
+     * but Chrome does not support it:
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/CSS/text-indent
+     *
+     * We hack it up by first padding all lines, and then giving a special
+     * margin assignment to the first letter:
+     *
+     * https://stackoverflow.com/a/8090502
+     */
+    /* padding-left: 20px; */  /* !!! Not working :-( */
+
     font-family: 'Inconsolata', monospace;
     font-weight: 600;  /* semibold */
     color: #404040;  /* lighten a little to weaken the boldness */
+}
+.line:first-letter {
+    /*
+     * See above: https://stackoverflow.com/a/8090502
+     */
+    /* margin-left: -20px; */  /* !!! Not working :-( */
+}
+
+.line:after {
+    /*
+     * An empty .line (e.g. <div class="line"></div>) represents an empty line
+     * in the console, but by default HTML will hide these.  This solution
+     * was tried, but it does not seem to work:
+     *
+     * https://stackoverflow.com/a/41503905
+     *
+     * So for the moment, we have to put "zero width non-joiners" in the
+     * HTML...which is not very elegant.
+     */
+    /*content: '\200b';*/
+    /*display: inline-block;*/
 }
 
 .input-container {
@@ -139,6 +192,16 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 }
 
 .input-prompt {
+    /*
+     * Input prompts are an "evolving work" as the mechanism in the Repl is
+     * figured out.  But while .line wants to be able to do word breaks, the
+     * .input-prompt (which also carries the line style) seems to think it
+     * needs to break `>>` across lines as `>` and `>`, due to how the layout
+     * is done.  For now, we override it back to default breaking behavior.
+     */
+    word-break: normal;
+    white-space: pre;  /* inheriting pre-wrap won't show trailing space */
+
     display: table-cell;
 }
 
@@ -152,16 +215,16 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* autocorrect: "off"; */
     /* autocapitalize: "off"; */
     /* spellcheck: "false"; */
-    
+
     /* The width and height gives you a larger copy/paste area.
-     * The 100px for height also provides padding under the prompt so that 
+     * The 100px for height also provides padding under the prompt so that
      * you're not typing at the very bottom of the screen. It is possible to
-     * increase the height to get a larger copy/paste area, but this means 
+     * increase the height to get a larger copy/paste area, but this means
      * the scrollbar will show up sooner too.
      */
     width: 100%;
     height: 100px;
-    
+
     vertical-align: top;
     display: table-cell;
 

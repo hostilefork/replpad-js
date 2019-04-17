@@ -74,62 +74,80 @@ replpad-reset: js-awaiter [
 
 
 replpad-write: js-awaiter [
-    {Print a string of text to the REPLPAD (no newline)}
-    param [text!]
+    {Output a string of text to the REPLPAD (no automatic newline after)}
+
+    return: [<opt> void!]
+    param [<blank> text!]
     /note "Format with CSS yellow sticky-note class"
     /html
 ]{
     let param = reb.Spell(reb.ArgR('param'))
+    if (param == "")
+        return  // no-op if content is empty
+
     let note = reb.Did(reb.ArgR('note'))
     let html = reb.Did(reb.ArgR('html'))
 
-    if (html && replpad.innerHTML == "<div class='line'>&zwnj;</div>")
-        replpad.innerHTML = ""
-
-    // If not /HTML and just code, for now assume that any TAG-like things
-    // should not be interpreted by the browser.  So escape--but do so using
-    // the browser's internal mechanisms.
-    //
-    // https://stackoverflow.com/q/6234773/
-    //
-    if (!html) {
-        let escaper = document.createElement('p')
-        escaper.innerText = param  // assignable property, assumes literal text
-        param = escaper.innerHTML  // so <my-tag> now becomes &lt;my-tag&gt;
-
-        // If we don't translate the spaces into `&nbsp;` then they'll get
-        // collapsed by the div, but we have to do it after the escaping to
-        // keep it from literally saying `&nbsp;`
-        //
-        param = param.replace(/ /gi, "&nbsp;");
-    }
-
     if (note) {
         replpad.appendChild(load(
-            "<div class='note'><p>"
-            + param  // not escaped, so any TAG!-like things are HTML
-            + "</p><div>"
+            "<div class='note'><p>" + param + "</p><div>"
         ))
         return
     }
 
+    // Regarding &zwnj; -- if we want to represent a newline, we want an
+    // empty div to show up.  But the browser collapses these.  Attempts to
+    // try and do this with CSS and `.line:after` lead to making extra
+    // newlines appear due to some interaction with word wrap:
+    //
+    // https://stackoverflow.com/a/41503905
+    //
+    // More elegant solutions are welcome.
+    //
     let line = replpad.lastChild  // want to add to last div *if* it's a "line"
     if (!line || line.className != 'line') {
-        replpad.innerHTML += "<div class='line'>&zwnj;</div>"
-        line = replpad.lastChild
+        line = load("<div class='line'>&zwnj;</div>")
+        replpad.appendChild(line)
     }
 
-    // Split string into pieces.  Note that splitting a string of just "\n"
-    // will give ["", ""].
+    // We want each line in its own `<div>`.  Split string into lines first,
+    // otherwise the `\n` gets translated into `<br>`.  Note that splitting a
+    // string of just "\n" will give ["", ""].
     //
     // Each newline means making a new div, but if there's no newline (e.g.
-    // only "one piece") then no divs will be added.
+    // only "one piece") then no divs will be added to the one we have
+    // ensured already exists.
     //
     let pieces = param.split("\n")
 
-    line.innerHTML += pieces.shift()  // Add FIRST line (shift() takes first)
+    // Since we aren't using <pre> or a <textarea>, this initially had some
+    // laborious logic for transforming spaces to `&nbsp;`...because the div
+    // was collapsing it otherwise.  It was more complex than even this:
+    //
+    // https://stackoverflow.com/a/20134195
+    //
+    // That turned out to all be unnecessary due to the CSS `white-space`
+    // attribute:
+    //
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+    //
+    if (!html) {
+        let escaper = document.createElement('p')
 
-    while (pieces.length)  // Add a div for each remaining line (if any)
+        pieces.forEach(function(piece, index) {
+            escaper.innerText = piece  // e.g. "<my-tag>"
+            pieces[index] = escaper.innerHTML  // e.g. &lt;my-tag&gt;
+        }, pieces)
+    }
+
+    // Add the first piece to the current line, and remove it from pieces
+    //
+    line.innerHTML += pieces.shift()  // shift() is like Rebol's TAKE
+
+    // Add a div for each remaining line (if any).  See notes above about the
+    // sub-optimal use of zero-width-non-joiner (&zwnj;)
+    //
+    while (pieces.length)
         replpad.appendChild(
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
         )
