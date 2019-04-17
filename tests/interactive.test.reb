@@ -25,10 +25,12 @@ Rebol [
     Exports: [okay ok k nope]
 ]
 
-; We want tests to be able to change the prompt, so we restore it after every
-; test step.  Save the initial value.
+; This may not be running from a console, e.g. it might be run via "?do=" on
+; the URL line.  Hence `system/console` may not be set yet.  We have to let
+; this script fall through to normal console processing, and let the first
+; run of OKAY capture it.
 ;
-saved-print-prompt: :system/console/print-prompt
+saved-print-prompt: _
 
 steps: [
     #EMPTY-LEFT-CLICK-TEST 39
@@ -109,7 +111,9 @@ steps: [
     {While printable keys should jump you down to the input for focus, things}
     {like Ctrl-C for copying (for example) should not.  Scroll up to one of}
     {the previous OKAYs, select it with the mouse, and copy it with Ctrl-C}
-    {(or Command-C on Mac, whatever your copying shortcut is)}
+    {(or Command-C on Mac, whatever your copying shortcut is).  Sadly,}
+    {paste won't make the console jump like a printable character would -}
+    {we're looking into that.}
 
     (write clipboard:// "NOPE")  ; preload with bad input if copy fails
 
@@ -122,8 +126,14 @@ label: description: bug: _  ; The state we need to know about to report error
 
 k: ok: okay: function [
     return: <void>
-    <with> steps label description bug
+    <with> steps label description bug saved-print-prompt
 ][
+    ; Console must be started when first OKAY is run, so SYSTEM/CONSOLE should
+    ; be set by that point.  But we only want to set it the first time (other
+    ; times it could be purposefully changed by the test code)
+    ;
+    saved-print-prompt: default [:system/console/print-prompt]
+
     print newline
     replpad-write/html {<hr>}
     print newline
@@ -182,11 +192,14 @@ print [
     LF
     {You will be asked to perform steps which test the functionality of the}
     {ReplPad, for things we can't (easily) make automated tests for.  This is}
-    {a huge help, so thank you for taking the time!}
+    {a huge help, so thank you for taking the time!} LF
     LF
-    {Press ENTER to begin...}
+    {When you are ready, type OKAY (or OK, or simply K)}
 ]
 
-input
-
-okay  ; Run OKAY to kick off the process, parsing the first step
+; !!! This falls through to the console, so that we get things set up like
+; `system/console` so we can tweak the prompt, etc. and have all the
+; interactivity the user expects...even if they ran it from `?do=` vs.
+; by having a console already and running `do`.  At the moment, there's no
+; way to communicate back to the caller whether a console is desired or not,
+; so it just assumes if your script terminates that you wanted one.
