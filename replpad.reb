@@ -346,6 +346,25 @@ read: function [
 ]
 
 
+do: adapt copy :lib/do [
+    ;
+    ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
+    ; by name in a registry.  This is an experimental concept (which was in
+    ; line with changing DO to always mean "do code you get from a source" and
+    ; not something that should just fall through generically such that
+    ; DO <TAG> would be <TAG>)
+    ;
+    ; The tag registry is maintained remotely, but hook with a few exceptions
+    ; here to shorten calling demos and get them out of the root directory.
+    ;
+    source: maybe switch source [
+        <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
+        <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
+        <test-repl> [%tests/interactive.test.reb]
+    ]
+]
+
+
 js-do-global-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     {Run JS code via a <script> tag, effectively making it global in scope}
 
@@ -702,7 +721,9 @@ browse: function [
     ; open a window it's the sort of thing that would give them an option.
     ;
     replpad-write/html unspaced [
+        <div class="browse">
         {Click here: <a href="} url {" target="_blank">} url {</a>}
+        </div>
     ]
 ]
 
@@ -797,3 +818,15 @@ sys/export [
     replpad-reset  ; not originally exported, but some "apps" are using it
     replpad-write  ; for clients who want to write HTML, not just PRINT text
 ]
+
+; !!! Anything the user context has already pulled in before this runs will
+; not pick up the updated definitions from lib.  Since DO was used to run this
+; module by %load-js.r3, that means the user context still has the old
+; definition...regardless of what we push with EXPORT here.  This is a big
+; design area that R3-Alpha did not solve, which needs thinking:
+;
+; https://forum.rebol.info/t/the-real-story-about-user-and-lib-contexts/764
+;
+; As a workaround for now, manually override the user context's DO
+;
+system/contexts/user/do: :do

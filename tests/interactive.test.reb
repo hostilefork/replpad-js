@@ -1,0 +1,192 @@
+Rebol [
+    Title: "ReplPad Guided Interactive Behavior Test"
+
+    Type: Module
+    Options: [isolate]
+
+    Description: {
+        While automated testing can check some things, it is not necessarily
+        feasible to check *everything* programmatically.  Questions of whether
+        or not scroll bars show up, or if you can right click and get the right
+        kind of menu, are details that get fixed...but then can wind up being
+        broken now and again.
+
+        The goal of this script is to provide a guided checklist--many for
+        issues that have come up in the past as breaking.  If you get failures,
+        and there's a bug already existing for it...it will guide you to the
+        GitHub issue where it was previously discussed to reopen it.
+
+        Each step is run as a function called OKAY.  The function advances a
+        step and updates its state, but then returns control to ReplPad.  This
+        leaves the user to interact with the UI in its "natural state"
+        between the steps.
+    }
+
+    Exports: [okay ok k nope]
+]
+
+; We want tests to be able to change the prompt, so we restore it after every
+; test step.  Save the initial value.
+;
+saved-print-prompt: :system/console/print-prompt
+
+steps: [
+    #EMPTY-LEFT-CLICK-TEST 39
+
+    {You should be able to select some text on the page, to where the input}
+    {doesn't have the focus (so no blinking cursor).  Do that, and then try}
+    {clicking in the empty input area below.  It should not be difficult to}
+    {get the cursor to show up--clicking pretty much anywhere at-or-below the}
+    {prompt line should cause it to appear.}
+
+    (
+        ; !!! We could automatically select something, perhaps repeatedly,
+        ; and ask the users to do some repeated clicking to get the focus.
+        ; This would get them to test multiple spots.
+    )
+
+    #RIGHTCLICK-PASTE-TEST 37
+
+    {Similarly to how the blank input area should be willing to take left}
+    {clicks, you should be able to right click...and get a useful menu that}
+    {lets you paste content.  We've preloaded the clipboard with OKAY, so}
+    {make sure you get the offer to paste when you click around in the empty}
+    {area below.  (Note the menu should specifically offer you "Paste" and}
+    {know it's a text input...not just give you the generic `View Source`/etc.}
+    {that you get everywhere else).}
+
+    (write clipboard:// "OKAY")
+
+    #KEYBOARD-PASTE-TEST
+
+    {While we've got "OKAY" on the clipboard, why not make sure that you can}
+    {paste that with the keyboard Ctrl-V shortcut too.}
+
+    (write clipboard:// "OKAY")  ; in case they copied something else
+
+    #LONG-PROMPT-TEST 58
+
+    {There have been some issues with long prompts.  We're changing the prompt}
+    {temporarily to a longer one, it should still line break normally.}
+
+    (
+        ; `system/console/prompt` is just inert data that may or may not be
+        ; used by a hooked PRINT-PROMPT function.  So we override the function.
+        ; (Restored by the next OKAY command.)
+        ;
+        system/console/print-prompt: does [
+            write-stdout "How's this really long prompt working?>> "
+        ]
+    )
+
+    #SCROLLBAR-PRESERVATION-TEST
+
+    {While the interpreter is running a long operation that prints output,}
+    {we want you to be able to scroll around and make selections--not having}
+    {it disturb your scrolled-to position.  So when you are ready, hit enter}
+    {and we will print a few lines of output.  Scroll up and make some}
+    {selections, and confirm that neither your window position nor selection}
+    {are disturbed by the output being added.}
+
+    (
+        write-stdout "Hit [Enter] when you're ready to scroll up..."
+        input
+        loop 16 [
+            print "Scroll up and be sure this output isn't interfering!"
+            wait 0.5
+        ]
+    )
+
+    #KEYBOARD-JUMP-TEST
+
+    {If you're scrolled up somewhere and want to jump to the input without}
+    {needing to reach for the scroll bar, typing a printable key should get}
+    {you there.  Give it a try--scroll up so the input isn't visible, and}
+    {then when you type the `O` for OKAY it should jump you back down.}
+
+    #KEYBOARD-NOJUMP-TEST
+
+    {While printable keys should jump you down to the input for focus, things}
+    {like Ctrl-C for copying (for example) should not.  Scroll up to one of}
+    {the previous OKAYs, select it with the mouse, and copy it with Ctrl-C}
+    {(or Command-C on Mac, whatever your copying shortcut is)}
+
+    (write clipboard:// "NOPE")  ; preload with bad input if copy fails
+
+    ; Ctrl-V doesn't act as a printable key and jump, might be nice if it could
+    ; https://github.com/hostilefork/replpad-js/issues/59
+]
+
+
+label: description: bug: _  ; The state we need to know about to report error
+
+k: ok: okay: function [
+    return: <void>
+    <with> steps label description bug
+][
+    print newline
+    replpad-write/html {<hr>}
+    print newline
+
+    ; Always restore the prompt, in case a test changed it.
+    ;
+    system/console/print-prompt: :saved-print-prompt
+
+    if tail? steps [
+        print "CONGRATULATIONS, you are all done."
+        print "Type OKAY to restart the checklist."
+        steps: head steps
+        return
+    ]
+
+    steps: parse steps [
+        set label: issue!
+        opt set bug: integer!  ; optional GitHub issue number
+        copy description: [some text!] (print description)
+        opt [set code: group! (do code)]
+    ] else [
+        fail "Problem in STEPS parsing"
+    ]
+
+    print newline
+    print "    (Type OKAY, K, or OK if it works, NOPE if there's a problem)"
+]
+
+
+nope: function [
+    return: <void>
+][
+    ; Always restore the prompt, in case a test changed it.
+    ;
+    system/console/print-prompt: :saved-print-prompt
+
+    print ["O noes." if bug ["Broken, again?!!"] "(✖╭╮✖)"]
+
+    print ["Please file your findings with any additional notes on GitHub."]
+    print ["Mention the browser you're using and the platform, etc. etc."]
+
+    if bug [
+        print "Since the issue has happened before, add your findings here:"
+        browse join https://github.com/hostilefork/replpad-js/issues/ bug
+    ] else [
+        print "This is a new issue, so please open it at:"
+        browse https://github.com/hostilefork/replpad-js/issues/new
+    ]
+
+    print "    (Then type OKAY to continue)"
+]
+
+
+print [
+    {Welcome to the ReplPad Guided Interactive Behavior Test!} LF
+    LF
+    {You will be asked to perform steps which test the functionality of the}
+    {ReplPad, for things we can't (easily) make automated tests for.  This is}
+    {a huge help, so thank you for taking the time!}
+    LF
+    {Press ENTER to begin...}
+]
+
+input
+
+okay  ; Run OKAY to kick off the process, parsing the first step
