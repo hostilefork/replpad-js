@@ -323,7 +323,7 @@ onInputKeyDown = function(e) {
         if (!input.classList.contains("multiline")) {
             if (input_history_index > 0) {
                 input_history_index--
-                input.innerHTML = input_history[input_history_index]
+                input.textContent = input_history[input_history_index]
             }
 
             e.preventDefault()
@@ -332,10 +332,10 @@ onInputKeyDown = function(e) {
         if (!input.classList.contains("multiline")) {
             if (input_history_index < input_history.length - 1) {
                 input_history_index++
-                input.innerHTML = input_history[input_history_index]
+                input.textContent = input_history[input_history_index]
             } else {
                 input_history_index = input_history.length
-                input.innerHTML = ''
+                input.textContent = ''
             }
 
             e.preventDefault()
