@@ -78,20 +78,16 @@ replpad-write: js-awaiter [
 
     return: [<opt> void!]
     param [<blank> text!]
-    /note "Format with CSS yellow sticky-note class"
     /html
 ]{
     let param = reb.Spell(reb.ArgR('param'))
     if (param == "")
         return  // no-op if content is empty
 
-    let note = reb.Did(reb.ArgR('note'))
     let html = reb.Did(reb.ArgR('html'))
 
-    if (note) {
-        replpad.appendChild(load(
-            "<div class='note'><p>" + param + "</p><div>"
-        ))
+    if (html) {
+        replpad.appendChild(load(param))
         return
     }
 
@@ -361,6 +357,7 @@ do: adapt copy :lib/do [
         <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
         <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
         <test-repl> [%tests/interactive.test.reb]
+        <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
     ]
 ]
 

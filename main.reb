@@ -11,19 +11,20 @@ link: [href label] => [
 ]
 
 intro-note-html: spaced [
+    {<div class='note'>}
+
+    {<p>}
     {<b><i>Guess what...</i></b> this REPL is actually written in Rebol!}
     {Check out the} (link replpad-git {bridge to JavaScript})
     {as well as the} unspaced [(link console-git {Console Module}) "."]
-
     {While the techniques are still in early development, they show a}
     {lot of promise for JavaScript/Rebol interoperability.}
-
     {Discuss it on} (link chat {StackOverflow chat})
     {or join the} unspaced [(link forum {Discourse forum}) "."]
+    {</p>}
 
-    {<br><br>}
-
-    {<i>(Note: SHIFT-ENTER to type in multi-line code, Ctrl-Z to undo)</i>}
+    {<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>}
+    {</div>}
 ]
 
 greeting-text:
@@ -34,20 +35,20 @@ greeting-text:
   REDBOL  - Experimental emulation of Rebol2/Red conventions}
 
 emterpreter-warning-html: spaced [
-    {!!! Heads Up 😮 !!!  Your browser is <i>not</i> configured for}
-    unspaced [(link wasm-threads {WebAssembly with Threads}) "."]
+    {<div>}
+    {<p>!!! Heads Up 😮 !!!  Your browser is <i>not</i> configured for}
+    unspaced [(link wasm-threads {WebAssembly with Threads}) "."</p>]
 
-    {Threads are used so side-effects like this PRINT statement show}
+    {<p>Threads are used so side-effects like this PRINT statement show}
     {in the web browser without having to terminate the Rebol stack.}
-    {What you're using now is a VERY slow and kludgey workaround.}
+    {What you're using now is a VERY slow and kludgey workaround.</p>}
 
-    {<br><br>}
-
-    {To run at speeds up to 30x faster, enable SharedArrayBuffer}
-    {and WASM threads:} (link instructions {<b>INSTRUCTIONS HERE</b>})
+    {<p>To run at speeds up to 30x faster, enable SharedArrayBuffer}
+    {and WASM threads:} (link instructions {<b>INSTRUCTIONS HERE</b>}</p>)
 
     {<hr>}
     {<br>}
+    {</div>}
 ]
 
 ; We don't want a deep stack when reporting errors or running user code.  So
@@ -106,7 +107,7 @@ main: adapt 'console [
         comment [if result = ... [return 0]]
     ]
     else [
-        replpad-write/note/html intro-note-html
+        replpad-write/html intro-note-html
 
         if system/version = 2.102.0.16.1 [
             replpad-write/html emterpreter-warning-html
@@ -133,10 +134,12 @@ main: adapt 'console [
 ; https://github.com/hostilefork/replpad-js/issues/17
 ;
 quit: adapt copy :lib/quit [
-    replpad-write/note/html spaced [
-        {<b><i>Sorry to see you go...</i></b>}
+    replpad-write/html spaced [
+        {<div class='note'>}
+        {<p><b><i>Sorry to see you go...</i></b></p>}
 
-        {<a href=".">click to restart interpreter</a>}
+        {<p><a href=".">click to restart interpreter</a></p>}
+        </div>
     ]
 
     ; Fall through to normal QUIT handling

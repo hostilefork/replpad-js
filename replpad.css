@@ -297,6 +297,14 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     border-left-width: 5px;
     border-left-style: solid;
 
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+
+    margin-bottom: 5px;
+    margin-top: 5px;
+
     font-family: 'Noto Sans', sans-serif;  /* Because it's a note-o :-) */
     font-weight: normal;
 }

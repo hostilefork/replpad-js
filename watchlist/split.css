@@ -11,10 +11,6 @@
     height: 100vh;
 }
 
-/* So contents don't crash right up against the gutter or border */
-.split p, .split-flex p {
-    padding: 20px;
-}
 
 /* Not entirely sure what this does--from split.js homepage */
 .split, .split-flex {
