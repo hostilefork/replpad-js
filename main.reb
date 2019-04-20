@@ -92,7 +92,12 @@ main: adapt 'console [
     ]
 
     if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
-        set/any 'result: do as tag! autorun
+        if error? trap [set/any 'result: do as tag! autorun][
+            ; not found in locale, so see if it's a local file wanted to run
+            search: first split-path js-eval "window.location.href"
+            set/any 'result: do to url! join search autorun
+        ]
+        ; set/any 'result: do as tag! autorun
 
         ; !!! Right now, all modules return void.  This is a limitation of
         ; having DO be based on IMPORT:
