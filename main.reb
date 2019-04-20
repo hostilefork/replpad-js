@@ -91,26 +91,39 @@ main: adapt 'console [
         return 1
     ]
 
-    if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
-        set/any 'result: do as tag! autorun
+    case [
+        autorun [ ; `?do=foo` suppresses banner and runs `do <foo>`
+            if error? trap [set/any 'result: do as tag! autorun][
+                ; not found in locale, so see if it's a local file wanted to run
+                search: first split-path js-eval "window.location.href"
+                set/any 'result: do to url! join search autorun
+            ]
 
-        ; !!! Right now, all modules return void.  This is a limitation of
-        ; having DO be based on IMPORT:
-        ;
-        ; https://github.com/rebol/rebol-issues/issues/2373
-        ;
-        ; So if *any* modules require falling through to the console, we have
-        ; to make all of them do it.  This should be revisited, but for now
-        ; any script that isn't supposed to drop to the console should never
-        ; terminate.
-        ;
-        comment [if result = ... [return 0]]
-    ]
-    else [
-        replpad-write/html intro-note-html
+            ; !!! Right now, all modules return void.  This is a limitation of
+            ; having DO be based on IMPORT:
+            ;
+            ; https://github.com/rebol/rebol-issues/issues/2373
+            ;
+            ; So if *any* modules require falling through to the console, we have
+            ; to make all of them do it.  This should be revisited, but for now
+            ; any script that isn't supposed to drop to the console should never
+            ; terminate.
+            ;
+            comment [if result = ... [return 0]]
+        ]    
+        true [
+            ; check for startup-sequence.reb
+            if error? entrap [
+                 if js-head search: to url! append first split-path js-eval "window.location.href" %startup-sequence.reb [
+                    set/any 'result: do search
+                 ]
+            ][
+                replpad-write/html intro-note-html
 
-        if system/version = 2.102.0.16.1 [
-            replpad-write/html emterpreter-warning-html
+                if system/version = 2.102.0.16.1 [
+                    replpad-write/html emterpreter-warning-html
+                ]
+            ]
         ]
     ]
 
