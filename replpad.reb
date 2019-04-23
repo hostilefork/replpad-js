@@ -724,6 +724,61 @@ browse: function [
     ]
 ]
 
+
+download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
+    {Triggers a download of data to the user's local disk}
+
+    :filename [<skip> file! sym-word! sym-path! sym-group!]
+    data [text! binary!]
+
+    ; !!! Should custom /mime-type be allowed?
+]{
+    let d = reb.Arg('data')
+    let f = reb.Arg('filename')
+
+    let filename = reb.Spell(
+        "switch type of", f, "[",
+            "file! sym-word! [", f, "]",
+            "sym-path! [to file! as path!", f, "]",
+            "sym-group! [to file! do", f, "]",
+            "default [",
+                 "either binary?", d, "'%download.bin 'download.txt",
+            "]",
+        "]"
+    )
+    reb.Release(f)
+
+    // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
+    // It can also include strings in that array.
+    //
+    let blob;
+    if (reb.Did("binary?", d)) {
+        let uint8_array = reb.Bytes(d)
+        blob = new Blob([uint8_array], {type: "octet/stream"})
+    }
+    else {
+        let string = reb.Spell(d)
+        blob = new Blob([string], {type: "text/plain"})
+    }
+    reb.Release(d)
+
+    let url = window.URL.createObjectURL(blob)
+
+    // Trigger the download by simulating a click on an invisible anchor, with
+    // a "download" property supplying the filename.
+    //
+    var a = document.createElement("a")  // `a` link, as in <a href="...">
+    document.body.appendChild(a)
+    a.style = "display: none"
+    a.href = url
+    a.download = filename
+    a.click()
+    a.parentNode.removeChild(a)
+
+    window.URL.revokeObjectURL(url)
+}
+
+
 ; !!! The ABOUT command was not made part of the console extension, since
 ; non-console builds might want to be able to ask it from the command line.
 ; But it was put in HOST-START and not the mezzanine/help in general.  This
@@ -810,6 +865,7 @@ sys/export [
     read
     write
     browse
+    download
     now
 
     replpad-reset  ; not originally exported, but some "apps" are using it
