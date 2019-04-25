@@ -125,6 +125,10 @@ main: adapt 'console [
         ][
             [greeting: greeting-text]
         ]))
+
+        print-halted: method [] [
+            print "[interrupted by Escape key or HALT instruction]"
+        ]
     ]
 ]
 

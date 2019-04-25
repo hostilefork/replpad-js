@@ -62,12 +62,6 @@ var first_input = null
 var onInputKeyDown
 var placeCaretAtEnd
 
-// When the C code requests to sleep, it should still be interrupted by a
-// halt.  In order to do this, the outstanding timer request for the sleep
-// has to be clearTimeout() called on it.  This saves the ID.
-//
-var sleep_timeout_id = null
-
 var RowClick
 
 // For security reasons, web pages can't read whatever you happened to write
@@ -554,11 +548,7 @@ function OnEscape() {
     }
 
     console.log("queueing halt")
-
-    if (sleep_timeout_id)
-        clearTimeout(sleep_timeout_id)  // forget JS_EVENT_SLEEP_COMPLETE
-
-    queueEventToC('JS_EVENT_HALTED')
+    reb.Halt()
 }
 
 
