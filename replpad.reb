@@ -172,7 +172,7 @@ print: function [
 ]
 
 
-input: js-awaiter [
+read-stdin: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
@@ -861,7 +861,7 @@ sys/export [
     wait
     write-stdout
     print
-    input
+    read-stdin
     read
     write
     browse
