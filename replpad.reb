@@ -87,7 +87,7 @@ replpad-write: js-awaiter [
     let html = reb.Did(reb.ArgR('html'))
 
     if (html) {
-        replpad.appendChild(load(param))
+        replpad.insertAdjacentHTML('beforeend', param)
         return
     }
 
