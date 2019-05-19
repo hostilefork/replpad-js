@@ -353,7 +353,7 @@ do: adapt copy :lib/do [
     ; The tag registry is maintained remotely, but hook with a few exceptions
     ; here to shorten calling demos and get them out of the root directory.
     ;
-    source: maybe switch source [
+    source: maybe switch :source [
         <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
         <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
         <test-repl> [%tests/interactive.test.reb]
