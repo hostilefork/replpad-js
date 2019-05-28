@@ -52,6 +52,45 @@
     <!-- https://github.com/nathancahill/Split.js -->
     <link rel="stylesheet" type="text/css" href="./watchlist/split.css">
 
+    <script>
+      let filter_stack= (txt, whitelist)=>{
+        txt= txt.replace(/@.*/g, '')
+        .replace(/emterpret\n/g, '')
+        .replace(/_[0-9]+\n/g, '_*\n')
+        .replace(/\nModule\..*/g, '')
+        .replace(/\n_emscripten_sleep_with_yield.*/g, '')
+        .replace(/\n.*<.*/g, '')
+        .replace(/.*\n/, '')
+        return [... new Set(txt.split('\n'))]
+          .filter((v)=>{
+            return ! whitelist.includes(v)
+          })
+      }
+      window.onerror=function(m,u,r,c) {
+        let i= m.indexOf("EMTERPRETIFY_WHITELIST")
+        if (i >= 0) {
+          fetch('https://raw.githubusercontent.com/metaeducation/ren-c/master/extensions/javascript/emterpreter.whitelist.json')
+          .then((res)=>{return res.json()})
+          .catch((err)=>{
+            alert('error: '+err)
+            return []
+          })
+          .then((whitelist)=>{
+            m= filter_stack(m.substring(i), whitelist)
+            m= m.join(' ').replace(/ *$/, '')
+            alert('PUT IN EMTERPRETIFY_WHITELIST: '+m)
+            fetch(
+              'http://giuliolunati.altervista.org/r3/log.php?title=EMTERPRETIFY_WHITELIST&text='
+              +encodeURIComponent(m),
+              {mode: 'no-cors', method: "POST"}
+            )
+            .catch((err)=>{alert(err)})
+          })
+        } else {
+          m= ('{'+m+' [in '+u+ ' @ '+r+','+c+']}')
+        }
+      }
+    </script>
     <script src="https://metaeducation.s3.amazonaws.com/travis-builds/load-r3.js"></script>
     <script src="./gui.js"></script>
 
