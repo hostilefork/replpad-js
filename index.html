@@ -54,21 +54,26 @@
 
     <script>
       let filter_stack= (txt, whitelist)=>{
+        whitelist= whitelist.concat([
+          '',
+          '_emscripten_sleep_with_yield',
+          'abort',
+          'emterpret',
+          'stackTrace'
+        ])
         txt= txt.replace(/@.*/g, '')
-        .replace(/emterpret\n/g, '')
         .replace(/_[0-9]+\n/g, '_*\n')
         .replace(/\nModule\..*/g, '')
-        .replace(/\n_emscripten_sleep_with_yield.*/g, '')
         .replace(/\n.*<.*/g, '')
-        .replace(/.*\n/, '')
+        .replace(/\nThis error.*EMTERPRETIFY_WHITELIST.*to save it:.*/, '')
+        .replace(/uncaught.*/, '')
         return [... new Set(txt.split('\n'))]
           .filter((v)=>{
             return ! whitelist.includes(v)
           })
       }
       window.onerror=function(m,u,r,c) {
-        let i= m.indexOf("EMTERPRETIFY_WHITELIST")
-        if (i >= 0) {
+        if (m.search(/This error.*EMTERPRETIFY_WHITELIST.*to save it:/) >= 0) {
           fetch('https://raw.githubusercontent.com/metaeducation/ren-c/master/extensions/javascript/emterpreter.whitelist.json')
           .then((res)=>{return res.json()})
           .catch((err)=>{
@@ -76,7 +81,7 @@
             return []
           })
           .then((whitelist)=>{
-            m= filter_stack(m.substring(i), whitelist)
+            m= filter_stack(m, whitelist)
             m= m.join(' ').replace(/ *$/, '')
             alert('PUT IN EMTERPRETIFY_WHITELIST: '+m)
             fetch(
