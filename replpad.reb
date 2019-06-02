@@ -362,50 +362,18 @@ do: adapt copy :lib/do [
 ]
 
 
-js-do-global-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
-    {Run JS code via a <script> tag, effectively making it global in scope}
+js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
+    {Run JS URL via a <script> tag}
 
-    source [text!] "URL or JavaScript code"
-    /url "If true, source is a URL"
+    url [url!] "URL or JavaScript code"
 ]{
     return new Promise(function(resolve, reject) {
         let script = document.createElement('script')
 
-        let source = reb.Spell(reb.ArgR('source'))
-        if (reb.DidQ(reb.ArgR('url'))) {
-            script.src = source
-            script.onload = function() {
-                script.parentNode.removeChild(script)  // !!! necessary for GC?
-                resolve()  // can't take onload()'s arg directly
-            }
-        }
-        else {
-            // Loading from a URL will give us an onload() event.  But there's
-            // no standard "afterscriptexecute" event for if we are using text.
-            // We have to add our resolve call to the code itself somehow.
-            //
-            // Make up a globally accessible ID for the resolver:
-            // https://stackoverflow.com/q/1320568
-
-            let num = Math.floor(Math.random() * 10000000000000001)
-            let id = "js_do_global_" + num + "_after"
-
-            let unpoke = new Function("delete window." + id)
-
-            let after = function() {
-                script.parentNode.removeChild(script)  // !!! necessary for GC?
-                resolve()  // can't take onload()'s arg directly
-                unpoke()  // get rid of globally visible resolve handler
-            }
-
-            let poke = new Function(
-                'after',  // argument
-                "window." + id + " = after"  // function body
-            )
-            poke(after)  // use eval to dynamically name global handler
-
-            // Tack on a call to the global alias for the resolver in the code
-            script.innerHTML = source + "\n" + "window." + id + "()\n"
+        script.src = reb.Spell(reb.ArgR('url'))
+        script.onload = function() {
+            script.parentNode.removeChild(script)  // !!! necessary for GC?
+            resolve()  // can't take onload()'s arg directly
         }
         // HTML5 discourages use of .type field to redundantly specify JS
 
@@ -478,33 +446,26 @@ js-do: function [
     if block? source [source: my js-do-dialect-helper]
 
     either text? source [
-        either local [
-            eval js-native [] source  ; !!! slightly inefficient, works for now
-        ][
-            js-do-global-helper source
-        ]
+        js-eval*/(local) source
     ][
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
         any [automime local] then [
             code: as text! read CORSify-if-gitlab-url source
-            if local [
-                eval js-native [] code  ; !!! again, slightly inefficient
-            ] else [
-                js-do-global-helper code
-            ]
+            js-eval*/(local) code
         ] else [
-            js-do-global-helper/url as text! source
+            js-do-url-helper source
         ]
     ]
 ]
 
-; Note: In order to accomplish what it does, JS-DO cannot return a result.
-; (mechanically it must do things like add a <script> tag, to get global
-; evaluative access).  Hence it doesn't try to translate a return value to
-; the caller.  This routine wraps expressions in functions and tries to
-; return a value.
+; JS-DO runs scripts by URL and generically does not return an evaluative
+; result (and can't, if it uses the `<script>` tag).  So JS-DO of a TEXT! is
+; the preferred choice when you're not interested in getting back a result
+; from that evaluation...even though it builds on the low-level JS-EVAL*
+; functionality.  This higher-level JS-EVAL assumes you want a result back
+; vs. the fire-and-forget JS-DO, and supports the JS-DO dialect.
 ;
 js-eval: function [
     {Evaluate JavaScript expression in local environment and return result}
@@ -514,27 +475,7 @@ js-eval: function [
         [<blank> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
-
-    eval js-native [] unspaced [{
-        let js_eval_ugly_name_so_it_does_not_collide = (} expression {)
-
-        if (null === js_eval_ugly_name_so_it_does_not_collide)
-            return null  // bad typeof: https://stackoverflow.com/a/18808270/
-
-        switch (typeof js_eval_ugly_name_so_it_does_not_collide) {
-          case 'undefined':
-            return reb.Void()
-
-          case 'number':
-            return reb.Integer(js_eval_ugly_name_so_it_does_not_collide)
-
-          case 'string':
-            return reb.Text(js_eval_ugly_name_so_it_does_not_collide)
-
-          default:
-            return reb.Void()
-        }
-    }]
+    return js-eval*/local/value expression
 ]
 
 
