@@ -84,7 +84,7 @@ replpad-write: js-awaiter [
     if (param == "")
         return  // no-op if content is empty
 
-    let html = reb.Did(reb.ArgR('html'))
+    let html = reb.DidQ(reb.ArgR('html'))
 
     if (html) {
         replpad.insertAdjacentHTML('beforeend', param)
@@ -372,7 +372,7 @@ js-do-global-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
         let script = document.createElement('script')
 
         let source = reb.Spell(reb.ArgR('source'))
-        if (reb.Did(reb.ArgR('url'))) {
+        if (reb.DidQ(reb.ArgR('url'))) {
             script.src = source
             script.onload = function() {
                 script.parentNode.removeChild(script)  // !!! necessary for GC?
@@ -648,16 +648,16 @@ now: js-native [
 ]{
     var d = new Date()
 
-    if (reb.Did(reb.ArgR('year')))
+    if (reb.DidQ(reb.ArgR('year')))
         return reb.Integer(d.getFullYear())
 
-    if (reb.Did(reb.ArgR('month')))
+    if (reb.DidQ(reb.ArgR('month')))
         return reb.Integer(d.getMonth() + 1)  // add 1 because it's 0-11
 
-    if (reb.Did(reb.ArgR('day')))
+    if (reb.DidQ(reb.ArgR('day')))
         return reb.Integer(d.getDate())  // "date" (1-31), "day" is weekday
 
-    if (reb.Did(reb.ArgR('time')))
+    if (reb.DidQ(reb.ArgR('time')))
         return reb.Value(
             "make time! [",
                 reb.I(d.getHours()),
@@ -666,10 +666,10 @@ now: js-native [
             "]"
         )
 
-    if (reb.Did(reb.ArgR('weekday')))
+    if (reb.DidQ(reb.ArgR('weekday')))
         return reb.Integer(d.getDay() + 1)  // add 1 because it's 0-6
 
-    if (reb.Did(reb.ArgR('yearday')))  // !!! not particularly important
+    if (reb.DidQ(reb.ArgR('yearday')))  // !!! not particularly important
         throw ("To implement /YEARDAY: https://stackoverflow.com/a/26426761/")
 
     // !!! For now, punt on timezone issues

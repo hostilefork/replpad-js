@@ -103,7 +103,7 @@ watch: function [
                 // good when making HTML from strings.  Use innerText assign.
                 //
                 let td_name = load("<td></td>")
-                td_name.innerText = } spell @(uneval arg) {
+                td_name.innerText = } spell @(quote arg) {
                 tr.appendChild(td_name)
 
                 tr.appendChild(load("<td></td>"))  // UPDATE-WATCHES fills in
