@@ -34,17 +34,13 @@ greeting-text:
   ABOUT   - Information about your Rebol
   REDBOL  - Experimental emulation of Rebol2/Red conventions}
 
-emterpreter-warning-html: spaced [
+asyncify-warning-html: spaced [
     {<div>}
     {<p>!!! Heads Up 😮 !!!  Your browser is <i>not</i> configured for}
-    unspaced [(link wasm-threads {WebAssembly with Threads}) "."</p>]
-
-    {<p>Threads are used so side-effects like this PRINT statement show}
-    {in the web browser without having to terminate the Rebol stack.}
-    {What you're using now is a VERY slow and kludgey workaround.</p>}
-
-    {<p>To run at speeds up to 30x faster, enable SharedArrayBuffer}
-    {and WASM threads:} (link instructions {<b>INSTRUCTIONS HERE</b>}</p>)
+    unspaced [(link wasm-threads {WebAssembly with Threads}) "."]
+    {So they have to be simulated, which is a bit slow.  To address this,}
+    {enable SharedArrayBuffer and WASM threads:}
+    (link instructions {<b>INSTRUCTIONS HERE</b>}</p>)
 
     {<hr>}
     {<br>}
@@ -110,7 +106,7 @@ main: adapt 'console [
         replpad-write/html intro-note-html
 
         if system/version = 2.102.0.16.1 [
-            replpad-write/html emterpreter-warning-html
+            replpad-write/html asyncify-warning-html
         ]
     ]
 
