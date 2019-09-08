@@ -208,16 +208,11 @@ read-stdin: js-awaiter [
     // callbacks dealing with input can call it when input is finished.
     //
     return new Promise(function(resolve, reject) {
-        input_resolve = function(text) {
+        input_resolve = function(js_text) {
             //
-            // Note that the awaiter is still in effect when this resolve
-            // function is called (it hasn't been resolved, hence not finished)
-            // This means the emterpreted build still has the bytecode
-            // interpreter tied up, so evaluative functions aren't available.
-            // reb.Text() is legal, and resolving with a reb.Promise() should
-            // also be legal eventually...
+            // We make the resolve take a JavaScript string for convenience.
             //
-            resolve(reb.Text(text))
+            resolve(reb.Text(js_text))
         }
     })
 }
@@ -494,18 +489,16 @@ js-head-helper: js-awaiter [
 
     let headers = response.headers
 
-    return function () {
-        let obj = reb.Value("make object! []")
-        headers.forEach(function(value, key) {
-            reb.Elide(
-                "append", obj, "[",
-                    reb.V("as set-word!", reb.T(key)),
-                    reb.T(value),
-                "]"
-            )
-        })
-        return obj
-    }  // if using emterpreter, need callback to use APIs in resolve()
+    let obj = reb.Value("make object! []")
+    headers.forEach(function(value, key) {
+        reb.Elide(
+            "append", obj, "[",
+                reb.V("as set-word!", reb.T(key)),
+                reb.T(value),
+            "]"
+        )
+    })
+    return obj
 }
 
 js-head: function [
