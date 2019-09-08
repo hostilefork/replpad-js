@@ -95,8 +95,12 @@ function ActivateInput(el) {
 
     // this should match the styles defined for .input
     // so that the larger copy/paste area gets restored
-    el.style.width = '100%'
-    el.style.height = '100px'
+    //
+    // !!! The 100px fixed height was not workable for the multi-line edit
+    // mode.  Sacrificing whatever feature this was added for, for now.
+    //
+    /* el.style.width = '100%' */
+    /* el.style.height = '100px' */
 
     if (!first_input)
         first_input = el  // will stop magic-undo from undoing

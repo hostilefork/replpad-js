@@ -358,6 +358,7 @@ do: adapt copy :lib/do [
         <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
         <test-repl> [%tests/interactive.test.reb]
         <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
+        <chess> [%create-board.reb]
     ]
 ]
 

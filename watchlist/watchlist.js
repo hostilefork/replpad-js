@@ -23,7 +23,7 @@ var right_div = load(
          !-->
       </tbody>
     </table>
-  </div>`
+  </div>
 )
 
 replcontainer.parentNode.insertBefore(right_div, replcontainer.nextSibling)

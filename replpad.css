@@ -79,13 +79,13 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * https://stackoverflow.com/a/34345634/
  *
  * A side effect is that this reverses the mouse wheel direction, which has to
- * be undone with code JavaScript in the .js file.  If you have an easier way
- * to do this, then be my guest...but other approaches were not working:
+ * be undone with JavaScript code in %gui.js - if you have an easier way to do
+ * this, then be my guest...but other approaches were not working:
  *
  * https://stackoverflow.com/q/54626982/
  *
  * (Note: It's a sad commentary on the state of browser design that such a
- * convolutedd workaround is needed to get such common sense UI behavior.)
+ * convoluted workaround is needed to get such common sense UI behavior.)
  */
 #replpad, #replcontainer {
     transform: scale(1,-1);
@@ -188,7 +188,11 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 }
 
 .input-container {
-    display: table;
+    /*
+     * !!! This was set to display as a table, which does not suit multi-line
+     * well, but may be necessary to achieve a good single-line effect.
+     */
+    /*display: table;*/
 }
 
 .input-prompt {
@@ -254,7 +258,18 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 
 .input.multiline {
     display: block;
-    padding: 4px 4px;
+    height: auto;
+
+    /* !!! It's a nice visual effect to have the input give you some space to
+     * type in vs. fit the content too exactly vertically.  However, the
+     * input would need to be transitioned to a tighter form when not being
+     * the active input.  This could be done by having .input.current, or may
+     * be something that could be handled with a CSS selector of some sort?
+     */
+    /* min-height: 100px; */
+
+    padding-top: 4px;
+    padding-bottom: 4px;
     border-radius: 4px;
     border: 1px solid transparent;  /* accounts for total size if unfocused */
     text-decoration: none;
@@ -262,6 +277,11 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 .input.multiline:focus {
     /* https://stackoverflow.com/a/11426967 */
     border: 1px solid #eee;  /* light rounded box on multiline input */
+
+    /* Temporary workaround so that typing demos in multiline isn't crushed
+     * against the bottom of the screen; see remarks on the `height: auto;`
+     */
+    margin-bottom: 40px;
 }
 .multiline-arrow {  /* downward pointing arrow at the multiline box */
     color: #aaa;  /* not as light a gray as the rounded multiline border */
