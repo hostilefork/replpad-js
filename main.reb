@@ -66,10 +66,11 @@ main: adapt 'console [
     search: js-eval "window.location.search"
     autorun: _
     parse search [
-        any ["?" [
-            ["do=" copy autorun: to ["?" | end]]
+        "?" any [[
+            ["do=" copy autorun: to ["&" | end]]
             | ["local"]  ; instruction to %load-r3.js, already had effect
-        ]]
+            | ["tracing_on"]  ; also a %-load-r3.js instruction
+        ] ["&" | end]]
         end
     ] else [
         print ["** Bad `window.location.search` string in page URL:" search]
@@ -77,8 +78,12 @@ main: adapt 'console [
         print trim/auto mutable {
             OPTIONS ARE:
 
-            ?local
             ?do=scriptname
+
+            DEBUG OPTIONS ARE:
+
+            ?local
+            ?tracing_on
 
             They may be combined together, e.g.:
 
