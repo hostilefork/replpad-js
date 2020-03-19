@@ -120,7 +120,7 @@ watch: function [
 update-watches: function [] [
     n: 1
     for-each w watches [
-        result: if set? w [mold/limit get w 1000] else ["\null\"]
+        result: if set? w [mold/limit get/any w 1000] else ["\null\"]
 
         ; We update the result, in the 3rd column.  Because the content can
         ; be arbitrary UTF-8, we set the innerText property via a string
