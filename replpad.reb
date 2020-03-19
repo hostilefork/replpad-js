@@ -388,7 +388,7 @@ js-do-dialect-helper: function [
         keep-transient: function [t /required [word!]] [
             switch type of t [
                 sym-word! sym-path! [keep api-transient get t]
-                sym-group! [keep api-transient eval as group! t]
+                sym-group! [keep api-transient reeval as group! t]
                 default [
                     assert [required]
                     fail [required "must have its argument as @..., @(...)"]
@@ -399,7 +399,7 @@ js-do-dialect-helper: function [
         iterate b [
             switch type of b/1 [
                 text! [keep b/1]
-                group! [keep/only eval b/1]
+                group! [keep/only reeval b/1]
 
                 sym-word! sym-path! sym-group! [keep-transient b/1]
 
