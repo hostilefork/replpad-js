@@ -1,6 +1,6 @@
 # REPLPAD-JS
 
-Copyright (c) 2018-2019 hostilefork.com
+Copyright (c) 2018-2020 hostilefork.com
 
 This project is an effort to build an interactive GUI console that runs in
 a web browser, for the Ren-C branch of Rebol3:
@@ -46,8 +46,8 @@ the lines of:
 
     mkdir 0.16.1
     cd 0.16.1
-    r3-make ${REN-C-DIR}/make/make.r \
-        config: ${REN-C-DIR}/make/configs/emterpreter.r \
+    r3-make ${REN_C_DIR}/make.r \
+        config: ${REN_C_DIR}/configs/emscripten.r \
         target: makefile
 
     make
@@ -77,7 +77,7 @@ finished running.  For instance:
     sum: 0
     loop 5 [
        print "Enter a value:"
-       x: input
+       x: ask integer!
        sum: sum + x
     ]
     print ["The sum was" sum]
@@ -93,7 +93,7 @@ This is technically possible to do if the C code was running on a JavaScript
 wait for a wakeup message to come from the GUI thread.  That solution is
 implemented in the JavaScript extension for Rebol via the `rebPromise()` API.
 
-But if threads aren't availablein the browser, it's a bit more complex:
+But if threads aren't available in the browser, it's a bit more complex:
 
 * Queue a request to the browser, to be called back from later
 * Save the entire state of the C stack--putting it into "suspended animation"
@@ -101,18 +101,14 @@ But if threads aren't availablein the browser, it's a bit more complex:
 * When called back, poke the response data into memory where the C can read it
 * Bring the C code out of suspended animation to observe the response
 
-Fortunately, Emscripten has a tool for addressing this--though it might sound
-a little bonkers.  What they do is let you embed a JavaScript interpreter that
-is *written in JavaScript* into your project.  Then it compiles your C into
-a bytecode that runs in that interpreter:
+Fortunately, Emscripten has tools for addressing this.  Once those depended
+on embedding a JavaScript interpreter that was *written in JavaScript* into
+your project...so it could simulate scripts, suspend them, and bring them back
+to life on a single thread.  But the modern approach is based on weaving
+instructions into the Clang code generation itself to make certain functions
+suspendible at the WebAssembly level, this is called "Asyncify":
 
-https://github.com/kripken/emscripten/wiki/Emterpreter
-
-This way, each function call in your C no longer gets a corresponding level of
-stack in the browser's JavaScript interpreter.  It merely updates the embedded
-interpreter's state, which is being processed by `emterpret()`.  Emterpreter
-is designed to be suspended at any time...the function in the C called to do
-this is `emscripten_sleep_with_yield()`.
+https://emscripten.org/docs/porting/asyncify.html
 
 The threading approach is preferred, and over the long run will hopefully be
 supported in more browsers.
