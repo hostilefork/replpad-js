@@ -63,17 +63,17 @@ main: adapt 'console [
     ; Note: There is a URLSearchParams() object we could use to parse the
     ; search location as well (may not be in all browsers?)
     ;
-    search: js-eval "window.location.search"
     autorun: _
-    parse search [
-        "?" any [[
-            ["do=" copy autorun: to ["&" | end]]
-            | ["local"]  ; instruction to %load-r3.js, already had effect
-            | ["tracing_on"]  ; also a %-load-r3.js instruction
-        ] ["&" | end]]
-        end
-    ] else [
-        print ["** Bad `window.location.search` string in page URL:" search]
+    parse system/options/args [any [
+        start:
+
+        ; local, remote, tracing_on, git_commit not passed through by the
+        ; %load-r3.js for easier processing.
+
+        'do: set autorun text!
+    ] end] else [
+        print ["** Bad `window.location.search` string in page URL"]
+        print mold system/options/args
         print newline
         print trim/auto mutable {
             OPTIONS ARE:
@@ -83,11 +83,13 @@ main: adapt 'console [
             DEBUG OPTIONS ARE:
 
             ?local
+            ?remote
             ?tracing_on
+            ?git_commit=<shorthash>
 
             They may be combined together, e.g.:
 
-            ?local?do=scriptname
+            ?local&do=scriptname
         }
         return 1
     ]
