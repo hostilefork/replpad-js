@@ -73,8 +73,8 @@ replpad-reset: js-awaiter [
 }
 
 
-replpad-write: js-awaiter [
-    {Output a string of text to the REPLPAD (no automatic newline after)}
+replpad-write-js: js-awaiter [
+    {Output lines of text to the REPLPAD (no automatic newline after)}
 
     return: [<opt> void!]
     param [<blank> text!]
@@ -116,26 +116,6 @@ replpad-write: js-awaiter [
     //
     let pieces = param.split("\n")
 
-    // Since we aren't using <pre> or a <textarea>, this initially had some
-    // laborious logic for transforming spaces to `&nbsp;`...because the div
-    // was collapsing it otherwise.  It was more complex than even this:
-    //
-    // https://stackoverflow.com/a/20134195
-    //
-    // That turned out to all be unnecessary due to the CSS `white-space`
-    // attribute:
-    //
-    // https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
-    //
-    if (!html) {
-        let escaper = document.createElement('p')
-
-        pieces.forEach(function(piece, index) {
-            escaper.innerText = piece  // e.g. "<my-tag>"
-            pieces[index] = escaper.innerHTML  // e.g. &lt;my-tag&gt;
-        }, pieces)
-    }
-
     // Add the first piece to the current line, and remove it from pieces
     //
     line.innerHTML += pieces.shift()  // shift() is like Rebol's TAKE
@@ -148,6 +128,79 @@ replpad-write: js-awaiter [
             load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
         )
 }
+
+; There are several issues with escaping to be considered in trying to write
+; console strings to a browser. If you want the console text to be boring, it
+; is less of a problem...but if you might want hyperlinks or color, then it
+; gets more complex.
+;
+; It's tempting to use the browser's knowledge of how to escape:
+;
+;     let escaper = document.createElement('p')
+;     escaper.innerText = pre_escaped_stuff  // e.g. "<my-tag>"
+;     post_escaped_stuff = escaper.innerHTML  // e.g. &lt;my-tag&gt;
+;
+; However, if one wants to do any interesting post-processing (like making
+; links clickable) it has to be done after this, or `<a href="...">` would be
+; escaped if done earlier.  We don't want to write any of that in JavaScript,
+; and don't want to pay the performance cost of turning the JS-escaped lines
+; back into a BLOCK! of Rebol strings just to apply post-processing.  So
+; we implement the escaping ourselves.
+;
+replpad-write: func [
+    {Output a string of text to the REPLPAD (no automatic newline after)}
+
+    return: [<opt> void!]
+    param [<blank> text!]
+    /html
+][
+    if html [
+        replpad-write-js/html param
+        return
+    ]
+
+    ; Since we aren't using <pre> or a <textarea>, this initially had some
+    ; laborious logic for transforming spaces to `&nbsp;`...because the div
+    ; was collapsing it otherwise.  It was more complex than even this:
+    ;
+    ; https://stackoverflow.com/a/20134195
+    ;
+    ; That turned out to all be unnecessary due to the CSS `white-space`
+    ; attribute:
+    ;
+    ; https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+
+    let url-rule: [
+        "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | end]
+    ]
+
+    let url: void
+    parse param: copy param [
+        any [
+            change '< "&lt;"
+            | change '> "&gt;"
+            | change '& "&amp;"
+
+            ; Make all URL!s printed in the output show as clickable.
+            ;
+            | change [copy url url-rule] (
+                unspaced [{<a href='} url {'>} url {</a>}]
+            )
+
+            ; This is a little tweak for the bridge code.  There should be
+            ; some sort of post-processing hook for this, vs. hardcoding it.
+            ;
+            | change '♣ {<span class='club'>♣</span>}
+            | change '♦ {<span class='diamond'>♦</span>}
+            | change '♥ {<span class='heart'>♥</span>}
+            | change '♠ {<span class='spade'>♠</span>}
+
+            | skip
+        ]
+    ]
+
+    replpad-write-js param
+]
 
 write-stdout: function [
     {Writes just text to the ReplPad}

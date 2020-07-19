@@ -373,3 +373,17 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 #replcontainer::-webkit-scrollbar-thumb:active {
     /*background: linear-gradient(left, #22ADD4, #1E98BA); */
 }
+
+
+/*
+ * BRIDGE DEMO ADDITIONS
+ * This makes card suits show up in dark black and red.
+ */
+
+.club, .spade {
+    color: black;
+}
+
+.diamond, .heart {
+    color: red;
+}
