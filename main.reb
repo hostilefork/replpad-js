@@ -95,7 +95,7 @@ main: adapt 'console [
     ]
 
     if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
-        set/any 'result: do as tag! autorun
+        result: do as tag! autorun  ; may be VOID!
 
         ; !!! Right now, all modules return void.  This is a limitation of
         ; having DO be based on IMPORT:
