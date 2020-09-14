@@ -663,7 +663,7 @@ now: js-native [
     // !!! For now, punt on timezone issues
     // https://stackoverflow.com/questions/1091372/
 
-    return reb.Value("ensure date! (make-date-ymdsnz",
+    return reb.ValueQ("ensure date! (make-date-ymdsnz",
         reb.I(d.getFullYear()),  // year
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
