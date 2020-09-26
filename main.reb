@@ -6,7 +6,7 @@ forum: https://forum.rebol.info
 wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
 instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
 
-link: [href label] => [
+link: [href label] -> [
     unspaced [{<a href="} href {" target="_blank">} label {</a>}]
 ]
 
