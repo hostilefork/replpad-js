@@ -174,7 +174,7 @@ replpad-write: func [
         "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | end]
     ]
 
-    let url: void
+    let url: ~void~
     parse param: copy param [
         any [
             change '< "&lt;"
@@ -442,10 +442,9 @@ js-do-dialect-helper: function [
             switch type of t [
                 sym-word! sym-path! [keep api-transient get t]
                 sym-group! [keep api-transient reeval as group! t]
-                default [
-                    assert [required]
-                    fail [required "must have its argument as @..., @(...)"]
-                ]
+
+                assert [required]
+                fail [required "must have its argument as @..., @(...)"]
             ]
         ]
 
@@ -469,9 +468,7 @@ js-do-dialect-helper: function [
                         keep-transient/required try :b/1 'UNBOX
                         keep ")"
                     ]
-                    default [
-                        fail ["Unknown JS-DO dialect keyword:" b/1]
-                    ]
+                    fail ["Unknown JS-DO dialect keyword:" b/1]
                 ]]
 
                 fail [
@@ -729,9 +726,8 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
             "file! sym-word! [", f, "]",
             "sym-path! [to file! as path!", f, "]",
             "sym-group! [to file! do", f, "]",
-            "default [",
-                 "either binary?", d, "'%download.bin 'download.txt",
-            "]",
+        "] else [",
+            "either binary?", d, "'%download.bin 'download.txt",
         "]"
     )
     reb.Release(f)
