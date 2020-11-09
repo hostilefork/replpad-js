@@ -213,6 +213,7 @@ write-stdout: function [
 
 print: function [
     {Helper that writes data and a newline to the ReplPad}
+    return: [<opt> void!]
     line [<blank> text! block! char!]
     /html
 ][
@@ -221,7 +222,7 @@ print: function [
         return write-stdout newline
     ]
 
-    (write-stdout/(html) try spaced line) then [write-stdout newline]
+    (write-stdout/(html) try spaced line) then @[write-stdout newline]
 ]
 
 
