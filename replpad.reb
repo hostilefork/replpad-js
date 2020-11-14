@@ -355,6 +355,13 @@ read-url-helper: js-awaiter [
 ; cases, since you presumably weren't DO'ing HTML...though you could have been
 ; trying to READ it)
 ;
+; !!! Gitlab raw links started looking different, with an optional /-/ segment:
+;
+; https://gitlab.com/Zhaoshirong/nzpower/raw/master/nzpower.reb
+; https://gitlab.com/Zhaoshirong/docx-templating/-/raw/master/gmdocx.reb
+;
+; TBD: research what that is and what the rule is on its appearance or not.
+;
 CORSify-if-gitlab-url: function [
     return: [file! url!]
     url [file! url!]
@@ -363,6 +370,7 @@ CORSify-if-gitlab-url: function [
         "http" opt ["s" (secure: true) | (secure: false)] "://gitlab.com/"
         copy user: to "/" skip
         copy repo: to "/" skip
+        [opt "-/"]  ; TBD: figure out what this is for, but skip for now
         "raw/" copy branch: to "/" skip  ; skip slash, file_path would %-encode
         copy file_path: to end
     ] then [
@@ -394,6 +402,53 @@ read: function [
 ]
 
 
+; Some URLs that represent executable code have a HTML presentation layer on
+; them.  This is why a GitHub link has a "raw" offering without all that extra
+; stuff on it (line numbers, buttons, etc.)
+;
+; We don't want to hook at the READ level to redirect those UI pages to give
+; back the raw data...because you might want to READ and process the UI
+; decorations!  But if you ask to DO such a page, it's reasonable to assume
+; that what you actually wanted was to DO the raw content implied by it.
+;
+; This performs that forwarding for GitLab and GitHub UI links.
+;
+adjust-url-for-do: func [
+    return: [<opt> url!]
+    url [<blank> url!]
+][
+    let text: to text! url  ; URL! may become immutable, try thinking ahead
+
+    parse text [
+        "http" opt "s" "://gitlab.com/"
+        thru "/"  ; user name
+        thru "/"  ; repository name
+        opt "-/"  ; mystery thing (see remarks on CORSify-if-gitlab-url)
+        change "blob/" "raw/"
+        to end
+    ] then text -> [
+        return CORSify-if-gitlab-url as url! text
+    ]
+
+    ; Adjust a decorated GitHub UI to http://raw.githubusercontent.com
+    let start
+    parse text [
+        "http" opt "s" "://github.com/"
+        mark start
+        thru "/"  ; user name
+        thru "/"  ; repository name
+        change "blob/" ""  ; GitHub puts the "raw" in the subdomain name
+        to end
+    ] then [
+        return as url! unspaced [
+            https://raw.githubusercontent.com/ start
+        ]
+    ]
+
+    return null
+]
+
+
 do: adapt copy :lib/do [
     ;
     ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
@@ -412,6 +467,8 @@ do: adapt copy :lib/do [
         <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
         <chess> [%create-board.reb]
     ]
+
+    source: maybe adjust-url-for-do try match url! :source
 ]
 
 
