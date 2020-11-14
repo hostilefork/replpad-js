@@ -58,7 +58,7 @@ asyncify-warning-html: spaced [
 main: adapt :console [
     !! "MAIN executing (this should show in browser console log)"
 
-    replpad-reset  ; clears the progress messages displayed during load
+    clear-screen  ; clears the progress messages displayed during load
 
     ; Note: There is a URLSearchParams() object we could use to parse the
     ; search location as well (may not be in all browsers?)

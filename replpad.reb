@@ -60,8 +60,9 @@ Rebol [
 }
 
 
-replpad-reset: js-awaiter [
+cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
+    return: [void!]
 ]{
     replpad.innerHTML = ""
 
@@ -70,6 +71,8 @@ replpad-reset: js-awaiter [
     // off here with an empty line...but that meant leaving an empty line at
     // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
     // So we now defer adding that first line until it is needed.
+
+    return reb.Value("~");  // nameless void tells console to suppress result
 }
 
 
@@ -853,7 +856,7 @@ sys/export [
     download
     now
 
-    replpad-reset  ; not originally exported, but some "apps" are using it
+    clear-screen  ; not originally exported, but some "apps" are using it
     replpad-write  ; for clients who want to write HTML, not just PRINT text
 ]
 
