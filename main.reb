@@ -55,7 +55,7 @@ asyncify-warning-html: spaced [
 ; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
 ; https://github.com/hostilefork/replpad-js/issues/10
 ;
-main: adapt 'console [
+main: adapt :console [
     !! "MAIN executing (this should show in browser console log)"
 
     replpad-reset  ; clears the progress messages displayed during load
