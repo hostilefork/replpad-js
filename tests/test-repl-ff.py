@@ -61,7 +61,7 @@ active = client.execute_async_script('''
         resolve(document.activeElement);
     }, 10000);  // waits 10 seconds
 ''')
-active.send_keys("print reverse {ETELPMOC TSET}\n")
+active.send_keys("redbol, print reverse {ETELPMOC TSET}\n")
 
 print("Looking to see if the PRINT gave the desired output.")
 found = client.execute_async_script('''
