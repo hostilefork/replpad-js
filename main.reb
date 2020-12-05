@@ -34,18 +34,6 @@ greeting-text:
   ABOUT   - Information about your Rebol
   REDBOL  - Experimental emulation of Rebol2/Red conventions}
 
-asyncify-warning-html: spaced [
-    {<div>}
-    {<p>!!! Heads Up 😮 !!!  Your browser is <i>not</i> configured for}
-    unspaced [(link wasm-threads {WebAssembly with Threads}) "."]
-    {So they have to be simulated, which is a bit slow.  To address this,}
-    {enable SharedArrayBuffer and WASM threads:}
-    (link instructions {<b>INSTRUCTIONS HERE</b>}</p>)
-
-    {<hr>}
-    {<br>}
-    {</div>}
-]
 
 ; We don't want a deep stack when reporting errors or running user code.  So
 ; a reb.Promise("main") is run.  (If we called CONSOLE from inside main, then
@@ -111,10 +99,6 @@ main: adapt :console [
     ]
     else [
         replpad-write/html intro-note-html
-
-        if system/version = 2.102.0.16.1 [
-            replpad-write/html asyncify-warning-html
-        ]
     ]
 
     ; Fall through to normal CONSOLE loop handling, but use a skin that
