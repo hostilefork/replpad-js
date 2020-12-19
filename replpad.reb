@@ -72,7 +72,7 @@ cls: clear-screen: js-awaiter [
     // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
     // So we now defer adding that first line until it is needed.
 
-    return reb.Value("~");  // nameless void tells console to suppress result
+    return reb.Value("'~void~");  // tells console to suppress result
 }
 
 
@@ -177,7 +177,7 @@ replpad-write: func [
         "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | end]
     ]
 
-    let url: ~void~
+    let url: '~void~
     parse param: copy param [
         any [
             change '< "&lt;"
