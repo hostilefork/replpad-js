@@ -783,12 +783,12 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     let f = reb.Arg('filename')
 
     let filename = reb.Spell(
-        "switch type of", f, "[",
+        "switch type of", reb.Q(f), "[",
             "file! sym-word! [", f, "]",
             "sym-path! [to file! as path!", f, "]",
             "sym-group! [to file! do", f, "]",
         "] else [",
-            "either binary?", d, "'%download.bin 'download.txt",
+            "either binary?", d, "[%download.bin] [%download.txt]",
         "]"
     )
     reb.Release(f)
