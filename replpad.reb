@@ -225,7 +225,7 @@ print: function [
         return write-stdout newline
     ]
 
-    (write-stdout/(html) try spaced line) then @[write-stdout newline]
+    (write-stdout/(html) try spaced line) then [write-stdout newline]
 ]
 
 
@@ -774,36 +774,26 @@ browse: function [
 download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     {Triggers a download of data to the user's local disk}
 
-    :filename [<skip> file! sym-word! sym-path! sym-group!]
+    filename [file!]
     data [text! binary!]
-
-    ; !!! Should custom /mime-type be allowed?
+    /mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
+        [text!]
 ]{
-    let d = reb.Arg('data')
-    let f = reb.Arg('filename')
-
-    let filename = reb.Spell(
-        "switch type of", reb.Q(f), "[",
-            "file! sym-word! [", f, "]",
-            "sym-path! [to file! as path!", f, "]",
-            "sym-group! [to file! do", f, "]",
-        "] else [",
-            "either binary?", d, "[%download.bin] [%download.txt]",
-        "]"
-    )
-    reb.Release(f)
+    let filename = reb.Spell(reb.ArgR('filename'))
+    let mime_type = reb.Spell(reb.Q(reb.ArgR('mime-type')))  // may be NULL
 
     // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
     // It can also include strings in that array.
     //
+    let d = reb.Arg('data')
     let blob;
     if (reb.Did("binary?", d)) {
         let uint8_array = reb.Bytes(d)
-        blob = new Blob([uint8_array], {type: "octet/stream"})
+        blob = new Blob([uint8_array], {type: mime_type || "octet/stream"})
     }
     else {
         let string = reb.Spell(d)
-        blob = new Blob([string], {type: "text/plain"})
+        blob = new Blob([string], {type: mime_type || "text/plain"})
     }
     reb.Release(d)
 
