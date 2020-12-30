@@ -315,7 +315,7 @@ write: function [
     destination [any-value!]
     data [any-value!]
 ][
-    if parse destination ["clipboard:"] [
+    if destination = clipboard:// [
         copy-to-clipboard-helper data
         return
     ]
