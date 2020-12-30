@@ -19,8 +19,7 @@ intro-note-html: spaced [
     {as well as the} unspaced [(link console-git {Console Module}) "."]
     {While the techniques are still in early development, they show a}
     {lot of promise for JavaScript/Rebol interoperability.}
-    {Discuss it on} (link chat {StackOverflow chat})
-    {or join the} unspaced [(link forum {Discourse forum}) "."]
+    {Discuss it on the} unspaced [(link forum {Discourse forum}) "."]
     {</p>}
 
     {<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>}
