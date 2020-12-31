@@ -677,6 +677,12 @@ css-do: function [
 ; emulate those APIs.  But we can interface with JavaScript directly and cut
 ; out the middleman.
 ;
+; Note MAKE TIME! and MAKE DATE! weren't historically defined to give the
+; full granularity NOW needs.  Until a full philosophy for those kinds of
+; constructors is articulated, we use MAKE-TIME-SN and MAKE-DATE-YMDSNZ.
+;
+; !!! Review why a time has to be part of a date to have a time zone (?)
+;
 now: js-native [
     {Returns current date and time with timezone adjustment}
 
@@ -703,12 +709,14 @@ now: js-native [
     if (reb.DidQ(reb.ArgR('day')))
         return reb.Integer(d.getDate())  // "date" (1-31), "day" is weekday
 
+    var seconds = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()
+    var nanoseconds = d.getMilliseconds() * 1000000
+
     if (reb.DidQ(reb.ArgR('time')))
-        return reb.Value(
-            "make time! [",
-                reb.I(d.getHours()),
-                reb.I(d.getMinutes()),
-                reb.I(d.getSeconds()),
+        return reb.ValueQ("make-time-sn",
+            reb.I(seconds),
+            "try all [",
+                reb.ArgR('precise'), reb.I(nanoseconds),
             "]"
         )
 
@@ -725,13 +733,9 @@ now: js-native [
         reb.I(d.getFullYear()),  // year
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
-        reb.I(
-            d.getHours() * 3600
-            + d.getMinutes() * 60
-            + d.getSeconds()
-        ),  // secs
+        reb.I(seconds),
         "try all [",
-            reb.ArgR('precise'), reb.I(d.getMilliseconds() * 1000),  // nano
+            reb.ArgR('precise'), reb.I(nanoseconds),
         "]",
         "try all [",
             "not", reb.ArgR('local'), reb.I(0),  // zone
