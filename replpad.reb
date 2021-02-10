@@ -205,7 +205,7 @@ replpad-write: func [
     replpad-write-js param
 ]
 
-write-stdout: function [
+write-stdout: func [
     {Writes just text to the ReplPad}
     text [text! char!]
     /html
@@ -214,7 +214,7 @@ write-stdout: function [
     replpad-write/(html) text
 ]
 
-print: function [
+print: func [
     {Helper that writes data and a newline to the ReplPad}
     return: [<opt> void!]
     line [<blank> text! block! char!]
@@ -311,7 +311,7 @@ copy-to-clipboard-helper: js-native [
     }
 }
 
-write: function [
+write: func [
     destination [any-value!]
     data [any-value!]
 ][
@@ -362,7 +362,7 @@ read-url-helper: js-awaiter [
 ;
 ; TBD: research what that is and what the rule is on its appearance or not.
 ;
-CORSify-if-gitlab-url: function [
+CORSify-if-gitlab-url: func [
     return: [file! url!]
     url [file! url!]
 ][
@@ -391,7 +391,7 @@ CORSify-if-gitlab-url: function [
     ]
 ]
 
-read: function [
+read: func [
     source [any-value!]
 ][
     if match [file! url!] source [
@@ -492,14 +492,14 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 }
 
 
-js-do-dialect-helper: function [
+js-do-dialect-helper: func [
     {Allow Rebol to pass API handle values to JS-DO and JS-EVAL}
 
     return: [text!]
     b [block!]
 ][
     unspaced collect [
-        keep-transient: function [t /required [word!]] [
+        let keep-transient: func [t /required [word!]] [
             switch type of t [
                 sym-word! sym-path! [keep api-transient get t]
                 sym-group! [keep api-transient reeval as group! t]
@@ -541,7 +541,7 @@ js-do-dialect-helper: function [
     ]
 ]
 
-js-do: function [
+js-do: func [
     {Execute JavaScript file or evaluate a string of JavaScript source}
 
     return: [<opt> void!]  ; What useful return result could there be?
@@ -558,8 +558,8 @@ js-do: function [
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
-        any [automime local] then [
-            code: as text! read CORSify-if-gitlab-url source
+        any [automime, local] then [
+            let code: as text! read CORSify-if-gitlab-url source
             js-eval*/(local) code
         ] else [
             js-do-url-helper source
@@ -574,7 +574,7 @@ js-do: function [
 ; functionality.  This higher-level JS-EVAL assumes you want a result back
 ; vs. the fire-and-forget JS-DO, and supports the JS-DO dialect.
 ;
-js-eval: function [
+js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
     return: [<opt> void! integer! text!]
@@ -612,7 +612,7 @@ js-head-helper: js-awaiter [
     return obj
 }
 
-js-head: function [
+js-head: func [
     {Perform an HTTP HEAD request of an absolute URL! or relative FILE! path}
     return: "OBJECT! of key=>value response header strings"
         [object!]
@@ -650,11 +650,11 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
     document.head.appendChild(link)
 }
 
-css-do: function [
+css-do: func [
     {Incorporate a CSS file or a snippet of CSS source into the page}
 
     return: <void>  ; Could return an auto-generated ID for later removing (?)
-    ; :id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
+    ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
     source [text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
@@ -744,7 +744,7 @@ now: js-native [
 }
 
 
-browse: function [
+browse: func [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
 ][
@@ -836,7 +836,7 @@ about: does [
 ]
 
 
-watch: function [:arg] [
+watch: func [:arg] [
     ;
     ; We don't want to pay for loading the watchlist unless it's used.  So
     ; delayed-load it on first use.
@@ -846,7 +846,7 @@ watch: function [:arg] [
     ;
     print "Loading watchlist extension for first use..."
     do %watchlist/main.reb
-    watch: :system/modules/Watchlist/watch
+    let watch: :system/modules/Watchlist/watch
     system/contexts/user/watch: :watch
 
     ; !!! Watch hard quotes its argument...need some kind of variadic
@@ -857,7 +857,7 @@ watch: function [:arg] [
 ]
 
 
-redbol: function [return: <void>] [
+redbol: func [return: <void>] [
     print [
         LF
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where" LF
