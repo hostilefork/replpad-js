@@ -449,7 +449,10 @@ adjust-url-for-do: func [
 ]
 
 
-do: adapt copy :lib/do [
+; We go ahead and update LIB's DO directly with an adaptation.  This way,
+; the Redbol emulation layer keeps the URL interception.
+
+lib/do: adapt copy :lib/do [
     ;
     ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
     ; by name in a registry.  This is an experimental concept (which was in
@@ -921,4 +924,4 @@ sys/export [
 ;
 ; As a workaround for now, manually override the user context's DO
 ;
-system/contexts/user/do: :do
+system/contexts/user/do: :lib/do
