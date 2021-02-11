@@ -384,7 +384,7 @@ sys/make-scheme [
 
         read: func [port] [
             ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-GitLab-Request port
+            ;     CORSify-if-gitlab-url port
             ; ]
 
             read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
@@ -408,7 +408,7 @@ sys/make-scheme [
     actor: [
         read: func [port] [
             ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-GitLab-Request port
+            ;     CORSify-if-gitlab-url port
             ; ]
 
             read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
@@ -442,7 +442,8 @@ sys/make-scheme [
 ;
 ; TBD: research what that is and what the rule is on its appearance or not.
 ;
-CORSify-GitLab-Request: func [
+CORSify-if-gitlab-url: func [
+    return: [port!]
     port [port!]
     <local> user repo branch file_path
 ][
@@ -471,6 +472,8 @@ CORSify-GitLab-Request: func [
             "/repository/files/" file_path "/raw?ref=" branch
         ]
     ]
+
+    port
 ]
 
 
