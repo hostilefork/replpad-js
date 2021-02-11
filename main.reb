@@ -112,7 +112,7 @@ main: adapt :console [
             [greeting: greeting-text]
         ]))
 
-        print-halted: method [] [
+        print-halted: meth [] [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
