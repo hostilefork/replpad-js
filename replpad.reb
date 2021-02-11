@@ -997,6 +997,138 @@ redbol: func [return: <void>] [
 ]
 
 
+; the above sys/init-schemes did not change lib/decode-url in time for it to
+; be used within this code, so have to explicitly import it
+decode-url: :lib/decode-url
+
+clean-path: func [
+    {Returns new directory path with `.` and `..` processed.}
+    path [file! url! text!]
+    /only "Do not prepend current directory"
+    /dir "Add a trailing / if missing"
+    <local> scheme current target count part
+][
+    scheme: _
+
+    case [
+        url? path [
+            scheme: make make object! [scheme: user: pass: host: port-id: path: _] decode-url path
+            target: either scheme/path [
+                to file! scheme/path
+            ][
+                copy %/
+            ]
+        ]
+
+        any [
+            only
+            text? path
+            #"/" = first path
+        ][
+            target: copy path
+        ]
+
+        file? path [
+            if url? current: what-dir [
+                scheme: make make object! [scheme: user: pass: host: port-id: path: _] decode-url current
+                current: any [
+                    scheme/path
+                    copy %/
+                ]
+            ]
+
+            target: to file! unspaced [current path]
+        ]
+    ]
+
+    if all [
+        dir
+        not #"/" = last target
+    ][
+        append target #"/"
+    ]
+
+    path: make type of target length of target
+    count: 0
+
+    parse reverse target [
+        some [
+            "../"
+            (count: me + 1)
+            |
+            "./"
+            |
+            "/"
+            (
+                if any [
+                    not file? target
+                    #"/" <> last path
+                ][
+                    append path #"/"
+                ]
+            )
+            |
+            copy part: [to "/" | to end] (
+                either count > 0 [
+                    count: me - 1
+                ][
+                    if not find ["" "." ".."] as text! part [
+                        append path part
+                    ]
+                ]
+            )
+        ]
+        end
+    ]
+
+    if all [
+        #"/" = last path
+        #"/" <> last target
+    ][
+        remove back tail of path
+    ]
+
+    reverse path
+
+    either scheme [
+        to url! head insert path unspaced [
+            form scheme/scheme "://"
+            if scheme/user [
+                unspaced [
+                    scheme/user
+                    if scheme/pass [
+                        unspaced [":" scheme/pass]
+                    ]
+                    "@"
+                ]
+            ]
+            scheme/host
+            if scheme/port-id [
+                unspaced [":" scheme/port-id]
+            ]
+        ]
+    ][
+        path
+    ]
+]
+
+system/contexts/user/change-dir:  ; need to override the previously imported value
+change-dir: func [
+    {Changes the current path (where scripts with relative paths will be run).}
+    path [file! url!]
+    return: [file! url!]
+][
+    path: clean-path/dir path
+
+    if all [
+        file? path
+        not exists? path
+    ][
+        fail "Path does not exist"
+    ]
+
+    system/options/current-path: path
+]
 ; !!! Being able to annotate declarations with `export` at their point of
 ; declaration is a planned module feature.  But currently they must be in the
 ; header or done like this.
@@ -1015,6 +1147,8 @@ sys/export [
     ; build does not include the EVENT extension, hence does not have WAIT,
     ; but the wait here seems to appear in both user and lib.)
     ;
+    clean-path
+    change-dir
     wait
     write-stdout
     print
