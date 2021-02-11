@@ -346,6 +346,58 @@ read-url-helper: js-awaiter [
 }
 
 
+; Implement rudimentary HTTP(S) schemes
+sys/make-scheme [
+    title: "In-Browser HTTP Scheme"
+    name: 'http
+
+    actor: [
+        ; could potentially fold in JS-HEAD around an INFO? wrapper
+
+        read: func [port] [
+            ; if port/spec/host = "gitlab.com" [
+            ;     CORSify-GitLab-Request port
+            ; ]
+
+            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not supported in the web console yet, due to the browser's}
+                {imposition of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP POST}
+                {in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
+]
+
+sys/make-scheme [
+    title: "In-Browser HTTPS Scheme"
+    name: 'https
+
+    actor: [
+        read: func [port] [
+            ; if port/spec/host = "gitlab.com" [
+            ;     CORSify-GitLab-Request port
+            ; ]
+
+            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not supported in the web console yet, due to the browser's}
+                {imposition of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP POST}
+                {in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
+]
+
+
 ; While raw.github.com links are offered via CORS, raw gitlab.com links
 ; (specified by a /raw/ in their URL) are not.  However, GitLab offers CORS via
 ; an API...so for our GitLab open source brothers & sisters we level the
@@ -457,58 +509,6 @@ adjust-url-for-do: func [
     ]
 
     return null
-]
-
-
-; Implement rudimentary HTTP(S) schemes
-sys/make-scheme [
-    title: "In-Browser HTTP Scheme"
-    name: 'http
-
-    actor: [
-        ; could potentially fold in JS-HEAD around an INFO? wrapper
-
-        read: func [port] [
-            ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-GitLab-Request port
-            ; ]
-
-            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
-        ]
-
-        write: func [port data] [
-            fail [
-                {WRITE is not supported in the web console yet, due to the browser's}
-                {imposition of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP POST}
-                {in form submissions.  Get involved if you know how!}
-            ]
-        ]
-    ]
-]
-
-sys/make-scheme [
-    title: "In-Browser HTTPS Scheme"
-    name: 'https
-
-    actor: [
-        read: func [port] [
-            ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-GitLab-Request port
-            ; ]
-
-            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
-        ]
-
-        write: func [port data] [
-            fail [
-                {WRITE is not supported in the web console yet, due to the browser's}
-                {imposition of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP POST}
-                {in form submissions.  Get involved if you know how!}
-            ]
-        ]
-    ]
 ]
 
 
