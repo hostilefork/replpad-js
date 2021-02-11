@@ -1129,6 +1129,120 @@ change-dir: func [
 
     system/options/current-path: path
 ]
+
+module [
+    name: 'rgchris-storage
+    notes: [
+        https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+    ]
+][
+    storage-enabled?: js-native [] {
+        return reb.Logic(
+            typeof Storage !== 'undefined'
+        )
+    }
+
+    storage-set: js-native [
+        path [text! file!]
+        value [text!]
+    ] {
+        var path = reb.ArgR('path'), value = reb.ArgR('value');
+
+        path = reb.Spell(path);
+        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+
+        store.setItem(path, reb.Spell(value));
+    }
+
+    storage-get: js-native [
+        path [text! file!]
+    ] {
+        var store, path = reb.ArgR('path'), value;
+
+        path = reb.Spell(path);
+        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+
+        console.log(path);
+        value = store.getItem(path);
+        return (typeof value !== 'undefined' && value !== null)
+            ? reb.Text(value)
+            : null;
+    }
+
+    storage-list: js-native [
+        path [text! file!]
+    ] {
+        var store, path = reb.ArgR('path'), test, parts, listing = [], mark;
+
+        path = reb.Spell(path);
+        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+
+        test = new RegExp(
+            '\x5E'
+            + path.replace(/[|\\\/{}()[\]\x5E)$+*?.]/g, '\\$&')
+            + '([\x5E\/]+\/?)$'
+        );
+
+        listing.push('[');
+
+        for (mark = 0; mark < store.length; mark++) {
+            parts = store.key(mark).match(test)
+            if (parts && listing.indexOf(parts[1]) == -1) {
+                listing.push('%' + parts[1]);
+            }
+        }
+
+        listing.push(']');
+        console.log(listing);
+
+        return reb.Value.apply(
+            null, listing
+        )
+    }
+
+    storage-exists?: js-native [
+        path [text! file!]
+    ] {
+        var store, path = reb.ArgR('path');
+
+        path = reb.Spell(path);
+        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+
+        return reb.Logic(
+            store.hasOwnProperty(path)
+        )
+    }
+
+    either storage-enabled? [
+        sys/make-scheme [
+            title: "Browser Storage API"
+            name: 'storage
+
+            actor: [
+                read: func [port] [
+                    storage-get port/spec/host
+                ]
+
+                write: func [port value] [
+                    storage-set port/spec/host value
+                ]
+            ]
+        ]
+    ][
+        sys/make-scheme [
+            title: "Browser Storage API"
+            name: 'storage
+
+            init: func [port [port!]] [
+                fail "Local Storage Not Supported"
+            ]
+
+            actor: []
+        ]
+    ]
+]
+
+
 ; !!! Being able to annotate declarations with `export` at their point of
 ; declaration is a planned module feature.  But currently they must be in the
 ; header or done like this.
