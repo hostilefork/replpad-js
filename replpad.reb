@@ -60,6 +60,33 @@ Rebol [
 }
 
 
+use [write-console] [
+    write-console: js-awaiter [
+        return: [void!]
+        type [text!]
+        value [any-value!]
+    ] {
+        console[reb.Spell(reb.ArgR('type'))](reb.Spell(reb.ArgR('value')));
+    }
+
+    sys/make-scheme [
+        title: "Console.log Scheme"
+        name: 'log
+
+        init: func [port][
+            port/spec/path: form find/match port/spec/ref log:type=
+            assert [find ["info" "log" "warn" "error"] port/spec/path]
+        ]
+
+        actor: [
+            write: func [port data][
+                write-console port/spec/path form data
+            ]
+        ]
+    ]
+]
+
+
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
     return: [void!]
@@ -311,20 +338,21 @@ copy-to-clipboard-helper: js-native [
     }
 }
 
-write: func [
-    destination [any-value!]
-    data [any-value!]
-][
-    if destination = clipboard:// [
-        copy-to-clipboard-helper data
-        return
-    ]
 
-    fail 'source [
-        {WRITE is not supported in the web console yet, due to the browser's}
-        {imposition of a security model (e.g. no local filesystem access).}
-        {Features may be added in a more limited sense, for doing HTTP POST}
-        {in form submissions.  Get involved if you know how!}
+; Implement Clipboard scheme, no URL form dictated
+sys/make-scheme [
+    title: "In-Browser Clipboard Scheme"
+    name: 'clipboard
+
+    actor: [
+        read: func [port] [
+            fail {READ is not supported in the web console}
+        ]
+
+        write: func [port data] [
+            copy-to-clipboard-helper data
+            port
+        ]
     ]
 ]
 
@@ -967,7 +995,6 @@ sys/export [
     write-stdout
     print
     read-line
-    write
     browse
     download
     now
