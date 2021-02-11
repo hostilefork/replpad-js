@@ -49,6 +49,9 @@ Rebol [
 ]
 
 
+sys/init-schemes  ; needed e.g. for DECODE-URL to work
+
+
 !!: js-native [
     {Temporary debug helper, sends to browser console log instead of replpad}
     message
