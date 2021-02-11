@@ -60,6 +60,9 @@ Rebol [
 }
 
 
+decode-url: sys/decode-url: lib/decode-url: :sys/*parse-url/decode-url
+
+
 use [write-console] [
     write-console: js-awaiter [
         return: [void!]
