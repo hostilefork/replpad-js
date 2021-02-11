@@ -912,6 +912,24 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
 }
 
 
+sys/make-scheme [
+    title: "Downloader Scheme"
+    name: 'downloads
+
+    init: func [port][
+        assert [match text! port/spec/path]
+        port/spec/path: last split-path port/spec/path
+    ]
+
+    actor: [
+        write: func [port data][
+            download port/spec/path data
+            port
+        ]
+    ]
+]
+
+
 ; !!! The ABOUT command was not made part of the console extension, since
 ; non-console builds might want to be able to ask it from the command line.
 ; But it was put in HOST-START and not the mezzanine/help in general.  This
