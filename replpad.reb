@@ -362,43 +362,35 @@ read-url-helper: js-awaiter [
 ;
 ; TBD: research what that is and what the rule is on its appearance or not.
 ;
-CORSify-if-gitlab-url: func [
-    return: [file! url!]
-    url [file! url!]
+CORSify-GitLab-Request: func [
+    port [port!]
+    <local> user repo branch file_path
 ][
-    parse url [
-        "http" opt ["s" (secure: true) | (secure: false)] "://gitlab.com/"
+    assert [port/spec/host = "gitlab.com"]
+
+    if parse port/spec/path [
+        "/"
         copy user: to "/" skip
         copy repo: to "/" skip
         [opt "-/"]  ; TBD: figure out what this is for, but skip for now
         "raw/" copy branch: to "/" skip  ; skip slash, file_path would %-encode
         copy file_path: to end
-    ] then [
+    ][
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
         replace/all file_path "/" "%2F"  ; API uses slashes for its delimiting
 
-        if not secure [
-            print ["Converting non-HTTPS URL to HTTPS:" url]
+        if port/spec/scheme = 'http [
+            port/spec/scheme: 'https
+            write log:type=warn ["Converting non-HTTPS URL to HTTPS:" url]
         ]
-        join-all [
-            https://gitlab.com/api/v4/projects/
+
+        port/spec/path: join-all [
+            "/api/v4/projects/"
             user "%2F" repo  ; surrogate for numeric id, use escaped `/`
             "/repository/files/" file_path "/raw?ref=" branch
         ]
-    ] else [
-        url
     ]
-]
-
-read: func [
-    source [any-value!]
-][
-    if match [file! url!] source [
-        return read-url-helper as text! CORSify-if-gitlab-url source
-    ]
-
-    fail 'source [{Cannot READ value of type} mold type of source]
 ]
 
 
@@ -430,7 +422,7 @@ adjust-url-for-do: func [
         return CORSify-if-gitlab-url as url! text
     ]
 
-    ; Adjust a decorated GitHub UI to http://raw.githubusercontent.com
+    ; Adjust a decorated GitHub UI to https://raw.githubusercontent.com
     let start
     parse text [
         "http" opt "s" "://github.com/"
@@ -445,7 +437,78 @@ adjust-url-for-do: func [
         ]
     ]
 
+    ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
+    parse text [
+        "http" opt "s" "://gist.github.com/"
+        mark start
+        thru "/"  ; user name
+        [
+            to "#file="
+            remove to end  ; ignore the file for now, id does not match filename
+            |
+            to end
+        ]
+        insert "/raw/"
+    ] then [
+        return as url! unspaced [
+            https://gist.githubusercontent.com/ start
+        ]
+        return as url! text
+    ]
+
     return null
+]
+
+
+; Implement rudimentary HTTP(S) schemes
+sys/make-scheme [
+    title: "In-Browser HTTP Scheme"
+    name: 'http
+
+    actor: [
+        ; could potentially fold in JS-HEAD around an INFO? wrapper
+
+        read: func [port] [
+            ; if port/spec/host = "gitlab.com" [
+            ;     CORSify-GitLab-Request port
+            ; ]
+
+            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not supported in the web console yet, due to the browser's}
+                {imposition of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP POST}
+                {in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
+]
+
+sys/make-scheme [
+    title: "In-Browser HTTPS Scheme"
+    name: 'https
+
+    actor: [
+        read: func [port] [
+            ; if port/spec/host = "gitlab.com" [
+            ;     CORSify-GitLab-Request port
+            ; ]
+
+            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not supported in the web console yet, due to the browser's}
+                {imposition of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP POST}
+                {in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
 ]
 
 
@@ -904,7 +967,6 @@ sys/export [
     write-stdout
     print
     read-line
-    read
     write
     browse
     download
