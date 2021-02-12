@@ -69,7 +69,12 @@ use [write-console] [
         type [text!]
         value [any-value!]
     ] {
-        console[reb.Spell(reb.ArgR('type'))](reb.Spell(reb.ArgR('value')));
+        let type = reb.ArgR('type')
+        let value = reb.ArgR('value')
+
+        console[reb.Spell(type)](
+            reb.Spell(value)
+        )
     }
 
     sys/make-scheme [
@@ -353,7 +358,15 @@ sys/make-scheme [
         ]
 
         write: func [port data] [
-            copy-to-clipboard-helper data
+            if binary? data [
+                data: either invalid-utf8? data [
+                    enbase/base data 64
+                ][
+                    to text! data
+                ]
+            ]
+
+            copy-to-clipboard-helper form data
             port
         ]
     ]
