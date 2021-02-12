@@ -454,21 +454,6 @@ sys/make-scheme [
 ; File schemes permit relative file access to HTTP(S) resources
 
 sys/make-scheme [
-    title: "Browser Storage API"
-    name: 'storage
-
-    actor: [
-        read: func [port] [
-            storage-get "persistent" port/spec/host
-        ]
-
-        write: func [port value] [
-            storage-set "persistent" port/spec/host value
-        ]
-    ]
-]
-
-sys/make-scheme [
     title: "File Access"
     name: 'file
 
