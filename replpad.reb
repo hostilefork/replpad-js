@@ -1340,6 +1340,8 @@ module [
                     ][
                         fail "No such file or directory"
                     ]
+
+                    port
                 ]
 
                 query: func [port] [
@@ -1400,7 +1402,7 @@ module [
                             keep storage-list port/spec/target form port/spec/ref
                         ]
                     ][
-                        fail "Directory does not exist"
+                        fail "No such file or directory"
                     ]
                 ]
 
@@ -1417,7 +1419,24 @@ module [
                 ]
 
                 delete: func [port] [
-                    fail "Directory delete not currently supported"
+                    case [
+                        did find [%/ %/tmp/] port/spec/ref [
+                            port
+                        ]
+
+                        not storage-exists? port/spec/target form port/spec/ref [
+                            fail "No such file or directory"
+                        ]
+
+                        not empty? read port/spec/ref [
+                            fail "Directory not empty"
+                        ]
+
+                        <else> [
+                            storage-unset port/spec/target form port/spec/ref
+                            port
+                        ]
+                    ]
                 ]
 
                 query: func [port] [
