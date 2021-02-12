@@ -451,6 +451,165 @@ sys/make-scheme [
     ]
 ]
 
+; File schemes permit relative file access to HTTP(S) resources
+
+sys/make-scheme [
+    title: "Browser Storage API"
+    name: 'storage
+
+    actor: [
+        read: func [port] [
+            storage-get "persistent" port/spec/host
+        ]
+
+        write: func [port value] [
+            storage-set "persistent" port/spec/host value
+        ]
+    ]
+]
+
+sys/make-scheme [
+    title: "File Access"
+    name: 'file
+
+    init: func [port [port!]] [
+        case [
+            not all [
+                in port/spec 'ref
+                file? port/spec/ref
+            ][
+                fail "File scheme is only accessible through the FILE! datatype"
+            ]
+
+            equal? #"/" last port/spec/ref [
+                fail "File scheme only accesses files, not folders"
+            ]
+        ]
+
+        switch type-of port/spec/ref: clean-path port/spec/ref [
+            file! [
+                fail "No filesystem currently installed"
+            ]
+
+            url! [
+                ; possibly some kind of check here to ensure a scheme exists
+                ; and convert to FILE! if using file:// notation
+            ]
+
+            (fail "Cannot resolve file")
+        ]
+    ]
+
+    actor: [
+        read: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    read port/spec/ref
+                ]
+            ]
+        ]
+
+        write: func [port data] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    write port/spec/ref data
+                ]
+            ]
+        ]
+
+        delete: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    delete port/spec/ref
+                ]
+            ]
+        ]
+
+        query: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    query port/spec/ref
+                ]
+            ]
+        ]
+    ]
+]
+
+sys/make-scheme [
+    title: "File Directory Access"
+    name: 'dir
+
+    init: func [port [port!]] [
+        case [
+            not all [
+                in port/spec 'ref
+                file? port/spec/ref
+                ; equal? #"/" first port/spec/ref
+            ][
+                fail "File scheme is only accessible through the FILE! datatype"
+            ]
+
+            not equal? #"/" last port/spec/ref [
+                fail "Directory scheme only accesses folders, not files"
+            ]
+        ]
+
+
+        switch type-of port/spec/ref: clean-path port/spec/ref [
+            file! [
+                fail "No filesystem currently installed"
+            ]
+
+            url! [
+                ; possibly some kind of check here to ensure a scheme exists
+            ]
+
+            (fail "Cannot resolve file")
+        ]
+    ]
+
+    actor: [
+        read: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    read port/spec/ref
+                ]
+            ]
+        ]
+
+        delete: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    delete port/spec/ref
+                ]
+            ]
+
+        ]
+
+        query: func [port] [
+            switch type-of port/spec/ref [
+                file! []
+
+                url! [
+                    query port/spec/ref
+                ]
+            ]
+        ]
+    ]
+]
+
 
 === {JAVASCRIPT AND CSS INTEROPERABILITY (step 4)} ===
 
