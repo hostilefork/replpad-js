@@ -1136,6 +1136,9 @@ module [
         https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
     ]
 ][
+    ; This currently is a very spongey filesystem. Probably better to create entries for directories
+    ; and manage them through MAKE-DIR, etc.
+
     storage-enabled?: js-native [] {
         return reb.Logic(
             typeof Storage !== 'undefined'
@@ -1143,57 +1146,98 @@ module [
     }
 
     storage-set: js-native [
+        store [text!]
         path [text! file!]
         value [text!]
     ] {
-        var path = reb.ArgR('path'), value = reb.ArgR('value');
+        let store = reb.ArgR('store')
+        let path = reb.ArgR('path')
+        let value = reb.ArgR('value')
 
-        path = reb.Spell(path);
-        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+        store = reb.Spell(store) == 'temporary'
+            ? sessionStorage
+            : localStorage
 
-        store.setItem(path, reb.Spell(value));
+        store.setItem(
+            reb.Spell(path),
+            reb.Spell(value)
+        )
     }
 
     storage-get: js-native [
+        store [text!]
         path [text! file!]
     ] {
-        var store, path = reb.ArgR('path'), value;
+        let store = reb.ArgR('store')
+        let path = reb.ArgR('path')
+        let value
 
-        path = reb.Spell(path);
-        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+        store = reb.Spell(store) == 'temporary'
+            ? sessionStorage
+            : localStorage
 
-        console.log(path);
-        value = store.getItem(path);
+        value = store.getItem(
+            reb.Spell(path)
+        )
+
         return (typeof value !== 'undefined' && value !== null)
             ? reb.Text(value)
-            : null;
+            : null
+    }
+
+    storage-unset: js-native [
+        store [text!]
+        path [text! file!]
+    ] {
+        let store = reb.ArgR('store')
+        let path = reb.ArgR('path')
+        let value
+
+        store = reb.Spell(store) == 'temporary'
+            ? sessionStorage
+            : localStorage
+
+        store.removeItem(
+            reb.Spell(path)
+        )
+
+        return null
     }
 
     storage-list: js-native [
+        store [text!]
         path [text! file!]
     ] {
-        var store, path = reb.ArgR('path'), test, parts, listing = [], mark;
+        let store = reb.ArgR('store')
+        let path = reb.ArgR('path')
+        let test
+        let parts
+        let listing = []
+        let mark
 
-        path = reb.Spell(path);
-        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+        store = reb.Spell(store) == 'temporary'
+            ? sessionStorage
+            : localStorage
 
         test = new RegExp(
             '\x5E'
-            + path.replace(/[|\\\/{}()[\]\x5E)$+*?.]/g, '\\$&')
+            + reb.Spell(path).replace(/[|\\\/{}()[\]\x5E)$+*?.]/g, '\\$&')
             + '([\x5E\/]+\/?)$'
-        );
+        )
 
-        listing.push('[');
+        listing.push('[')
 
         for (mark = 0; mark < store.length; mark++) {
             parts = store.key(mark).match(test)
+
             if (parts && listing.indexOf(parts[1]) == -1) {
-                listing.push('%' + parts[1]);
+                listing.push('%' + parts[1])
             }
         }
 
-        listing.push(']');
-        console.log(listing);
+        listing.push(']')
+
+        console.log(listing)
 
         return reb.Value.apply(
             null, listing
@@ -1201,15 +1245,20 @@ module [
     }
 
     storage-exists?: js-native [
+        store [text!]
         path [text! file!]
     ] {
-        var store, path = reb.ArgR('path');
+        let store = reb.ArgR('store')
+        let path = reb.ArgR('path')
 
-        path = reb.Spell(path);
-        store = new RegExp('\x5E\/tmp\/').test(path) ? sessionStorage : localStorage;
+        store = reb.Spell(store) == 'temporary'
+            ? sessionStorage
+            : localStorage
 
         return reb.Logic(
-            store.hasOwnProperty(path)
+            store.hasOwnProperty(
+                reb.Spell(path)
+            )
         )
     }
 
@@ -1220,18 +1269,204 @@ module [
 
             actor: [
                 read: func [port] [
-                    storage-get port/spec/host
+                    storage-get "persistent" port/spec/host
                 ]
 
                 write: func [port value] [
-                    storage-set port/spec/host value
+                    storage-set "persistent" port/spec/host value
                 ]
+            ]
+        ]
+
+        sys/make-scheme [
+            title: "File Access"
+            name: 'file
+
+            init: func [port [port!]] [
+                case [
+                    not all [
+                        in port/spec 'ref
+                        file? port/spec/ref
+                    ][
+                        fail "File access is only available through the FILE! datatype"
+                    ]
+
+                    equal? #"/" last port/spec/ref [
+                        fail "File scheme only accesses files, not folders"
+                    ]
+
+                    url? port/spec/ref: clean-path port/spec/ref [
+                        fail "Cannot currently access files relative to URLs"
+                    ]
+                ]
+
+                extend port/spec 'target either find/match port/spec/ref %/tmp/ [
+                    "temporary"
+                ][
+                    "persistent"
+                ]
+            ]
+
+            actor: [
+                read: func [port] [
+                    either storage-exists? port/spec/target form port/spec/ref [
+                        any [
+                            attempt [debase/base storage-get port/spec/target form port/spec/ref 64]
+                            as binary! storage-get port/spec/target form port/spec/ref
+                        ]
+                    ][
+                        fail "No such file or directory"
+                    ]
+                ]
+
+                write: func [port data] [
+                    ensure [binary! text!] data
+
+                    if text? data [
+                        data: to binary! data  ; could use AS ?
+                    ]
+
+                    either exists? first split-path port/spec/ref [
+                        storage-set port/spec/target form port/spec/ref enbase/base data 64
+                        port
+                    ][
+                        fail "No such file or directory"
+                    ]
+                ]
+
+                delete: func [port] [
+                    either storage-exists? port/spec/target form port/spec/ref [
+                        storage-unset port/spec/target form port/spec/ref
+                    ][
+                        fail "No such file or directory"
+                    ]
+                ]
+
+                query: func [port] [
+                    if storage-exists? port/spec/target form port/spec/ref [
+                        make system/standard/file-info [
+                            name: port/spec/ref
+                            size: 0
+                            date: lib/now  ; we're in a module in a module
+                            type: 'file
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        sys/make-scheme [
+            title: "File Directory Access"
+            name: 'dir
+
+            init: func [port [port!]] [
+                case [
+                    not all [
+                        in port/spec 'ref
+                        file? port/spec/ref
+                        ; equal? #"/" first port/spec/ref
+                    ][
+                        fail "File access is only available through the FILE! datatype"
+                    ]
+
+                    not equal? #"/" last port/spec/ref [
+                        fail "Directory scheme only accesses folders, not files"
+                    ]
+
+                    url? port/spec/ref: clean-path port/spec/ref [
+                        fail "Cannot currently access files relative to URLs"
+                    ]
+
+                    extend port/spec 'target either find/match port/spec/ref %/tmp/ [
+                        "temporary"
+                    ][
+                        "persistent"
+                    ]
+                ]
+            ]
+
+            actor: [
+                read: func [port] [
+                    ; [%nothing-here-yet]
+                    either any [
+                        did find [%/ %/tmp/] port/spec/ref
+                        storage-exists? port/spec/target form port/spec/ref
+                    ][
+                        collect [
+                            if port/spec/ref = %/ [
+                                keep %tmp/
+                            ]
+
+                            keep storage-list port/spec/target form port/spec/ref
+                        ]
+                    ][
+                        fail "Directory does not exist"
+                    ]
+                ]
+
+                create: func [port] [
+                    if any [
+                        did find [%/ %/tmp/] port/spec/ref
+                        storage-exists? port/spec/target form port/spec/ref
+                    ][
+                        fail "Directory already exists"
+                    ]
+
+                    storage-set port/spec/target form port/spec/ref ""
+                    port
+                ]
+
+                delete: func [port] [
+                    fail "Directory delete not currently supported"
+                ]
+
+                query: func [port] [
+                    if any [
+                        did find [%/ %/tmp/] port/spec/ref
+                        storage-exists? port/spec/target form port/spec/ref
+                    ][
+                        make system/standard/file-info [
+                            name: port/spec/ref
+                            size: 0
+                            date: lib/now  ; we're in a module in a module
+                            type: 'dir
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        use [err][
+            if error? err: trap [change-dir %/][
+                write log:type=error mold err
             ]
         ]
     ][
         sys/make-scheme [
             title: "Browser Storage API"
             name: 'storage
+
+            init: func [port [port!]] [
+                fail "Local Storage Not Supported"
+            ]
+
+            actor: []
+        ]
+
+        sys/make-scheme [
+            title: "File Access"
+            name: 'file
+
+            init: func [port [port!]] [
+                fail "Local Storage Not Supported"
+            ]
+
+            actor: []
+        ]
+
+        sys/make-scheme [
+            title: "File Directory Access"
+            name: 'dir
 
             init: func [port [port!]] [
                 fail "Local Storage Not Supported"
