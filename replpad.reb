@@ -1233,15 +1233,18 @@ module [
             : localStorage
 
         test = new RegExp(
-            '\x5E'
-            + reb.Spell(path).replace(/[|\\\/{}()[\]\x5E)$+*?.]/g, '\\$&')
-            + '([\x5E\/]+\/?)$'
+            '\x5E'  // starting caret -- lost when used literally
+            + reb.Spell(path).replace(  // convert path as text to regex blob
+                /[|\\\/{}()[\]\x5E)$+*?.]/g,
+                '\\$&'
+            )
+            + '([\x5E\/]+\/?)$'  // only match non-slash characters
         )
 
         listing.push('[')
 
         for (mark = 0; mark < store.length; mark++) {
-            parts = store.key(mark).match(test)
+            parts = store.key(mark).match(test)  // match each key against our pattern
 
             if (parts && listing.indexOf(parts[1]) == -1) {
                 listing.push('%' + parts[1])
