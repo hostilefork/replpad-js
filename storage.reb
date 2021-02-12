@@ -174,8 +174,7 @@ storage-exists?: js-native [
 }
 
 
-either storage-enabled? [  ; Browser reported that it is storage-capable
-
+if storage-enabled? [  ; Browser reported that it is storage-capable
     sys/make-scheme [
         title: "Browser Storage API"
         name: 'storage
@@ -201,69 +200,108 @@ either storage-enabled? [  ; Browser reported that it is storage-capable
                     in port/spec 'ref
                     file? port/spec/ref
                 ][
-                    fail "File access is only available through the FILE! datatype"
+                    fail "File scheme is only accessible through the FILE! datatype"
                 ]
 
                 equal? #"/" last port/spec/ref [
                     fail "File scheme only accesses files, not folders"
                 ]
-
-                url? port/spec/ref: clean-path port/spec/ref [
-                    fail "Cannot currently access files relative to URLs"
-                ]
             ]
 
-            extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                "temporary"
-            ][
-                "persistent"
+            switch type-of port/spec/ref: clean-path port/spec/ref [
+                file! [
+                    extend port/spec 'target either find/match port/spec/ref %/tmp/ [
+                        "temporary"
+                    ][
+                        "persistent"
+                    ]
+                ]
+
+                url! [
+                    ; possibly some kind of check here to ensure a scheme exists
+                    ; and convert to FILE! if using file:// notation
+                ]
+
+                (fail "Cannot resolve file")
             ]
         ]
 
         actor: [
             read: func [port] [
-                either storage-exists? port/spec/target form port/spec/ref [
-                    any [
-                        attempt [debase/base storage-get port/spec/target form port/spec/ref 64]
-                        as binary! storage-get port/spec/target form port/spec/ref
+                switch type-of port/spec/ref [
+                    file! [
+                        either storage-exists? port/spec/target form port/spec/ref [
+                            any [
+                                attempt [debase/base storage-get port/spec/target form port/spec/ref 64]
+                                as binary! storage-get port/spec/target form port/spec/ref
+                            ]
+                        ][
+                            fail "No such file or directory"
+                        ]
                     ]
-                ][
-                    fail "No such file or directory"
+
+                    url! [
+                        read port/spec/ref
+                    ]
                 ]
             ]
 
             write: func [port data] [
-                ensure [binary! text!] data
+                switch type-of port/spec/ref [
+                    file! [
+                        ensure [binary! text!] data
 
-                if text? data [
-                    data: to binary! data  ; could use AS ?
-                ]
+                        if text? data [
+                            data: to binary! data  ; could use AS ?
+                        ]
 
-                either exists? first split-path port/spec/ref [
-                    storage-set port/spec/target form port/spec/ref enbase/base data 64
-                    port
-                ][
-                    fail "No such file or directory"
+                        either exists? first split-path port/spec/ref [
+                            storage-set port/spec/target form port/spec/ref enbase/base data 64
+                            port
+                        ][
+                            fail "No such file or directory"
+                        ]
+                    ]
+
+                    url! [
+                        write port/spec/ref data
+                    ]
                 ]
             ]
 
             delete: func [port] [
-                either storage-exists? port/spec/target form port/spec/ref [
-                    storage-unset port/spec/target form port/spec/ref
-                ][
-                    fail "No such file or directory"
-                ]
+                switch type-of port/spec/ref [
+                    file! [
+                        either storage-exists? port/spec/target form port/spec/ref [
+                            storage-unset port/spec/target form port/spec/ref
+                        ][
+                            fail "No such file or directory"
+                        ]
 
-                port
+                        port/spec/ref
+                    ]
+
+                    url! [
+                        delete port/spec/ref
+                    ]
+                ]
             ]
 
             query: func [port] [
-                if storage-exists? port/spec/target form port/spec/ref [
-                    make system/standard/file-info [
-                        name: port/spec/ref
-                        size: 0
-                        date: lib/now  ; we're in a module in a module
-                        type: 'file
+                switch type-of port/spec/ref [
+                    file! [
+                        if storage-exists? port/spec/target form port/spec/ref [
+                            make system/standard/file-info [
+                                name: port/spec/ref
+                                size: 0
+                                date: lib/now  ; we're in a module in a module
+                                type: 'file
+                            ]
+                        ]
+                    ]
+
+                    url! [
+                        query port/spec/ref
                     ]
                 ]
             ]
@@ -281,137 +319,131 @@ either storage-enabled? [  ; Browser reported that it is storage-capable
                     file? port/spec/ref
                     ; equal? #"/" first port/spec/ref
                 ][
-                    fail "File access is only available through the FILE! datatype"
+                    fail "File scheme is only accessible through the FILE! datatype"
                 ]
 
                 not equal? #"/" last port/spec/ref [
                     fail "Directory scheme only accesses folders, not files"
                 ]
+            ]
 
-                url? port/spec/ref: clean-path port/spec/ref [
-                    fail "Cannot currently access files relative to URLs"
+
+            switch type-of port/spec/ref: clean-path port/spec/ref [
+                file! [
+                    extend port/spec 'target either find/match port/spec/ref %/tmp/ [
+                        "temporary"
+                    ][
+                        "persistent"
+                    ]
                 ]
 
-                extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                    "temporary"
-                ][
-                    "persistent"
+                url! [
+                    ; possibly some kind of check here to ensure a scheme exists
+                    ; and convert to FILE! if using file:// notation
                 ]
+
+                (fail "Cannot resolve file")
             ]
         ]
 
         actor: [
             read: func [port] [
-                ; [%nothing-here-yet]
-                either any [
-                    did find [%/ %/tmp/] port/spec/ref
-                    storage-exists? port/spec/target form port/spec/ref
-                ][
-                    collect [
-                        if port/spec/ref = %/ [
-                            keep %tmp/
-                        ]
+                switch type-of port/spec/ref [
+                    file! [
+                        either any [
+                            did find [%/ %/tmp/] port/spec/ref
+                            storage-exists? port/spec/target form port/spec/ref
+                        ][
+                            collect [
+                                if port/spec/ref = %/ [
+                                    keep %tmp/
+                                ]
 
-                        keep storage-list port/spec/target form port/spec/ref
+                                keep storage-list port/spec/target form port/spec/ref
+                            ]
+                        ][
+                            fail "No such file or directory"
+                        ]
                     ]
-                ][
-                    fail "No such file or directory"
+
+                    url! [
+                        read port/spec/ref
+                    ]
                 ]
             ]
 
             create: func [port] [
-                if any [
-                    did find [%/ %/tmp/] port/spec/ref
-                    storage-exists? port/spec/target form port/spec/ref
-                ][
-                    fail "Directory already exists"
+                switch type-of port/spec/ref [
+                    file! [
+                        if any [
+                            did find [%/ %/tmp/] port/spec/ref
+                            storage-exists? port/spec/target form port/spec/ref
+                        ][
+                            fail "Directory already exists"
+                        ]
+
+                        storage-set port/spec/target form port/spec/ref ""
+                        port/spec/ref
+                    ]
+
+                    url! [
+                        create port/spec/ref
+                    ]
                 ]
 
-                    storage-set port/spec/target form port/spec/ref ""
-                    port
-                ]
+            ]
 
             delete: func [port] [
-                case [
-                    did find [%/ %/tmp/] port/spec/ref [
-                        port
+                switch type-of port/spec/ref [
+                    file! [
+                        case [
+                            did find [%/ %/tmp/] port/spec/ref [
+                                port
+                            ]
+
+                            not storage-exists? port/spec/target form port/spec/ref [
+                                fail "No such file or directory"
+                            ]
+
+                            not empty? read port/spec/ref [
+                                fail "Directory not empty"
+                            ]
+
+                            <else> [
+                                storage-unset port/spec/target form port/spec/ref
+                                port
+                            ]
+                        ]
                     ]
 
-                    not storage-exists? port/spec/target form port/spec/ref [
-                        fail "No such file or directory"
-                    ]
-
-                    not empty? read port/spec/ref [
-                        fail "Directory not empty"
-                    ]
-
-                    <else> [
-                        storage-unset port/spec/target form port/spec/ref
-                        port
+                    url! [
+                        delete port/spec/ref
                     ]
                 ]
+
             ]
 
             query: func [port] [
-                if any [
-                    did find [%/ %/tmp/] port/spec/ref
-                    storage-exists? port/spec/target form port/spec/ref
-                ][
-                    make system/standard/file-info [
-                        name: port/spec/ref
-                        size: 0
-                        date: lib/now  ; we're in a module in a module
-                        type: 'dir
+                switch type-of port/spec/ref [
+                    file! [
+                        if any [
+                            did find [%/ %/tmp/] port/spec/ref
+                            storage-exists? port/spec/target form port/spec/ref
+                        ][
+                            make system/standard/file-info [
+                                name: port/spec/ref
+                                size: 0
+                                date: lib/now  ; we're in a module in a module
+                                type: 'dir
+                            ]
+                        ]
+                    ]
+
+                    url! [
+                        query port/spec/ref
                     ]
                 ]
             ]
         ]
-    ]
-
-    use [err][
-        if error? err: trap [change-dir %/][
-            write log:type=error mold err
-        ]
-   ]
-
-][
-    ; If the browser reported it was not capable of doing storage operations,
-    ; set up some stubs that will error if the schemes are used.
-    ;
-    ; Note that any browser modern enough to have Wasm is probably capable of
-    ; doing storage.  So the more likely case of it being unavailable is if it
-    ; is running in a context where the feature has been disabled.
-
-    sys/make-scheme [
-        title: "Browser Storage API"
-        name: 'storage
-
-        init: func [port [port!]] [
-            fail "Local Storage Not Supported (or Disabled by Browser)"
-        ]
-
-        actor: []
-    ]
-
-    sys/make-scheme [
-        title: "File Access"
-        name: 'file
-
-        init: func [port [port!]] [
-            fail "Local Storage Not Supported (or Disabled by Browser)"
-        ]
-
-        actor: []
-    ]
-
-    sys/make-scheme [
-        title: "File Directory Access"
-        name: 'dir
-
-        init: func [port [port!]] [
-            fail "Local Storage Not Supported (or Disabled by Browser)"
-        ]
-
-        actor: []
     ]
 ]
