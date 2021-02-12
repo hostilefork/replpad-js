@@ -9,7 +9,7 @@ Rebol [
     Options: [isolate]  ; user redefinitions of IF, etc. can't break the REPL!
 
     Rights: {
-        Copyright (c) 2018-2019 hostilefork.com
+        Copyright (c) 2018-2021 hostilefork.com
         See README.md and CREDITS.md for more information
     }
 
@@ -27,7 +27,7 @@ Rebol [
         try and start factoring the reusable bits out of this into some kind
         of library which other programs can use.
 
-        HOWEVER--!--the *near-term* (2020) goal for this project is to improve
+        HOWEVER--!--the *near-term* (2021) goal for this project is to improve
         the console itself into an online tutorial and demo for the system.
         This is not to say that making a web framework for arbitrary Ren-C
         programs in WebAssembly isn't interesting.  Just that it is a vast task
@@ -49,8 +49,10 @@ Rebol [
 ]
 
 
-sys/init-schemes  ; needed e.g. for DECODE-URL to work
+=== {REPLPAD CONSOLE OUTPUT (step 1)} ===
 
+; While it's nice to be able to use PRINT statements to debug, the JS console
+; is a good last resort...and the last resort should be defined right first.
 
 !!: js-native [
     {Temporary debug helper, sends to browser console log instead of replpad}
@@ -58,10 +60,9 @@ sys/init-schemes  ; needed e.g. for DECODE-URL to work
 ]{
     console.log(
         "@" + reb.Tick() + ": "
-        + reb.Spell("spaced", reb.R(reb.Arg('message')))
+        + reb.Spell("mold", reb.R(reb.Arg('message')))
     )
 }
-
 
 use [write-console] [
     write-console: js-awaiter [
@@ -95,6 +96,12 @@ use [write-console] [
 ]
 
 
+=== {REPLPAD CONSOLE OUTPUT (step 2)} ===
+
+; Next we define basic output to the ReplPad, which empowers conventional
+; PRINT.  This way non-JavaScript-aware Rebol code that has PRINT statements
+; in it can show output.
+
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
     return: [void!]
@@ -109,7 +116,6 @@ cls: clear-screen: js-awaiter [
 
     return reb.Value("'~void~");  // tells console to suppress result
 }
-
 
 replpad-write-js: js-awaiter [
     {Output lines of text to the REPLPAD (no automatic newline after)}
@@ -263,24 +269,26 @@ print: func [
     (write-stdout/(html) try spaced line) then [write-stdout newline]
 ]
 
-
 read-line: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
     // The current prompt is always the last child in the last "line" div
+    //
     let prompt = replpad.lastChild.lastChild
 
     // The prompt is always a text node, and so we need to create a HTML
-    // version of it to be able to adjust its layout next to the input
+    // version of it to be able to adjust its layout next to the input.
+    //
     var prompt_html = document.createElement("div")
     prompt_html.innerHTML = prompt.textContent
     prompt_html.className = "input-prompt"
 
     let new_input = load("<div class='input'></div>")
 
-    // Add a container to place the prompt and input into. This will allow us to
-    // adjust the width the input takes without causing it to drop to a new line
+    // Add a container to place the prompt and input into.  This allows us to
+    // adjust the width the input takes without making it drop to a new line.
+    //
     var container = document.createElement("div")
     container.className = "input-container"
     container.appendChild(prompt_html)
@@ -310,159 +318,34 @@ read-line: js-awaiter [
 }
 
 
-wait: js-awaiter [
-    {Sleep for the requested number of seconds}
-    seconds [integer! decimal!]
-]{
-    return new Promise(function(resolve, reject) {
-        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR('seconds')))
-    })
-}
+=== {ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3)} ===
 
+; In order to modularize the code into separate .reb files, we need to be able
+; to DO those files.  That requires setting up a scheme for reading `http://`
+; URLs via the JavaScript fetch() API.  Once this is done, other components
+; can live in their own modules instead of growing this file indefinitely.
 
-copy-to-clipboard-helper: js-native [
-    {https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f}
-    data [any-value!]
-]{
-    // interface to clipboard is `execCommand` which copies a selection.  We
-    // must preserve the current selection, make an invisible text area with
-    // the data, select it, run execCommand(), and then restore the selection.
-    //
-    const el = document.createElement('textarea')
-    el.value = reb.Spell(reb.ArgR('data'))
-    el.setAttribute('readonly', '')
-    el.style.position = 'absolute'
-    el.style.left = '-9999px'
-    document.body.appendChild(el)
-    const selected = document.getSelection().rangeCount > 0
-        ? document.getSelection().getRangeAt(0)
-        : false
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-    if (selected) {
-        document.getSelection().removeAllRanges()
-        document.getSelection().addRange(selected)
-    }
-}
-
-
-; Implement Clipboard scheme, no URL form dictated
-sys/make-scheme [
-    title: "In-Browser Clipboard Scheme"
-    name: 'clipboard
-
-    actor: [
-        read: func [port] [
-            fail {READ is not supported in the web console}
-        ]
-
-        write: func [port data] [
-            if binary? data [
-                data: either invalid-utf8? data [
-                    enbase/base data 64
-                ][
-                    to text! data
-                ]
-            ]
-
-            copy-to-clipboard-helper form data
-            port
-        ]
-    ]
-]
-
-
-read-url-helper: js-awaiter [
-    return: [binary!]
-    url [text!]
-]{
-    let url = reb.Spell(reb.ArgR('url'))
-
-    let response = await fetch(url)  // can be relative
-
-    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-    if (!response.ok)
-        throw Error(response.statusText)
-
-    let buffer = await response.arrayBuffer()
-    return reb.Binary(buffer)
-}
-
-
-; Implement rudimentary HTTP(S) schemes
-sys/make-scheme [
-    title: "In-Browser HTTP Scheme"
-    name: 'http
-
-    actor: [
-        ; could potentially fold in JS-HEAD around an INFO? wrapper
-
-        read: func [port] [
-            ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-if-gitlab-url port
-            ; ]
-
-            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
-        ]
-
-        write: func [port data] [
-            fail [
-                {WRITE is not supported in the web console yet, due to the browser's}
-                {imposition of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP POST}
-                {in form submissions.  Get involved if you know how!}
-            ]
-        ]
-    ]
-]
-
-sys/make-scheme [
-    title: "In-Browser HTTPS Scheme"
-    name: 'https
-
-    actor: [
-        read: func [port] [
-            ; if port/spec/host = "gitlab.com" [
-            ;     CORSify-if-gitlab-url port
-            ; ]
-
-            read-url-helper unspaced [form port/spec/scheme "://" port/spec/host port/spec/path]
-        ]
-
-        write: func [port data] [
-            fail [
-                {WRITE is not supported in the web console yet, due to the browser's}
-                {imposition of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP POST}
-                {in form submissions.  Get involved if you know how!}
-            ]
-        ]
-    ]
-]
-
-
-; While raw.github.com links are offered via CORS, raw gitlab.com links
-; (specified by a /raw/ in their URL) are not.  However, GitLab offers CORS via
-; an API...so for our GitLab open source brothers & sisters we level the
-; playing field by simulating raw url fetch() via API.
-;
-; (At the DO level, the "/blob" links to decorated HTML are proxied in both
-; cases, since you presumably weren't DO'ing HTML...though you could have been
-; trying to READ it)
-;
-; !!! Gitlab raw links started looking different, with an optional /-/ segment:
-;
-; https://gitlab.com/Zhaoshirong/nzpower/raw/master/nzpower.reb
-; https://gitlab.com/Zhaoshirong/docx-templating/-/raw/master/gmdocx.reb
-;
-; TBD: research what that is and what the rule is on its appearance or not.
-;
 CORSify-if-gitlab-url: func [
     return: [port!]
     port [port!]
     <local> user repo branch file_path
 ][
+    ; While raw.github.com links are offered via CORS, raw gitlab.com links
+    ; (specified by a /raw/ in their URL) are not.  However, GitLab offers CORS
+    ; via an API...so for our GitLab open source brothers & sisters we level
+    ; the playing field by simulating raw url fetch() via API.
+    ;
+    ; (At the DO level, the "/blob" links to decorated HTML are proxied in both
+    ; cases, since you presumably weren't DO'ing HTML...though you could have
+    ; been trying to READ it)
+    ;
+    ; !!! Gitlab raw links started having an optional /-/ segment:
+    ;
+    ; https://gitlab.com/Zhaoshirong/nzpower/raw/master/nzpower.reb
+    ; https://gitlab.com/Zhaoshirong/docx-templating/-/raw/master/gmdocx.reb
+    ;
+    ; TBD: research what that is and what the rule is on its appearance or not.
+
     assert [port/spec/host = "gitlab.com"]
 
     if parse port/spec/path [
@@ -492,6 +375,200 @@ CORSify-if-gitlab-url: func [
     port
 ]
 
+read-url-helper: js-awaiter [
+    return: [binary!]
+    url [text!]
+]{
+    let url = reb.Spell(reb.ArgR('url'))
+
+    let response = await fetch(url)  // can be relative
+
+    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+    if (!response.ok)
+        throw Error(response.statusText)
+
+    let buffer = await response.arrayBuffer()
+    return reb.Binary(buffer)
+}
+
+sys/make-scheme [
+    title: "In-Browser HTTP Scheme"
+    name: 'http
+
+    actor: [
+        ; could potentially fold in JS-HEAD around an INFO? wrapper
+
+        read: func [port] [
+            comment [
+                if port/spec/host = "gitlab.com" [
+                    CORSify-if-gitlab-url port
+                ]
+            ]
+
+            read-url-helper unspaced [
+                form port/spec/scheme "://" port/spec/host
+                    if in port/spec 'port-id [unspaced [":" port/spec/port-id]]
+                    port/spec/path
+            ]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not supported in the web console yet, due to the browser's}
+                {imposition of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP POST}
+                {in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
+]
+
+sys/make-scheme [
+    title: "In-Browser HTTPS Scheme"
+    name: 'https
+
+    actor: [
+        read: func [port] [
+            comment [
+                if port/spec/host = "gitlab.com" [
+                    CORSify-if-gitlab-url port
+                ]
+            ]
+
+            read-url-helper unspaced [
+                form port/spec/scheme "://" port/spec/host port/spec/path
+            ]
+        ]
+
+        write: func [port data] [
+            fail [
+                {WRITE is not yet supported, due to the browser's imposition}
+                {of a security model (e.g. no local filesystem access).}
+                {Features may be added in a more limited sense, for doing HTTP}
+                {POST in form submissions.  Get involved if you know how!}
+            ]
+        ]
+    ]
+]
+
+
+=== {JAVASCRIPT AND CSS INTEROPERABILITY (step 4)} ===
+
+; Now that we can DO files, go ahead and import the JS interop.
+;
+; !!! In the initial conception of how the replpad worked, %js-css-interop.reb
+; when passed to DO would be interpreted as a file on the web server (because
+; it would be appended onto the current directory).  Switching to use schemes
+; is not taking this interpretation.
+;
+sys/export [  ; no clear way to provide this to the interop otherwise
+    CORSify-if-gitlab-url
+]
+do ensure url! clean-path %js-css-interop.reb
+
+
+=== STORAGE SCHEME ===
+
+; Import scheme for file:// URLs as interpreted as meaning URL storage.
+;
+do ensure url! clean-path %js-css-interop.reb
+
+system/contexts/user/change-dir:  ; need to override previously imported value
+change-dir: func [
+    {Changes the current path (where scripts with relative paths will be run)}
+    path [file! url!]
+    return: [file! url!]
+][
+    ; NOTE: The CHANGE-DIR function has to be aware of filesystems, but the
+    ; core does not presume any particular filesystem implementation.  However
+    ; it does do things like "save and restore the current directory" during
+    ; a `DO` of a file in another directory.  What happens is that a stub
+    ; CHANGE-DIR is defined and then overridden by the filesystem extension.
+    ; But since the web build has no file extension, only the stub is present.
+    ;
+    ; This adjusts the stub to CLEAN-PATH to expand it fully and remove any
+    ; `..` and such before setting the notion of what the "current" directory
+    ; is.  That sounds like a step in the right direction, but the general
+    ; organization of how these functions fit together needs work.
+    ;
+    ; Rather than update the stub we leave this override here for now.
+
+    path: clean-path/dir path
+
+    if all [
+        file? path
+        not exists? path
+    ][
+        fail "Path does not exist"
+    ]
+
+    system/options/current-path: path
+]
+
+
+=== DOWNLOAD SCHEME ===
+
+download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
+    {Triggers a download of data to the user's local disk}
+
+    filename [file!]
+    data [text! binary!]
+    /mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
+        [text!]
+]{
+    let filename = reb.Spell(reb.ArgR('filename'))
+    let mime_type = reb.Spell(reb.Q(reb.ArgR('mime-type')))  // may be NULL
+
+    // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
+    // It can also include strings in that array.
+    //
+    let d = reb.Arg('data')
+    let blob;
+    if (reb.Did("binary?", d)) {
+        let uint8_array = reb.Bytes(d)
+        blob = new Blob([uint8_array], {type: mime_type || "octet/stream"})
+    }
+    else {
+        let string = reb.Spell(d)
+        blob = new Blob([string], {type: mime_type || "text/plain"})
+    }
+    reb.Release(d)
+
+    let url = window.URL.createObjectURL(blob)
+
+    // Trigger the download by simulating a click on an invisible anchor, with
+    // a "download" property supplying the filename.
+    //
+    var a = document.createElement("a")  // `a` link, as in <a href="...">
+    document.body.appendChild(a)
+    a.style = "display: none"
+    a.href = url
+    a.download = filename
+    a.click()
+    a.parentNode.removeChild(a)
+
+    window.URL.revokeObjectURL(url)
+}
+
+sys/make-scheme [
+    title: "Downloader Scheme"
+    name: 'downloads
+
+    init: func [port][
+        assert [match text! port/spec/path]
+        port/spec/path: last split-path port/spec/path
+    ]
+
+    actor: [
+        write: func [port data][
+            download port/spec/path data
+            port
+        ]
+    ]
+]
+
+
+=== {OVERRIDE THE WAY `DO` HANDLES SOME URLS} ===
 
 ; Some URLs that represent executable code have a HTML presentation layer on
 ; them.  This is why a GitHub link has a "raw" offering without all that extra
@@ -503,7 +580,7 @@ CORSify-if-gitlab-url: func [
 ; that what you actually wanted was to DO the raw content implied by it.
 ;
 ; This performs that forwarding for GitLab and GitHub UI links.
-;
+
 adjust-url-for-do: func [
     return: [<opt> url!]
     url [<blank> url!]
@@ -559,10 +636,10 @@ adjust-url-for-do: func [
 ]
 
 
-; We go ahead and update LIB's DO directly with an adaptation.  This way,
-; the Redbol emulation layer keeps the URL interception.
-
 lib/do: adapt copy :lib/do [
+    ;
+    ; We go ahead and update LIB's DO directly with an adaptation.  This way,
+    ; the Redbol emulation layer keeps the URL interception.
     ;
     ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
     ; by name in a registry.  This is an experimental concept (which was in
@@ -585,206 +662,7 @@ lib/do: adapt copy :lib/do [
 ]
 
 
-js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
-    {Run JS URL via a <script> tag}
-
-    url [url!] "URL or JavaScript code"
-]{
-    return new Promise(function(resolve, reject) {
-        let script = document.createElement('script')
-
-        script.src = reb.Spell(reb.ArgR('url'))
-        script.onload = function() {
-            script.parentNode.removeChild(script)  // !!! necessary for GC?
-            resolve()  // can't take onload()'s arg directly
-        }
-        // HTML5 discourages use of .type field to redundantly specify JS
-
-        document.head.appendChild(script)
-    })
-}
-
-
-js-do-dialect-helper: func [
-    {Allow Rebol to pass API handle values to JS-DO and JS-EVAL}
-
-    return: [text!]
-    b [block!]
-][
-    unspaced collect [
-        let keep-transient: func [t /required [word!]] [
-            switch type of t [
-                sym-word! sym-path! [keep api-transient get t]
-                sym-group! [keep api-transient reeval as group! t]
-
-                assert [required]
-                fail [required "must have its argument as @..., @(...)"]
-            ]
-        ]
-
-        iterate b [
-            switch type of b/1 [
-                text! [keep b/1]
-                group! [keep/only reeval b/1]
-
-                sym-word! sym-path! sym-group! [keep-transient b/1]
-
-                word! [switch b/1 [
-                    'spell [
-                        keep "reb.Spell("
-                        b: next b
-                        keep-transient/required try :b/1 'SPELL
-                        keep ")"
-                    ]
-                    'unbox [
-                        keep "reb.Unbox("
-                        b: next b
-                        keep-transient/required try :b/1 'UNBOX
-                        keep ")"
-                    ]
-                    fail ["Unknown JS-DO dialect keyword:" b/1]
-                ]]
-
-                fail [
-                    {JS-DO dialect supports TEXT!, SYM-WORD!, SYM-GROUP!,}
-                    {SYM-PATH!...plus the keywords SPELL and UNBOX}
-                ]
-            ]
-        ]
-    ]
-]
-
-js-do: func [
-    {Execute JavaScript file or evaluate a string of JavaScript source}
-
-    return: [<opt> void!]  ; What useful return result could there be?
-    source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<blank> block! text! file! url!]
-    /automime "Subvert incorrect server MIME-type by requesting via fetch()"
-    /local "Run code in a local scope, rather than global"
-][
-    if block? source [source: my js-do-dialect-helper]
-
-    either text? source [
-        js-eval*/(local) source
-    ][
-        if file? source [  ; make absolute w.r.t. *current* script URL location
-            source: join (ensure url! what-dir) source
-        ]
-        any [automime, local] then [
-            let code: as text! read CORSify-if-gitlab-url source
-            js-eval*/(local) code
-        ] else [
-            js-do-url-helper source
-        ]
-    ]
-]
-
-; JS-DO runs scripts by URL and generically does not return an evaluative
-; result (and can't, if it uses the `<script>` tag).  So JS-DO of a TEXT! is
-; the preferred choice when you're not interested in getting back a result
-; from that evaluation...even though it builds on the low-level JS-EVAL*
-; functionality.  This higher-level JS-EVAL assumes you want a result back
-; vs. the fire-and-forget JS-DO, and supports the JS-DO dialect.
-;
-js-eval: func [
-    {Evaluate JavaScript expression in local environment and return result}
-
-    return: [<opt> void! integer! text!]
-    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<blank> block! text!]
-][
-    if block? expression [expression: my js-do-dialect-helper]
-    return js-eval*/local/value expression
-]
-
-
-js-head-helper: js-awaiter [
-    return: [object!]
-    url [text!]
-]{
-    let url = reb.Spell(reb.ArgR('url'))
-
-    let response = await fetch(url, {method: 'HEAD'})  // can be relative
-
-    // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-    if (!response.ok)
-        throw Error(response.statusText)
-
-    let headers = response.headers
-
-    let obj = reb.Value("make object! []")
-    headers.forEach(function(value, key) {
-        reb.Elide(
-            "append", obj, "[",
-                reb.V("as set-word!", reb.T(key)),
-                reb.T(value),
-            "]"
-        )
-    })
-    return obj
-}
-
-js-head: func [
-    {Perform an HTTP HEAD request of an absolute URL! or relative FILE! path}
-    return: "OBJECT! of key=>value response header strings"
-        [object!]
-    source [url! file!]
-][
-    either file? source [
-        source: unspaced [what-dir source]
-    ][
-        source: as text! source
-    ]
-    return js-head-helper source
-]
-
-
-css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
-    text [text!]
-]{
-    let css = document.createElement('style')
-    /* css.id = ... */  // could be good for no duplicates, deleting later
-    css.type = 'text/css'
-    css.innerHTML = reb.Spell(reb.ArgR('text'))
-    document.head.appendChild(css)
-}
-
-css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
-    url [text!]
-]{
-    let link = document.createElement('link')
-    /* link.id = ... */  // could be good for no duplicates, deleting later
-    link.id = 'testing'
-    link.rel = 'stylesheet'
-    link.type = 'text/css'
-    link.href = reb.Spell(reb.ArgR('url'))
-    link.media = 'all'
-    document.head.appendChild(link)
-}
-
-css-do: func [
-    {Incorporate a CSS file or a snippet of CSS source into the page}
-
-    return: <void>  ; Could return an auto-generated ID for later removing (?)
-    ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
-    source [text! file! url!]
-    /automime "Subvert incorrect server MIME-type by requesting via fetch()"
-][
-    if text? source [
-        css-do-text-helper source
-    ] else [
-        if file? source [  ; make absolute w.r.t. *current* script URL location
-            source: join (ensure url! what-dir) source
-        ]
-        if automime [
-            css-do-text-helper as text! read CORSify-if-gitlab-url source
-        ] else [
-            css-do-url-helper as text! source
-        ]
-    ]
-]
-
+=== {IMPLEMENT `NOW` FUNCTION USING JAVASCRIPT CALLS} ===
 
 ; We could use the "Time extension" built for POSIX, because Emscripten will
 ; emulate those APIs.  But we can interface with JavaScript directly and cut
@@ -795,7 +673,7 @@ css-do: func [
 ; constructors is articulated, we use MAKE-TIME-SN and MAKE-DATE-YMDSNZ.
 ;
 ; !!! Review why a time has to be part of a date to have a time zone (?)
-;
+
 now: js-native [
     {Returns current date and time with timezone adjustment}
 
@@ -857,6 +735,8 @@ now: js-native [
 }
 
 
+=== {PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER} ===
+
 browse: func [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
@@ -888,73 +768,82 @@ browse: func [
 ]
 
 
-download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
-    {Triggers a download of data to the user's local disk}
+=== {WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout} ===
 
-    filename [file!]
-    data [text! binary!]
-    /mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
-        [text!]
+wait: js-awaiter [
+    {Sleep for the requested number of seconds}
+    seconds [integer! decimal!]
 ]{
-    let filename = reb.Spell(reb.ArgR('filename'))
-    let mime_type = reb.Spell(reb.Q(reb.ArgR('mime-type')))  // may be NULL
-
-    // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
-    // It can also include strings in that array.
-    //
-    let d = reb.Arg('data')
-    let blob;
-    if (reb.Did("binary?", d)) {
-        let uint8_array = reb.Bytes(d)
-        blob = new Blob([uint8_array], {type: mime_type || "octet/stream"})
-    }
-    else {
-        let string = reb.Spell(d)
-        blob = new Blob([string], {type: mime_type || "text/plain"})
-    }
-    reb.Release(d)
-
-    let url = window.URL.createObjectURL(blob)
-
-    // Trigger the download by simulating a click on an invisible anchor, with
-    // a "download" property supplying the filename.
-    //
-    var a = document.createElement("a")  // `a` link, as in <a href="...">
-    document.body.appendChild(a)
-    a.style = "display: none"
-    a.href = url
-    a.download = filename
-    a.click()
-    a.parentNode.removeChild(a)
-
-    window.URL.revokeObjectURL(url)
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR('seconds')))
+    })
 }
 
 
-sys/make-scheme [
-    title: "Downloader Scheme"
-    name: 'downloads
+=== {CLIPBOARD SCHEME} ===
 
-    init: func [port][
-        assert [match text! port/spec/path]
-        port/spec/path: last split-path port/spec/path
-    ]
+; For security reasons, web applications can't read the clipboard.  But they
+; can write to it if you provoke the app with sufficient interactivity.
+
+copy-to-clipboard-helper: js-native [
+    {https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f}
+    data [any-value!]
+]{
+    // interface to clipboard is `execCommand` which copies a selection.  We
+    // must preserve the current selection, make an invisible text area with
+    // the data, select it, run execCommand(), and then restore the selection.
+    //
+    const el = document.createElement('textarea')
+    el.value = reb.Spell(reb.ArgR('data'))
+    el.setAttribute('readonly', '')
+    el.style.position = 'absolute'
+    el.style.left = '-9999px'
+    document.body.appendChild(el)
+    const selected = document.getSelection().rangeCount > 0
+        ? document.getSelection().getRangeAt(0)
+        : false
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    if (selected) {
+        document.getSelection().removeAllRanges()
+        document.getSelection().addRange(selected)
+    }
+}
+
+sys/make-scheme [  ; no URL form dictated
+    title: "In-Browser Clipboard Scheme"
+    name: 'clipboard
 
     actor: [
-        write: func [port data][
-            download port/spec/path data
+        read: func [port] [
+            fail {READ is not supported in the web console}
+        ]
+
+        write: func [port data] [
+            if binary? data [
+                data: either invalid-utf8? data [
+                    enbase/base data 64
+                ][
+                    to text! data
+                ]
+            ]
+
+            copy-to-clipboard-helper form data
             port
         ]
     ]
 ]
 
 
+=== {ABOUT COMMAND} ===
+
 ; !!! The ABOUT command was not made part of the console extension, since
 ; non-console builds might want to be able to ask it from the command line.
 ; But it was put in HOST-START and not the mezzanine/help in general.  This
 ; needs to be rethought, but including ABOUT doing *something* since it is
 ; mentioned when the console starts up.
-;
+
 about: does [
     print [
         {This Rebol is running completely in your browser!  The evaluations}
@@ -967,14 +856,15 @@ about: does [
 ]
 
 
+=== {WATCHLIST STUB (INVOKES MODULE ON FIRST RUN)} ===
+
+; We don't want to pay for loading the watchlist unless it's used.  Do a
+; delayed-load that waits for the first use.
+;
+; Note: When it was being automatically loaded, it was observed that it
+; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
+
 watch: func [:arg] [
-    ;
-    ; We don't want to pay for loading the watchlist unless it's used.  So
-    ; delayed-load it on first use.
-    ;
-    ; Note: When it was being automatically loaded, it was observed that it
-    ; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
-    ;
     print "Loading watchlist extension for first use..."
     do %watchlist/main.reb
     let watch: :system/modules/Watchlist/watch
@@ -987,6 +877,8 @@ watch: func [:arg] [
     do compose [watch (:arg)]
 ]
 
+
+=== {COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation)} ===
 
 redbol: func [return: <void>] [
     print [
@@ -1010,519 +902,17 @@ redbol: func [return: <void>] [
 ]
 
 
-; the above sys/init-schemes did not change lib/decode-url in time for it to
-; be used within this code, so have to explicitly import it
-decode-url: :lib/decode-url
-
-clean-path: func [
-    {Returns new directory path with `.` and `..` processed.}
-    path [file! url! text!]
-    /only "Do not prepend current directory"
-    /dir "Add a trailing / if missing"
-    <local> scheme current target count part
-][
-    scheme: _
-
-    case [
-        url? path [
-            scheme: make make object! [scheme: user: pass: host: port-id: path: _] decode-url path
-            target: either scheme/path [
-                to file! scheme/path
-            ][
-                copy %/
-            ]
-        ]
-
-        any [
-            only
-            text? path
-            #"/" = first path
-        ][
-            target: copy path
-        ]
-
-        file? path [
-            if url? current: what-dir [
-                scheme: make make object! [scheme: user: pass: host: port-id: path: _] decode-url current
-                current: any [
-                    scheme/path
-                    copy %/
-                ]
-            ]
-
-            target: to file! unspaced [current path]
-        ]
-    ]
-
-    if all [
-        dir
-        not #"/" = last target
-    ][
-        append target #"/"
-    ]
-
-    path: make type of target length of target
-    count: 0
-
-    parse reverse target [
-        some [
-            "../"
-            (count: me + 1)
-            |
-            "./"
-            |
-            "/"
-            (
-                if any [
-                    not file? target
-                    #"/" <> last path
-                ][
-                    append path #"/"
-                ]
-            )
-            |
-            copy part: [to "/" | to end] (
-                either count > 0 [
-                    count: me - 1
-                ][
-                    if not find ["" "." ".."] as text! part [
-                        append path part
-                    ]
-                ]
-            )
-        ]
-        end
-    ]
-
-    if all [
-        #"/" = last path
-        #"/" <> last target
-    ][
-        remove back tail of path
-    ]
-
-    reverse path
-
-    either scheme [
-        to url! head insert path unspaced [
-            form scheme/scheme "://"
-            if scheme/user [
-                unspaced [
-                    scheme/user
-                    if scheme/pass [
-                        unspaced [":" scheme/pass]
-                    ]
-                    "@"
-                ]
-            ]
-            scheme/host
-            if scheme/port-id [
-                unspaced [":" scheme/port-id]
-            ]
-        ]
-    ][
-        path
-    ]
-]
-
-system/contexts/user/change-dir:  ; need to override the previously imported value
-change-dir: func [
-    {Changes the current path (where scripts with relative paths will be run).}
-    path [file! url!]
-    return: [file! url!]
-][
-    path: clean-path/dir path
-
-    if all [
-        file? path
-        not exists? path
-    ][
-        fail "Path does not exist"
-    ]
-
-    system/options/current-path: path
-]
-
-module [
-    name: 'rgchris-storage
-    notes: [
-        https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
-    ]
-][
-    ; This currently is a very spongey filesystem. Probably better to create entries for directories
-    ; and manage them through MAKE-DIR, etc.
-
-    storage-enabled?: js-native [] {
-        return reb.Logic(
-            typeof Storage !== 'undefined'
-        )
-    }
-
-    storage-set: js-native [
-        store [text!]
-        path [text! file!]
-        value [text!]
-    ] {
-        let store = reb.ArgR('store')
-        let path = reb.ArgR('path')
-        let value = reb.ArgR('value')
-
-        store = reb.Spell(store) == 'temporary'
-            ? sessionStorage
-            : localStorage
-
-        store.setItem(
-            reb.Spell(path),
-            reb.Spell(value)
-        )
-    }
-
-    storage-get: js-native [
-        store [text!]
-        path [text! file!]
-    ] {
-        let store = reb.ArgR('store')
-        let path = reb.ArgR('path')
-        let value
-
-        store = reb.Spell(store) == 'temporary'
-            ? sessionStorage
-            : localStorage
-
-        value = store.getItem(
-            reb.Spell(path)
-        )
-
-        return (typeof value !== 'undefined' && value !== null)
-            ? reb.Text(value)
-            : null
-    }
-
-    storage-unset: js-native [
-        store [text!]
-        path [text! file!]
-    ] {
-        let store = reb.ArgR('store')
-        let path = reb.ArgR('path')
-        let value
-
-        store = reb.Spell(store) == 'temporary'
-            ? sessionStorage
-            : localStorage
-
-        store.removeItem(
-            reb.Spell(path)
-        )
-
-        return null
-    }
-
-    storage-list: js-native [
-        store [text!]
-        path [text! file!]
-    ] {
-        let store = reb.ArgR('store')
-        let path = reb.ArgR('path')
-        let test
-        let parts
-        let listing = []
-        let mark
-
-        store = reb.Spell(store) == 'temporary'
-            ? sessionStorage
-            : localStorage
-
-        test = new RegExp(
-            '\x5E'  // starting caret -- lost when used literally
-            + reb.Spell(path).replace(  // convert path as text to regex blob
-                /[|\\\/{}()[\]\x5E)$+*?.]/g,
-                '\\$&'
-            )
-            + '([\x5E\/]+\/?)$'  // only match non-slash characters
-        )
-
-        listing.push('[')
-
-        for (mark = 0; mark < store.length; mark++) {
-            parts = store.key(mark).match(test)  // match each key against our pattern
-
-            if (parts && listing.indexOf(parts[1]) == -1) {
-                listing.push('%' + parts[1])
-            }
-        }
-
-        listing.push(']')
-
-        console.log(listing)
-
-        return reb.Value.apply(
-            null, listing
-        )
-    }
-
-    storage-exists?: js-native [
-        store [text!]
-        path [text! file!]
-    ] {
-        let store = reb.ArgR('store')
-        let path = reb.ArgR('path')
-
-        store = reb.Spell(store) == 'temporary'
-            ? sessionStorage
-            : localStorage
-
-        return reb.Logic(
-            store.hasOwnProperty(
-                reb.Spell(path)
-            )
-        )
-    }
-
-    either storage-enabled? [
-        sys/make-scheme [
-            title: "Browser Storage API"
-            name: 'storage
-
-            actor: [
-                read: func [port] [
-                    storage-get "persistent" port/spec/host
-                ]
-
-                write: func [port value] [
-                    storage-set "persistent" port/spec/host value
-                ]
-            ]
-        ]
-
-        sys/make-scheme [
-            title: "File Access"
-            name: 'file
-
-            init: func [port [port!]] [
-                case [
-                    not all [
-                        in port/spec 'ref
-                        file? port/spec/ref
-                    ][
-                        fail "File access is only available through the FILE! datatype"
-                    ]
-
-                    equal? #"/" last port/spec/ref [
-                        fail "File scheme only accesses files, not folders"
-                    ]
-
-                    url? port/spec/ref: clean-path port/spec/ref [
-                        fail "Cannot currently access files relative to URLs"
-                    ]
-                ]
-
-                extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                    "temporary"
-                ][
-                    "persistent"
-                ]
-            ]
-
-            actor: [
-                read: func [port] [
-                    either storage-exists? port/spec/target form port/spec/ref [
-                        any [
-                            attempt [debase/base storage-get port/spec/target form port/spec/ref 64]
-                            as binary! storage-get port/spec/target form port/spec/ref
-                        ]
-                    ][
-                        fail "No such file or directory"
-                    ]
-                ]
-
-                write: func [port data] [
-                    ensure [binary! text!] data
-
-                    if text? data [
-                        data: to binary! data  ; could use AS ?
-                    ]
-
-                    either exists? first split-path port/spec/ref [
-                        storage-set port/spec/target form port/spec/ref enbase/base data 64
-                        port
-                    ][
-                        fail "No such file or directory"
-                    ]
-                ]
-
-                delete: func [port] [
-                    either storage-exists? port/spec/target form port/spec/ref [
-                        storage-unset port/spec/target form port/spec/ref
-                    ][
-                        fail "No such file or directory"
-                    ]
-
-                    port
-                ]
-
-                query: func [port] [
-                    if storage-exists? port/spec/target form port/spec/ref [
-                        make system/standard/file-info [
-                            name: port/spec/ref
-                            size: 0
-                            date: lib/now  ; we're in a module in a module
-                            type: 'file
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-        sys/make-scheme [
-            title: "File Directory Access"
-            name: 'dir
-
-            init: func [port [port!]] [
-                case [
-                    not all [
-                        in port/spec 'ref
-                        file? port/spec/ref
-                        ; equal? #"/" first port/spec/ref
-                    ][
-                        fail "File access is only available through the FILE! datatype"
-                    ]
-
-                    not equal? #"/" last port/spec/ref [
-                        fail "Directory scheme only accesses folders, not files"
-                    ]
-
-                    url? port/spec/ref: clean-path port/spec/ref [
-                        fail "Cannot currently access files relative to URLs"
-                    ]
-
-                    extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                        "temporary"
-                    ][
-                        "persistent"
-                    ]
-                ]
-            ]
-
-            actor: [
-                read: func [port] [
-                    ; [%nothing-here-yet]
-                    either any [
-                        did find [%/ %/tmp/] port/spec/ref
-                        storage-exists? port/spec/target form port/spec/ref
-                    ][
-                        collect [
-                            if port/spec/ref = %/ [
-                                keep %tmp/
-                            ]
-
-                            keep storage-list port/spec/target form port/spec/ref
-                        ]
-                    ][
-                        fail "No such file or directory"
-                    ]
-                ]
-
-                create: func [port] [
-                    if any [
-                        did find [%/ %/tmp/] port/spec/ref
-                        storage-exists? port/spec/target form port/spec/ref
-                    ][
-                        fail "Directory already exists"
-                    ]
-
-                    storage-set port/spec/target form port/spec/ref ""
-                    port
-                ]
-
-                delete: func [port] [
-                    case [
-                        did find [%/ %/tmp/] port/spec/ref [
-                            port
-                        ]
-
-                        not storage-exists? port/spec/target form port/spec/ref [
-                            fail "No such file or directory"
-                        ]
-
-                        not empty? read port/spec/ref [
-                            fail "Directory not empty"
-                        ]
-
-                        <else> [
-                            storage-unset port/spec/target form port/spec/ref
-                            port
-                        ]
-                    ]
-                ]
-
-                query: func [port] [
-                    if any [
-                        did find [%/ %/tmp/] port/spec/ref
-                        storage-exists? port/spec/target form port/spec/ref
-                    ][
-                        make system/standard/file-info [
-                            name: port/spec/ref
-                            size: 0
-                            date: lib/now  ; we're in a module in a module
-                            type: 'dir
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-        use [err][
-            if error? err: trap [change-dir %/][
-                write log:type=error mold err
-            ]
-        ]
-    ][
-        sys/make-scheme [
-            title: "Browser Storage API"
-            name: 'storage
-
-            init: func [port [port!]] [
-                fail "Local Storage Not Supported"
-            ]
-
-            actor: []
-        ]
-
-        sys/make-scheme [
-            title: "File Access"
-            name: 'file
-
-            init: func [port [port!]] [
-                fail "Local Storage Not Supported"
-            ]
-
-            actor: []
-        ]
-
-        sys/make-scheme [
-            title: "File Directory Access"
-            name: 'dir
-
-            init: func [port [port!]] [
-                fail "Local Storage Not Supported"
-            ]
-
-            actor: []
-        ]
-    ]
-]
-
-
-; !!! Being able to annotate declarations with `export` at their point of
-; declaration is a planned module feature.  But currently they must be in the
-; header or done like this.
+=== {EXPORT APPLICABLE ROUTINES TO USER CONTEXT} ===
+
+; All new definitions are by default isolated to the ReplPad module.  This
+; appends them to the `user` context.
+;
+; !!! R3-Alpha's notion of how modules/bindings/etc. interop was basically
+; never thought out and demonstrated coherently on any significant project.
+; So how this all would ever work correctly is very much up in the air.
 ;
 sys/export [
     !!
-    js-do
-    js-eval
-    css-do
-    js-head
     watch
     about
     redbol
@@ -1531,7 +921,6 @@ sys/export [
     ; build does not include the EVENT extension, hence does not have WAIT,
     ; but the wait here seems to appear in both user and lib.)
     ;
-    clean-path
     change-dir
     wait
     write-stdout
@@ -1542,6 +931,8 @@ sys/export [
     now
 
     clear-screen  ; not originally exported, but some "apps" are using it
+    cls
+
     replpad-write  ; for clients who want to write HTML, not just PRINT text
 ]
 
