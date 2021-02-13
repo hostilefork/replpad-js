@@ -9,7 +9,7 @@
 ; check to see if the storage module has been loaded
 (did find system/modules 'ReplStorage)
 (did find read %/ %tmp/)
-(did write %/test.txt "A Test")
+(port? write %/test.txt "A Test")
 (#{412054657374} = read %/test.txt)
 
 ; a handful of CLEAN-PATH tests
@@ -19,5 +19,5 @@
 (equal? %/tmp/ clean-path/dir %/abc/../def/../../tmp)
 
 ; don't know a way to test these, but they shouldn't bomb:
-(write log:type=error "An Error Message")
-(write log:type=info "Information")
+(port? write log:type=error "An Error Message")
+(port? write log:type=info "Information")

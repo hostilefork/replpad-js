@@ -90,6 +90,7 @@ use [write-console] [
         actor: [
             write: func [port data][
                 write-console port/spec/path form data
+                port
             ]
         ]
     ]
