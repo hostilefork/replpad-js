@@ -18,6 +18,8 @@
 (equal? %/ clean-path %/../)
 (equal? %/tmp/ clean-path/dir %/abc/../def/../../tmp)
 
-; don't know a way to test these, but they shouldn't bomb:
-(port? write log:type=error "An Error Message")
-(port? write log:type=info "Information")
+; don't know a way to test these, but they shouldn't create an error:
+(port? write log::error "An Error Message")
+(port? write log::info "Information")
+(port? write log::info "Information")
+(port? append make port! log::warn 123456)

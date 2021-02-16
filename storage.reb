@@ -6,6 +6,7 @@ Rebol [
 
     Type: Module
     Name: ReplStorage  ; !!! seems needed to get into system/modules list
+    Exports: [storage]
     Options: [isolate]
 
     Rights: {
@@ -62,7 +63,7 @@ storage-set: js-native [
     let path = reb.ArgR('path')
     let value = reb.ArgR('value')
 
-    store = reb.Spell(store) == 'temporary'
+    store = reb.Spell(store) == 'session'
         ? sessionStorage
         : localStorage
 
@@ -80,7 +81,7 @@ storage-get: js-native [
     let path = reb.ArgR('path')
     let value
 
-    store = reb.Spell(store) == 'temporary'
+    store = reb.Spell(store) == 'session'
         ? sessionStorage
         : localStorage
 
@@ -101,7 +102,7 @@ storage-unset: js-native [
     let path = reb.ArgR('path')
     let value
 
-    store = reb.Spell(store) == 'temporary'
+    store = reb.Spell(store) == 'session'
         ? sessionStorage
         : localStorage
 
@@ -112,7 +113,57 @@ storage-unset: js-native [
     return null
 }
 
+storage-clear: js-native [
+    store [text!]
+] {
+    let store = reb.ArgR('store')
+
+    store = reb.Spell(store) == 'session'
+        ? sessionStorage
+        : localStorage
+
+    console.log(store)
+
+    store.clear()
+
+    return null
+}
+
+; STORAGE-LIST and STORAGE-LIST-DIR are very similar, it may be desirable to
+; combine the two with some type of generic filter refinement
+
 storage-list: js-native [
+    store [text!]
+] {
+    let store = reb.ArgR('store')
+    let listing = []
+    let offset
+
+    store = reb.Spell(store) == 'session'
+        ? sessionStorage
+        : localStorage
+
+    console.log(store)
+
+    listing.push('[')
+
+    for (
+        offset = 0;
+        offset < store.length;
+        offset++
+    ) {
+        // TODO: need to escape carets
+        listing.push('"' + store.key(offset) + '"')
+    }
+
+    listing.push(']')
+
+    return reb.Value.apply(
+        null, listing
+    )
+}
+
+storage-list-dir: js-native [
     store [text!]
     path [text! file!]
 ] {
@@ -121,9 +172,9 @@ storage-list: js-native [
     let test
     let parts
     let listing = []
-    let mark
+    let offset
 
-    store = reb.Spell(store) == 'temporary'
+    store = reb.Spell(store) == 'session'
         ? sessionStorage
         : localStorage
 
@@ -138,11 +189,16 @@ storage-list: js-native [
 
     listing.push('[')
 
-    for (mark = 0; mark < store.length; mark++) {
-        parts = store.key(mark).match(test)  // match each key against our pattern
+    for (
+        offset = 0;
+        offset < store.length;
+        offset++
+    ) {
+        parts = store.key(offset).match(test)  // match each key against our pattern
 
         if (parts && listing.indexOf(parts[1]) == -1) {
-            listing.push('%' + parts[1])
+            // TODO: need to escape carets
+            listing.push('%"' + parts[1] + '"')
         }
     }
 
@@ -162,7 +218,7 @@ storage-exists?: js-native [
     let store = reb.ArgR('store')
     let path = reb.ArgR('path')
 
-    store = reb.Spell(store) == 'temporary'
+    store = reb.Spell(store) == 'session'
         ? sessionStorage
         : localStorage
 
@@ -173,22 +229,53 @@ storage-exists?: js-native [
     )
 }
 
+storage: [
+    local _
+    session _
+]
 
 if storage-enabled? [  ; Browser reported that it is storage-capable
     sys/make-scheme [
         title: "Browser Storage API"
         name: 'storage
 
-        actor: [
-            read: func [port] [
-                storage-get "persistent" port/spec/host
+        init: func [port [port!]] [
+            if not all [
+                in port/spec 'ref
+                url? port/spec/ref
+                port/spec/path: find/match form port/spec/ref storage::
+                find ["local" "session"] port/spec/path
+            ][
+                fail "Could not initiate storage port"
+            ]
+        ]
+
+        actor: make object! [
+            pick: select: func [port key] [
+                storage-get port/spec/path form key
             ]
 
-            write: func [port value] [
-                storage-set "persistent" port/spec/host value
+            poke: func [port key value] [
+                either null? :value [
+                    storage-unset port/spec/path form key
+                ][
+                    storage-set port/spec/path form key form value
+                ]
+            ]
+
+            query: copy: func [port] [
+                storage-list port/spec/path
+            ]
+
+            clear: func [port] [
+                storage-clear port/spec/path
+                port
             ]
         ]
     ]
+
+    storage/local: make port! storage::local
+    storage/session: make port! storage::session
 
     sys/make-scheme [
         title: "File Access"
@@ -211,9 +298,9 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             switch type-of port/spec/ref: clean-path port/spec/ref [
                 file! [
                     extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                        "temporary"
+                        "session"
                     ][
-                        "persistent"
+                        "local"
                     ]
                 ]
 
@@ -331,9 +418,9 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             switch type-of port/spec/ref: clean-path port/spec/ref [
                 file! [
                     extend port/spec 'target either find/match port/spec/ref %/tmp/ [
-                        "temporary"
+                        "session"
                     ][
-                        "persistent"
+                        "local"
                     ]
                 ]
 
@@ -359,7 +446,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                                     keep %tmp/
                                 ]
 
-                                keep storage-list port/spec/target form port/spec/ref
+                                keep storage-list-dir port/spec/target form port/spec/ref
                             ]
                         ][
                             fail "No such file or directory"
