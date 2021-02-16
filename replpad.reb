@@ -64,7 +64,74 @@ Rebol [
     )
 }
 
-use [write-console] [
+use [
+    form-error form-value write-console
+][
+    form-error: func [error [error!]] [
+        unspaced [
+            "** " form error/type " Error: " case [
+                text? error/message [error/message]
+                block? error/message [
+                    collect [
+                        for-each part error/message [
+                            case [
+                                text? part [keep part]
+                                get-word? part [
+                                    keep form get in :error to word! part
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            newline "** Where: " error/where
+            newline "** Near: " copy/part mold error/near 80
+            newline "** File: " form error/file
+            newline "** Line: " form error/line
+        ]
+    ]
+
+    ; there's still some values that will trip this function up
+    form-value: func [value] [
+        switch type-of get/any 'value [
+            null [
+                "<NULL>"
+            ]
+
+            void! [
+                mold get/any 'value
+            ]
+
+            block! [
+                spaced value
+            ]
+
+            error! [
+                form-error :value
+            ]
+
+            port! [
+                mold value/spec
+            ]
+
+            action! [
+                spaced [
+                    "func"
+                    mold spec-of :value
+                    switch type-of body-of :value [
+                        block! [
+                            mold body-of :value
+                        ]
+
+                        ({[^/    ... native ...^/]})
+                    ]
+                ]
+            ]
+
+            (form get/any 'value)
+        ]
+    ]
+
     write-console: js-awaiter [
         return: [void!]
         type [text!]
@@ -83,16 +150,28 @@ use [write-console] [
         name: 'log
 
         init: func [port][
-            port/spec/path: form find/match port/spec/ref log:type=
+            port/spec/path: form find/match port/spec/ref log::
             assert [find ["info" "log" "warn" "error"] port/spec/path]
         ]
 
-        actor: [
-            write: func [port data][
-                write-console port/spec/path form data
+        actor: make object! [
+            write: append: func [port value] [
+                write-console port/spec/path form-value get/any 'value
                 port
             ]
         ]
+    ]
+]
+
+; establish endpoints for each log type, thus can be invoked using:
+; WRITE LOG/INFO "MESSAGE"
+; APPEND LOG/ERROR :ERROR
+; writing to a log URL will still work from any context
+
+log: collect [
+    for-each endpoint [info log warn error] [
+        keep endpoint
+        keep make port! join copy log:: form endpoint
     ]
 ]
 
@@ -464,6 +543,7 @@ sys/make-scheme [
                 in port/spec 'ref
                 file? port/spec/ref
             ][
+                ; port has been invoked using BLOCK! or FILE:// URL!
                 fail "File scheme is only accessible through the FILE! datatype"
             ]
 
@@ -479,7 +559,7 @@ sys/make-scheme [
 
             url! [
                 ; possibly some kind of check here to ensure a scheme exists
-                ; and convert to FILE! if using file:// notation
+                ; and convert to FILE! if using FILE:// notation
             ]
 
             (fail "Cannot resolve file")
@@ -540,6 +620,7 @@ sys/make-scheme [
                 file? port/spec/ref
                 ; equal? #"/" first port/spec/ref
             ][
+                ; port has been invoked using BLOCK! or DIR:// URL!
                 fail "File scheme is only accessible through the FILE! datatype"
             ]
 
@@ -695,8 +776,11 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     window.URL.revokeObjectURL(url)
 }
 
+; An alternate interface to the DOWNLOAD function
+; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
+
 sys/make-scheme [
-    title: "Downloader Scheme"
+    title: "Downloads Scheme"
     name: 'downloads
 
     init: func [port][
@@ -980,6 +1064,12 @@ sys/make-scheme [  ; no URL form dictated
     ]
 ]
 
+; establish an endpoint for the clipboard, thus can be invoked using
+; WRITE CLIPBOARD "CONTENT"
+; writing to a clipboard URL will still work from any context
+
+clipboard: make port! clipboard::general
+
 
 === {ABOUT COMMAND} ===
 
@@ -1074,6 +1164,10 @@ sys/export [
     browse
     download
     now
+
+    ; these are endpoints for objects in ReplPad's environs
+    log
+    clipboard
 
     clear-screen  ; not originally exported, but some "apps" are using it
     cls
