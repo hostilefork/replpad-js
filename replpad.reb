@@ -136,18 +136,9 @@ replpad-write-js: js-awaiter [
         return
     }
 
-    // Regarding &zwnj; -- if we want to represent a newline, we want an
-    // empty div to show up.  But the browser collapses these.  Attempts to
-    // try and do this with CSS and `.line:after` lead to making extra
-    // newlines appear due to some interaction with word wrap:
-    //
-    // https://stackoverflow.com/a/41503905
-    //
-    // More elegant solutions are welcome.
-    //
     let line = replpad.lastChild  // want to add to last div *if* it's a "line"
     if (!line || line.className != 'line') {
-        line = load("<div class='line'>&zwnj;</div>")
+        line = load("<div class='line'></div>")
         replpad.appendChild(line)
     }
 
@@ -161,17 +152,16 @@ replpad-write-js: js-awaiter [
     //
     let pieces = param.split("\n")
 
-    // Add the first piece to the current line, and remove it from pieces
+    // Add each line to the current line, if not the last line then add a
+    // new line
     //
-    line.innerHTML += pieces.shift()  // shift() is like Rebol's TAKE
+    while (pieces.length > 1) {
+        line.innerHTML += pieces.shift() + "\n"  // shift() is like Rebol's TAKE
+        line = load("<div class='line'></div>")
+        replpad.appendChild(line)
+    }
 
-    // Add a div for each remaining line (if any).  See notes above about the
-    // sub-optimal use of zero-width-non-joiner (&zwnj;)
-    //
-    while (pieces.length)
-        replpad.appendChild(
-            load("<div class='line'>&zwnj;" + pieces.shift() + "</div>")
-        )
+    line.innerHTML += pieces.shift()
 }
 
 ; There are several issues with escaping to be considered in trying to write
