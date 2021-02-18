@@ -350,11 +350,11 @@ read-line: js-awaiter [
     // The prompt is always a text node, and so we need to create a HTML
     // version of it to be able to adjust its layout next to the input.
     //
-    var prompt_html = document.createElement("div")
+    var prompt_html = document.createElement("span")
     prompt_html.innerHTML = prompt.textContent
     prompt_html.className = "input-prompt"
 
-    let new_input = load("<div class='input'></div>")
+    let new_input = load("<span class='input'></span>")
 
     // Add a container to place the prompt and input into.  This allows us to
     // adjust the width the input takes without making it drop to a new line.
