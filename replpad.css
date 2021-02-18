@@ -116,6 +116,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 
 #replpad {
     padding: 5px;  /* put a little space around the edge and from splitter */
+    padding-bottom: 3em;  /* leave some space at the bottom of the screen */
     flex-grow: 1;  /* allows the replpad to take up the remaining screen space */
 }
 
@@ -206,7 +207,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     word-break: normal;
     white-space: pre;  /* inheriting pre-wrap won't show trailing space */
 
-    display: table-cell;
+    display: inline-block;
 }
 
 .input {
@@ -220,17 +221,10 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* autocapitalize: "off"; */
     /* spellcheck: "false"; */
 
-    /* The width and height gives you a larger copy/paste area.
-     * The 100px for height also provides padding under the prompt so that
-     * you're not typing at the very bottom of the screen. It is possible to
-     * increase the height to get a larger copy/paste area, but this means
-     * the scrollbar will show up sooner too.
-     */
-    width: 100%;
-    height: 100px;
+    padding-right: 1px;  /* needs room to display cursor */
 
     vertical-align: top;
-    display: table-cell;
+    display: inline-block;
 
     font-weight: normal;
     color: #000000;
