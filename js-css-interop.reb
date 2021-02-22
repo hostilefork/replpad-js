@@ -112,14 +112,14 @@ js-do: func [
     if block? source [source: my js-do-dialect-helper]
 
     either text? source [
-        js-eval*/(local) source
+        js-eval*/(if local [/local]) source
     ][
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
         any [automime, local] then [
             let code: as text! read CORSify-if-gitlab-url source
-            js-eval*/(local) code
+            js-eval*/(if local [/local]) code
         ] else [
             js-do-url-helper source
         ]
