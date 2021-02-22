@@ -57,14 +57,14 @@ steps: [
     {know it's a text input...not just give you the generic `View Source`/etc.}
     {that you get everywhere else).}
 
-    (write clipboard:// "OKAY")
+    (write clipboard:// "okay")
 
     #KEYBOARD-PASTE-TEST
 
     {While we've got "OKAY" on the clipboard, why not make sure that you can}
     {paste that with the keyboard Ctrl-V shortcut too.}
 
-    (write clipboard:// "OKAY")  ; in case they copied something else
+    (write clipboard:// "okay")  ; in case they copied something else
 
     #LONG-PROMPT-TEST 58
 
@@ -149,7 +149,7 @@ k: ok: okay: function [
         return
     ]
 
-    steps: parse steps [
+    [# steps]: parse steps [
         set label: issue!
         opt set bug: integer!  ; optional GitHub issue number
         copy description: [some text!] (print description)
