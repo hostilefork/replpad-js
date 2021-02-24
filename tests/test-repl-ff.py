@@ -52,7 +52,7 @@ if (shorthash):
 print("Connected!  Navigating to", url)
 client.navigate(url)
 
-print("Injecting a Rebol PRINT that will run after 10 seconds...")
+print("Injecting some Rebol code, we'll give it 10 seconds...")
 client.timeout.script = 15
 active = client.execute_async_script('''
     console.log("Marionette PRINT request being posted...")
@@ -61,7 +61,7 @@ active = client.execute_async_script('''
         resolve(document.activeElement);
     }, 10000);  // waits 10 seconds
 ''')
-active.send_keys("redbol, print reverse {ETELPMOC TSET}\n")
+active.send_keys("x: 10, watch x, assert [10 = watch 1], redbol, print reverse {ETELPMOC TSET}\n")
 
 print("Looking to see if the PRINT gave the desired output.")
 found = client.execute_async_script('''

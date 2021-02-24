@@ -91,7 +91,7 @@ watch: function [
             js-do/local [{
                 let tbody = document.querySelector("#watchlist > tbody")
                 let tr = load(
-                   `<tr onmousedown="RowClick(this,false);"></tr>`
+                   '<tr onmousedown="RowClick(this,false);"></tr>'
                 )
 
                 // The CSS `counter-increment` feature virtually fills in the
