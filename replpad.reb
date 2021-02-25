@@ -821,7 +821,7 @@ adjust-url-for-do: func [
     let start
     parse text [
         "http" opt "s" "://github.com/"
-        mark start
+        start: here
         thru "/"  ; user name
         thru "/"  ; repository name
         change "blob/" ""  ; GitHub puts the "raw" in the subdomain name
@@ -835,7 +835,7 @@ adjust-url-for-do: func [
     ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
     parse text [
         "http" opt "s" "://gist.github.com/"
-        mark start
+        start: here
         thru "/"  ; user name
         [
             to "#file="
