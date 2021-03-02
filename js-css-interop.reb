@@ -117,8 +117,13 @@ js-do: func [
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
+
+        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+        ;
+        source: maybe adjust-url-for-raw source
+
         any [automime, local] then [
-            let code: as text! read CORSify-if-gitlab-url source
+            let code: as text! read source
             js-eval*/(if local [/local]) code
         ] else [
             js-do-url-helper source
@@ -197,7 +202,7 @@ css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
 }
 
 css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
-    url [text!]
+    url [url!]
 ]{
     let link = document.createElement('link')
     /* link.id = ... */  // could be good for no duplicates, deleting later
@@ -223,10 +228,15 @@ css-do: func [
         if file? source [  ; make absolute w.r.t. *current* script URL location
             source: join (ensure url! what-dir) source
         ]
+
+        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+        ;
+        source: maybe adjust-url-for-raw source
+
         if automime [
-            css-do-text-helper as text! read CORSify-if-gitlab-url source
+            css-do-text-helper as text! read source
         ] else [
-            css-do-url-helper as text! source
+            css-do-url-helper source
         ]
     ]
 ]

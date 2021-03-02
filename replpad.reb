@@ -394,8 +394,14 @@ read-line: js-awaiter [
 ; to DO those files.  That requires setting up a scheme for reading `http://`
 ; URLs via the JavaScript fetch() API.  Once this is done, other components
 ; can live in their own modules instead of growing this file indefinitely.
+;
+; NOTE: Gitlab URLs are adjusted at the port level; this is to get the CORS
+; interface of the same data which was requested in a non-CORS fashion at the
+; original URL.  Don't confuse this with adjust-url-for-raw, which gives you
+; the adjustments removing the various HTML decorations that are known to be
+; not what you meant *if* you're using DO (plain READ might have wanted them).
 
-CORSify-if-gitlab-url: func [
+CORSify-gitlab-port: func [
     return: [port!]
     port [port!]
     <local> user repo branch file_path
@@ -469,10 +475,8 @@ sys/make-scheme [
         ; could potentially fold in JS-HEAD around an INFO? wrapper
 
         read: func [port] [
-            comment [
-                if port/spec/host = "gitlab.com" [
-                    CORSify-if-gitlab-url port
-                ]
+            if port/spec/host = "gitlab.com" [
+                CORSify-gitlab-port port
             ]
 
             read-url-helper unspaced [
@@ -499,10 +503,8 @@ sys/make-scheme [
 
     actor: [
         read: func [port] [
-            comment [
-                if port/spec/host = "gitlab.com" [
-                    CORSify-if-gitlab-url port
-                ]
+            if port/spec/host = "gitlab.com" [
+                CORSify-gitlab-port port
             ]
 
             read-url-helper unspaced [
@@ -668,7 +670,105 @@ sys/make-scheme [
 ]
 
 
-=== {JAVASCRIPT AND CSS INTEROPERABILITY (step 4)} ===
+=== {OVERRIDE THE WAY `DO` HANDLES SOME URLS} (step 4) ===
+
+; Some URLs that represent executable code have a HTML presentation layer on
+; them.  This is why a GitHub link has a "raw" offering without all that extra
+; stuff on it (line numbers, buttons, etc.)
+;
+; We don't want to hook at the READ level to redirect those UI pages to give
+; back the raw data...because you might want to READ and process the UI
+; decorations!  But if you ask to DO such a page, it's reasonable to assume
+; that what you actually wanted was to DO the raw content implied by it.
+;
+; This performs that forwarding for GitLab and GitHub UI links.  The JS
+; interop routines (like JS-DO and CSS-DO) want the same thing.
+
+adjust-url-for-raw: func [
+    return: [<opt> url!]
+    url [<blank> url!]
+][
+    let text: to text! url  ; URL! may become immutable, try thinking ahead
+
+    parse text [
+        "http" opt "s" "://gitlab.com/"
+        thru "/"  ; user name
+        thru "/"  ; repository name
+        opt "-/"  ; mystery thing (see remarks on CORSify-gitlab-port)
+        change "blob/" "raw/"
+        to end
+    ] then text -> [
+        return as url! text  ; The port will CORSIFY at a lower level
+    ]
+
+    ; Adjust a decorated GitHub UI to https://raw.githubusercontent.com
+    let start
+    parse text [
+        "http" opt "s" "://github.com/"
+        start: here
+        thru "/"  ; user name
+        thru "/"  ; repository name
+        change "blob/" ""  ; GitHub puts the "raw" in the subdomain name
+        to end
+    ] then [
+        return as url! unspaced [
+            https://raw.githubusercontent.com/ start
+        ]
+    ]
+
+    ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
+    parse text [
+        "http" opt "s" "://gist.github.com/"
+        start: here
+        thru "/"  ; user name
+        [
+            to "#file="
+            remove to end  ; ignore the file for now, id does not match filename
+            |
+            to end
+        ]
+        insert "/raw/"
+    ] then [
+        return as url! unspaced [
+            https://gist.githubusercontent.com/ start
+        ]
+        return as url! text
+    ]
+
+    return null
+]
+
+
+lib/do: adapt copy :lib/do [
+    ;
+    ; We go ahead and update LIB's DO directly with an adaptation.  This way,
+    ; the Redbol emulation layer keeps the URL interception.
+    ;
+    ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
+    ; by name in a registry.  This is an experimental concept (which was in
+    ; line with changing DO to always mean "do code you get from a source" and
+    ; not something that should just fall through generically such that
+    ; DO <TAG> would be <TAG>)
+    ;
+    ; The tag registry is maintained remotely, but hook with a few exceptions
+    ; here to shorten calling demos and get them out of the root directory.
+    ;
+    source: maybe switch :source [
+        <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
+        <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
+        <test-repl> [%tests/interactive.test.reb]
+        <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
+        <chess> [%create-board.reb]
+        <uparse> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/uparse.reb]
+    ]
+
+    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+    ;
+    source: maybe adjust-url-for-raw try match url! :source
+]
+
+
+=== {JAVASCRIPT AND CSS INTEROPERABILITY (step 5)} ===
 
 ; Now that we can DO files, go ahead and import the JS interop.
 ;
@@ -678,7 +778,7 @@ sys/make-scheme [
 ; is not taking this interpretation.
 ;
 sys/export [  ; no clear way to provide this to the interop otherwise
-    CORSify-if-gitlab-url
+    adjust-url-for-raw
 ]
 do ensure url! clean-path %js-css-interop.reb
 
@@ -784,100 +884,6 @@ sys/make-scheme [
             port
         ]
     ]
-]
-
-
-=== {OVERRIDE THE WAY `DO` HANDLES SOME URLS} ===
-
-; Some URLs that represent executable code have a HTML presentation layer on
-; them.  This is why a GitHub link has a "raw" offering without all that extra
-; stuff on it (line numbers, buttons, etc.)
-;
-; We don't want to hook at the READ level to redirect those UI pages to give
-; back the raw data...because you might want to READ and process the UI
-; decorations!  But if you ask to DO such a page, it's reasonable to assume
-; that what you actually wanted was to DO the raw content implied by it.
-;
-; This performs that forwarding for GitLab and GitHub UI links.
-
-adjust-url-for-do: func [
-    return: [<opt> url!]
-    url [<blank> url!]
-][
-    let text: to text! url  ; URL! may become immutable, try thinking ahead
-
-    parse text [
-        "http" opt "s" "://gitlab.com/"
-        thru "/"  ; user name
-        thru "/"  ; repository name
-        opt "-/"  ; mystery thing (see remarks on CORSify-if-gitlab-url)
-        change "blob/" "raw/"
-        to end
-    ] then text -> [
-        return CORSify-if-gitlab-url as url! text
-    ]
-
-    ; Adjust a decorated GitHub UI to https://raw.githubusercontent.com
-    let start
-    parse text [
-        "http" opt "s" "://github.com/"
-        start: here
-        thru "/"  ; user name
-        thru "/"  ; repository name
-        change "blob/" ""  ; GitHub puts the "raw" in the subdomain name
-        to end
-    ] then [
-        return as url! unspaced [
-            https://raw.githubusercontent.com/ start
-        ]
-    ]
-
-    ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
-    parse text [
-        "http" opt "s" "://gist.github.com/"
-        start: here
-        thru "/"  ; user name
-        [
-            to "#file="
-            remove to end  ; ignore the file for now, id does not match filename
-            |
-            to end
-        ]
-        insert "/raw/"
-    ] then [
-        return as url! unspaced [
-            https://gist.githubusercontent.com/ start
-        ]
-        return as url! text
-    ]
-
-    return null
-]
-
-
-lib/do: adapt copy :lib/do [
-    ;
-    ; We go ahead and update LIB's DO directly with an adaptation.  This way,
-    ; the Redbol emulation layer keeps the URL interception.
-    ;
-    ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
-    ; by name in a registry.  This is an experimental concept (which was in
-    ; line with changing DO to always mean "do code you get from a source" and
-    ; not something that should just fall through generically such that
-    ; DO <TAG> would be <TAG>)
-    ;
-    ; The tag registry is maintained remotely, but hook with a few exceptions
-    ; here to shorten calling demos and get them out of the root directory.
-    ;
-    source: maybe switch :source [
-        <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
-        <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
-        <test-repl> [%tests/interactive.test.reb]
-        <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
-        <chess> [%create-board.reb]
-    ]
-
-    source: maybe adjust-url-for-do try match url! :source
 ]
 
 
