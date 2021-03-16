@@ -1124,6 +1124,10 @@ redbol: func [return: <void>] [
         "new code.  But for today, it's an irreversible change to the user" LF
         "context...so you will have to reload the page to get Ren-C back." LF
         LF
+        "Note: Redbol PARSE is particularly slow right now because it's all" LF
+        "usermode.  That will change as the parser-combinator-based 'UPARSE'" LF
+        "is hardened into be the design for native PARSE.  Stay tuned." LF
+        LF
         "Discuss this experiment on the chat/forum--and help if you can!" LF
     ]
     print "Fetching %redbol.reb from GitHub..."

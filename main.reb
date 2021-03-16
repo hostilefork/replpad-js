@@ -52,7 +52,7 @@ main: adapt :console [
     ;
     autorun: _
     parse system/options/args [any [
-        start:
+        start: here
 
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.
