@@ -29,9 +29,9 @@ intro-note-html: spaced [
 greeting-text:
 {Welcome to Rebol.  For more information please type in the commands below:
 
-  HELP    - For starting information
-  ABOUT   - Information about your Rebol
-  REDBOL  - Experimental emulation of Rebol2/Red conventions}
+  help    - For starting information
+  about   - Information about your Rebol
+  redbol  - Experimental emulation of Rebol2/Red conventions}
 
 
 ; We don't want a deep stack when reporting errors or running user code.  So
