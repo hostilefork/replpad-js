@@ -443,10 +443,10 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ][
                             collect [
                                 if port/spec/ref = %/ [
-                                    keep %tmp/
+                                    keep [%tmp/]
                                 ]
 
-                                keep storage-list-dir port/spec/target form port/spec/ref
+                                keep @ storage-list-dir port/spec/target form port/spec/ref
                             ]
                         ][
                             fail "No such file or directory"

@@ -86,7 +86,7 @@ watch: function [
         ]
 
         word? arg [
-            append watches arg  ; e.g. length is 1 after first addition
+            append watches @arg  ; e.g. length is 1 after first addition
 
             js-do/local [{
                 let tbody = document.querySelector("#watchlist > tbody")

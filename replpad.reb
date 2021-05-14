@@ -75,9 +75,9 @@ use [
                     collect [
                         for-each part error.message [
                             case [
-                                text? part [keep part]
+                                text? part [keep @part]
                                 get-word? part [
-                                    keep form get in :error to word! part
+                                    keep @ form get in :error to word! part
                                 ]
                             ]
                         ]
@@ -170,8 +170,8 @@ use [
 
 log: collect [
     for-each endpoint [info log warn error] [
-        keep endpoint
-        keep make port! join copy log:: form endpoint
+        keep @endpoint
+        keep @ make port! join copy log:: form endpoint
     ]
 ]
 
