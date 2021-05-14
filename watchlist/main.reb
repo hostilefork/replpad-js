@@ -174,7 +174,7 @@ rightclick-menu-html: {
 ; Add in the hook to the console so that when the result is printed, we do
 ; an update of the watches.
 
-system/console/print-result: enclose :system/console/print-result func [f] [
+system.console.print-result: enclose :system.console.print-result func [f] [
     do f  ; let the evaluation result get printed first
 
     ; Only update the watches if the watchlist is currently displayed

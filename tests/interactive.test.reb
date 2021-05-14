@@ -72,11 +72,11 @@ steps: [
     {temporarily to a longer one, it should still line break normally.}
 
     (
-        ; `system/console/prompt` is just inert data that may or may not be
+        ; `system.console.prompt` is just inert data that may or may not be
         ; used by a hooked PRINT-PROMPT function.  So we override the function.
         ; (Restored by the next OKAY command.)
         ;
-        system/console/print-prompt: does [
+        system.console.print-prompt: does [
             write-stdout "How's this really long prompt working?>> "
         ]
     )
@@ -122,7 +122,7 @@ steps: [
 ]
 
 
-label: description: bug: _  ; The state we need to know about to report error
+label: description: bug: null  ; state we need to know about to report error
 
 k: ok: okay: function [
     return: <none>
@@ -132,7 +132,7 @@ k: ok: okay: function [
     ; be set by that point.  But we only want to set it the first time (other
     ; times it could be purposefully changed by the test code)
     ;
-    saved-print-prompt: default [:system/console/print-prompt]
+    saved-print-prompt: default [:system.console.print-prompt]
 
     print newline
     replpad-write/html {<hr>}
@@ -140,7 +140,7 @@ k: ok: okay: function [
 
     ; Always restore the prompt, in case a test changed it.
     ;
-    system/console/print-prompt: :saved-print-prompt
+    system.console.print-prompt: :saved-print-prompt
 
     if tail? steps [
         print "CONGRATULATIONS, you are all done."

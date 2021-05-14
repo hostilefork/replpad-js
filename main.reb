@@ -60,7 +60,7 @@ main: adapt :console [
         'do: set autorun text!
     ]] else [
         print ["** Bad `window.location.search` string in page URL"]
-        print mold system/options/args
+        print mold system.options.args
         print newline
         print trim/auto mutable {
             OPTIONS ARE:

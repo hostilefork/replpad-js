@@ -1,13 +1,13 @@
 ; test accessing relative files on the HTTP(S) scheme
 (
     all [
-        url? system/options/current-path
+        url? system.options.current-path
         binary? read %storage.reb
     ]
 )
 
 ; check to see if the storage module has been loaded
-(did find system/modules 'ReplStorage)
+(did find system.modules 'ReplStorage)
 (did find read %/ %tmp/)
 (port? write %/test.txt "A Test")
 (#{412054657374} = read %/test.txt)

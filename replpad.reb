@@ -69,11 +69,11 @@ use [
 ][
     form-error: func [error [error!]] [
         unspaced [
-            "** " form error/type " Error: " case [
-                text? error/message [error/message]
-                block? error/message [
+            "** " form error.type " Error: " case [
+                text? error.message [error.message]
+                block? error.message [
                     collect [
-                        for-each part error/message [
+                        for-each part error.message [
                             case [
                                 text? part [keep part]
                                 get-word? part [
@@ -84,10 +84,10 @@ use [
                     ]
                 ]
             ]
-            newline "** Where: " error/where
-            newline "** Near: " copy/part mold error/near 80
-            newline "** File: " form error/file
-            newline "** Line: " form error/line
+            newline "** Where: " error.where
+            newline "** Near: " copy/part mold error.near 80
+            newline "** File: " form error.file
+            newline "** Line: " form error.line
         ]
     ]
 
@@ -150,13 +150,13 @@ use [
         name: 'log
 
         init: func [port][
-            port/spec/path: form find/match port/spec/ref log::
-            assert [find ["info" "log" "warn" "error"] port/spec/path]
+            port.spec.path: form find/match port.spec.ref log::
+            assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
         actor: make object! [
             write: append: func [port value] [
-                write-console port/spec/path form-value get/any 'value
+                write-console port.spec.path form-value get/any 'value
                 port
             ]
         ]
@@ -423,9 +423,9 @@ CORSify-gitlab-port: func [
     ;
     ; TBD: research what that is and what the rule is on its appearance or not.
 
-    assert [port/spec/host = "gitlab.com"]
+    assert [port.spec.host = "gitlab.com"]
 
-    parse port/spec/path [
+    parse port.spec.path [
         "/"
         copy user: to "/" skip
         copy repo: to "/" skip
@@ -437,12 +437,12 @@ CORSify-gitlab-port: func [
 
         replace/all file_path "/" "%2F"  ; API uses slashes for its delimiting
 
-        if port/spec/scheme = 'http [
-            port/spec/scheme: 'https
+        if port.spec.scheme = 'http [
+            port.spec.scheme: 'https
             write log:type=warn ["Converting non-HTTPS URL to HTTPS:" url]
         ]
 
-        port/spec/path: join-all [
+        port.spec.path: join-all [
             "/api/v4/projects/"
             user "%2F" repo  ; surrogate for numeric id, use escaped `/`
             "/repository/files/" file_path "/raw?ref=" branch
@@ -476,14 +476,14 @@ sys/make-scheme [
         ; could potentially fold in JS-HEAD around an INFO? wrapper
 
         read: func [port] [
-            if port/spec/host = "gitlab.com" [
+            if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
 
             read-url-helper unspaced [
-                form port/spec/scheme "://" port/spec/host
-                    if in port/spec 'port-id [unspaced [":" port/spec/port-id]]
-                    port/spec/path
+                form port.spec.scheme "://" port.spec.host
+                    if in port.spec 'port-id [unspaced [":" port.spec.port-id]]
+                    port.spec.path
             ]
         ]
 
@@ -504,12 +504,12 @@ sys/make-scheme [
 
     actor: [
         read: func [port] [
-            if port/spec/host = "gitlab.com" [
+            if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
 
             read-url-helper unspaced [
-                form port/spec/scheme "://" port/spec/host port/spec/path
+                form port.spec.scheme "://" port.spec.host port.spec.path
             ]
         ]
 
@@ -533,19 +533,19 @@ sys/make-scheme [
     init: func [port [port!]] [
         case [
             not all [
-                in port/spec 'ref
-                file? port/spec/ref
+                in port.spec 'ref
+                file? port.spec.ref
             ][
                 ; port has been invoked using BLOCK! or FILE:// URL!
                 fail "File scheme is only accessible through the FILE! datatype"
             ]
 
-            equal? #"/" last port/spec/ref [
+            equal? #"/" last port.spec.ref [
                 fail "File scheme only accesses files, not folders"
             ]
         ]
 
-        switch type-of port/spec/ref: clean-path port/spec/ref [
+        switch type of port.spec.ref: clean-path port.spec.ref [
             file! [
                 fail "No filesystem currently installed"
             ]
@@ -561,41 +561,41 @@ sys/make-scheme [
 
     actor: [
         read: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    read port/spec/ref
+                    read port.spec.ref
                 ]
             ]
         ]
 
         write: func [port data] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    write port/spec/ref data
+                    write port.spec.ref data
                 ]
             ]
         ]
 
         delete: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    delete port/spec/ref
+                    delete port.spec.ref
                 ]
             ]
         ]
 
         query: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    query port/spec/ref
+                    query port.spec.ref
                 ]
             ]
         ]
@@ -609,21 +609,21 @@ sys/make-scheme [
     init: func [port [port!]] [
         case [
             not all [
-                in port/spec 'ref
-                file? port/spec/ref
-                ; equal? #"/" first port/spec/ref
+                in port.spec 'ref
+                file? port.spec.ref
+                ; equal? #"/" first port.spec.ref
             ][
                 ; port has been invoked using BLOCK! or DIR:// URL!
                 fail "File scheme is only accessible through the FILE! datatype"
             ]
 
-            not equal? #"/" last port/spec/ref [
+            not equal? #"/" last port.spec.ref [
                 fail "Directory scheme only accesses folders, not files"
             ]
         ]
 
 
-        switch type-of port/spec/ref: clean-path port/spec/ref [
+        switch type of port.spec.ref: clean-path port.spec.ref [
             file! [
                 fail "No filesystem currently installed"
             ]
@@ -638,32 +638,32 @@ sys/make-scheme [
 
     actor: [
         read: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    read port/spec/ref
+                    read port.spec.ref
                 ]
             ]
         ]
 
         delete: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    delete port/spec/ref
+                    delete port.spec.ref
                 ]
             ]
 
         ]
 
         query: func [port] [
-            switch type-of port/spec/ref [
+            switch type of port.spec.ref [
                 file! []
 
                 url! [
-                    query port/spec/ref
+                    query port.spec.ref
                 ]
             ]
         ]
@@ -733,7 +733,6 @@ adjust-url-for-raw: func [
         return as url! unspaced [
             https://gist.githubusercontent.com/ start
         ]
-        return as url! text
     ]
 
     return null
@@ -790,7 +789,7 @@ do ensure url! clean-path %js-css-interop.reb
 ;
 do ensure url! clean-path %js-css-interop.reb
 
-system/contexts/user/change-dir:  ; need to override previously imported value
+system.contexts.user.change-dir:  ; need to override previously imported value
 change-dir: func [
     {Changes the current path (where scripts with relative paths will be run)}
     path [file! url!]
@@ -819,7 +818,7 @@ change-dir: func [
         fail "Path does not exist"
     ]
 
-    system/options/current-path: path
+    system.options.current-path: path
 ]
 
 
@@ -874,14 +873,14 @@ sys/make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    init: func [port][
-        assert [match text! port/spec/path]
-        port/spec/path: last split-path port/spec/path
+    init: func [port] [
+        assert [match text! port.spec.path]
+        port.spec.path: last split-path port.spec.path
     ]
 
     actor: [
-        write: func [port data][
-            download port/spec/path data
+        write: func [port data] [
+            download port.spec.path data
             port
         ]
     ]
@@ -1099,8 +1098,8 @@ about: does [
 watch: func [:arg] [
     print "Loading watchlist extension for first use..."
     do %watchlist/main.reb
-    let watch: :system/modules/Watchlist/watch
-    system/contexts/user/watch: :watch
+    let watch: :system.modules.Watchlist.watch
+    system.contexts.user.watch: :watch
 
     ; !!! Watch hard quotes its argument...need some kind of variadic
     ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
@@ -1134,7 +1133,7 @@ redbol: func [return: <none>] [
     print "Fetching %redbol.reb from GitHub..."
     do <redbol>
 
-    system/console/prompt: "redbol>>"
+    system.console.prompt: "redbol>>"
 ]
 
 
@@ -1186,4 +1185,4 @@ sys/export [
 ;
 ; As a workaround for now, manually override the user context's DO
 ;
-system/contexts/user/do: :lib/do
+system.contexts.user.do: :lib.do
