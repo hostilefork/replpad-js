@@ -125,7 +125,7 @@ steps: [
 label: description: bug: _  ; The state we need to know about to report error
 
 k: ok: okay: function [
-    return: <void>
+    return: <none>
     <with> steps label description bug saved-print-prompt
 ][
     ; Console must be started when first OKAY is run, so SYSTEM/CONSOLE should
@@ -149,11 +149,12 @@ k: ok: okay: function [
         return
     ]
 
-    [# steps]: parse steps [
+    steps: parse* steps [
         set label: issue!
         opt set bug: integer!  ; optional GitHub issue number
         copy description: [some text!] (print description)
         opt [set code: group! (do code)]
+        here  ; return result
     ] else [
         fail "Problem in STEPS parsing"
     ]
@@ -164,7 +165,7 @@ k: ok: okay: function [
 
 
 nope: function [
-    return: <void>
+    return: <none>
 ][
     ; Always restore the prompt, in case a test changed it.
     ;

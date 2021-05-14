@@ -40,7 +40,7 @@ js-do %watchlist.js
 watches: []
 
 delete-watch: function [
-    return: <void>
+    return: <none>
     n [integer!]
 ][
     if n > length of watches [
@@ -120,7 +120,11 @@ watch: function [
 update-watches: function [] [
     n: 1
     for-each w watches [
-        result: if set? w [mold/limit get/any w 1000] else ["\null\"]
+        result: case [
+            bad-word? @ get/any w [mold @ get/any w]  ; different color?
+            null? get w ["\null\"]
+            true [mold/limit get w 1000]
+        ]
 
         ; We update the result, in the 3rd column.  Because the content can
         ; be arbitrary UTF-8, we set the innerText property via a string

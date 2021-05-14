@@ -98,7 +98,7 @@ use [
                 "<NULL>"
             ]
 
-            void! [
+            bad-word! [
                 mold get/any 'value
             ]
 
@@ -133,7 +133,7 @@ use [
     ]
 
     write-console: js-awaiter [
-        return: [void!]
+        return: []
         type [text!]
         value [any-value!]
     ] {
@@ -184,7 +184,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
-    return: [void!]
+    return: []
 ]{
     replpad.innerHTML = ""
 
@@ -194,25 +194,25 @@ cls: clear-screen: js-awaiter [
     // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
     // So we now defer adding that first line until it is needed.
 
-    return reb.Value("'~void~");  // tells console to suppress result
+    return reb.None()  // tells console to suppress result
 }
 
 replpad-write-js: js-awaiter [
     {Output lines of text to the REPLPAD (no automatic newline after)}
 
-    return: [<opt> void!]
+    return: [<opt> bad-word!]
     param [<blank> text!]
     /html
 ]{
     let param = reb.Spell(reb.ArgR('param'))
     if (param == "")
-        return  // no-op if content is empty
+        return reb.None()  // no-op if content is empty
 
     let html = reb.DidQ(reb.ArgR('html'))
 
     if (html) {
         replpad.insertAdjacentHTML('beforeend', param)
-        return
+        return reb.None()
     }
 
     let line = replpad.lastChild  // want to add to last div *if* it's a "line"
@@ -241,6 +241,7 @@ replpad-write-js: js-awaiter [
     }
 
     line.innerHTML += pieces.shift()
+    return reb.None()
 }
 
 ; There are several issues with escaping to be considered in trying to write
@@ -264,13 +265,13 @@ replpad-write-js: js-awaiter [
 replpad-write: func [
     {Output a string of text to the REPLPAD (no automatic newline after)}
 
-    return: [<opt> void!]
+    return: [<opt> bad-word!]
     param [<blank> text!]
     /html
 ][
     if html [
         replpad-write-js/html param
-        return
+        return none
     ]
 
     ; Since we aren't using <pre> or a <textarea>, this initially had some
@@ -290,7 +291,7 @@ replpad-write: func [
 
     let url: '~void~
     parse param: copy param [
-        any [
+        while [
             change '< "&lt;"
             | change '> "&gt;"
             | change '& "&amp;"
@@ -327,7 +328,7 @@ write-stdout: func [
 
 print: func [
     {Helper that writes data and a newline to the ReplPad}
-    return: [<opt> void!]
+    return: [<opt> bad-word!]
     line [<blank> text! block! char!]
     /html
 ][
@@ -424,14 +425,14 @@ CORSify-gitlab-port: func [
 
     assert [port/spec/host = "gitlab.com"]
 
-    if parse port/spec/path [
+    parse port/spec/path [
         "/"
         copy user: to "/" skip
         copy repo: to "/" skip
         [opt "-/"]  ; TBD: figure out what this is for, but skip for now
         "raw/" copy branch: to "/" skip  ; skip slash, file_path would %-encode
         copy file_path: to end
-    ][
+    ] then [
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
         replace/all file_path "/" "%2F"  ; API uses slashes for its delimiting
@@ -1111,7 +1112,7 @@ watch: func [:arg] [
 
 === {COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation)} ===
 
-redbol: func [return: <void>] [
+redbol: func [return: <none>] [
     print [
         LF
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where" LF

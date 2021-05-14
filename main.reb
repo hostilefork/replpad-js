@@ -51,14 +51,14 @@ main: adapt :console [
     ; search location as well (may not be in all browsers?)
     ;
     autorun: _
-    parse system/options/args [any [
+    parse system/options/args [while [
         start: here
 
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.
 
         'do: set autorun text!
-    ] end] else [
+    ]] else [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system/options/args
         print newline
@@ -82,7 +82,7 @@ main: adapt :console [
     ]
 
     if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
-        result: do as tag! autorun  ; may be VOID!
+        result: do as tag! autorun  ; may be BAD-WORD!
 
         ; !!! Right now, all modules return void.  This is a limitation of
         ; having DO be based on IMPORT:

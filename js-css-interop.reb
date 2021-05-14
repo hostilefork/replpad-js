@@ -103,7 +103,7 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 js-do: func [
     {Execute JavaScript file or evaluate a string of JavaScript source}
 
-    return: [<opt> void!]  ; What useful return result could there be?
+    return: [<opt> bad-word!]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<blank> block! text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
@@ -141,7 +141,7 @@ js-do: func [
 js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
-    return: [<opt> void! integer! text!]
+    return: [<opt> bad-word! integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<blank> block! text!]
 ][
@@ -217,7 +217,7 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
 css-do: func [
     {Incorporate a CSS file or a snippet of CSS source into the page}
 
-    return: <void>  ; Could return an auto-generated ID for later removing (?)
+    return: <none>  ; Could return an auto-generated ID for later removing (?)
     ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
     source [text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
