@@ -86,7 +86,7 @@ watch: function [
         ]
 
         word? arg [
-            append watches @arg  ; e.g. length is 1 after first addition
+            append watches ^arg  ; e.g. length is 1 after first addition
 
             js-do/local [{
                 let tbody = document.querySelector("#watchlist > tbody")
@@ -103,7 +103,7 @@ watch: function [
                 // good when making HTML from strings.  Use innerText assign.
                 //
                 let td_name = load("<td></td>")
-                td_name.innerText = } spell @(quote arg) {
+                td_name.innerText = } spell ^(quote arg) {
                 tr.appendChild(td_name)
 
                 tr.appendChild(load("<td></td>"))  // UPDATE-WATCHES fills in
@@ -121,7 +121,7 @@ update-watches: function [] [
     n: 1
     for-each w watches [
         result: case [
-            bad-word? @ get/any w [mold @ get/any w]  ; different color?
+            bad-word? ^ get/any w [mold ^ get/any w]  ; different color?
             null? get w ["\null\"]
             true [mold/limit get w 1000]
         ]
@@ -134,7 +134,7 @@ update-watches: function [] [
             let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
             let td = tr.childNodes[2]  // 1-based indexing, so 2 is 3rd column
 
-            td.innerText = } spell @result {
+            td.innerText = } spell ^result {
         }]
         n: n + 1
     ]

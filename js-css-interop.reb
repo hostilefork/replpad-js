@@ -45,7 +45,7 @@ js-do-dialect-helper: func [
                 sym-group! [keep api-transient reeval as group! t]
 
                 assert [required]
-                fail [required "must have its argument as @..., @(...)"]
+                fail [required "must have its argument as ^^..., ^^(...)"]
             ]
         ]
 
@@ -104,7 +104,7 @@ js-do: func [
     {Execute JavaScript file or evaluate a string of JavaScript source}
 
     return: [<opt> bad-word!]  ; What useful return result could there be?
-    source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
+    source "If BLOCK!, interpreted in JS-DO dialect (substitutes ^^-values)"
         [<blank> block! text! file! url!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
@@ -142,7 +142,7 @@ js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
     return: [<opt> bad-word! integer! text!]
-    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
+    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes ^^-values)"
         [<blank> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
