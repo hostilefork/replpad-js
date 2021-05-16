@@ -208,7 +208,7 @@ replpad-write-js: js-awaiter [
     if (param == "")
         return reb.None()  // no-op if content is empty
 
-    let html = reb.DidQ(reb.ArgR('html'))
+    let html = reb.Did(reb.ArgR('html'))
 
     if (html) {
         replpad.insertAdjacentHTML('beforeend', param)
@@ -289,7 +289,7 @@ replpad-write: func [
         "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | end]
     ]
 
-    let url: '~void~
+    let url
     parse param: copy param [
         while [
             change '< "&lt;"
@@ -833,7 +833,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
         [text!]
 ]{
     let filename = reb.Spell(reb.ArgR('filename'))
-    let mime_type = reb.Spell(reb.Q(reb.ArgR('mime-type')))  // may be NULL
+    let mime_type = reb.Spell("try", reb.ArgR('mime-type'))
 
     // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
     // It can also include strings in that array.
@@ -916,36 +916,36 @@ now: js-native [
 ]{
     var d = new Date()
 
-    if (reb.DidQ(reb.ArgR('year')))
+    if (reb.Did(reb.ArgR('year')))
         return reb.Integer(d.getFullYear())
 
-    if (reb.DidQ(reb.ArgR('month')))
+    if (reb.Did(reb.ArgR('month')))
         return reb.Integer(d.getMonth() + 1)  // add 1 because it's 0-11
 
-    if (reb.DidQ(reb.ArgR('day')))
+    if (reb.Did(reb.ArgR('day')))
         return reb.Integer(d.getDate())  // "date" (1-31), "day" is weekday
 
     var seconds = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()
     var nanoseconds = d.getMilliseconds() * 1000000
 
-    if (reb.DidQ(reb.ArgR('time')))
-        return reb.ValueQ("make-time-sn",
+    if (reb.Did(reb.ArgR('time')))
+        return reb.Value("make-time-sn",
             reb.I(seconds),
             "try all [",
                 reb.ArgR('precise'), reb.I(nanoseconds),
             "]"
         )
 
-    if (reb.DidQ(reb.ArgR('weekday')))
+    if (reb.Did(reb.ArgR('weekday')))
         return reb.Integer(d.getDay() + 1)  // add 1 because it's 0-6
 
-    if (reb.DidQ(reb.ArgR('yearday')))  // !!! not particularly important
+    if (reb.Did(reb.ArgR('yearday')))  // !!! not particularly important
         throw ("To implement /YEARDAY: https://stackoverflow.com/a/26426761/")
 
     // !!! For now, punt on timezone issues
     // https://stackoverflow.com/questions/1091372/
 
-    return reb.ValueQ("ensure date! (make-date-ymdsnz",
+    return reb.Value("ensure date! (make-date-ymdsnz",
         reb.I(d.getFullYear()),  // year
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
