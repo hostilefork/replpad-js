@@ -292,9 +292,9 @@ replpad-write: func [
     let url
     parse param: copy param [
         while [
-            change '< "&lt;"
-            | change '> "&gt;"
-            | change '& "&amp;"
+            change '< ("&lt;")
+            | change '> ("&gt;")
+            | change '& ("&amp;")
 
             ; Make all URL!s printed in the output show as clickable.
             ;
@@ -305,10 +305,10 @@ replpad-write: func [
             ; This is a little tweak for the bridge code.  There should be
             ; some sort of post-processing hook for this, vs. hardcoding it.
             ;
-            | change '♣ {<span class='club'>♣</span>}
-            | change '♦ {<span class='diamond'>♦</span>}
-            | change '♥ {<span class='heart'>♥</span>}
-            | change '♠ {<span class='spade'>♠</span>}
+            | change '♣ ({<span class='club'>♣</span>})
+            | change '♦ ({<span class='diamond'>♦</span>})
+            | change '♥ ({<span class='heart'>♥</span>})
+            | change '♠ ({<span class='spade'>♠</span>})
 
             | skip
         ]
@@ -696,7 +696,7 @@ adjust-url-for-raw: func [
         thru "/"  ; user name
         thru "/"  ; repository name
         opt "-/"  ; mystery thing (see remarks on CORSify-gitlab-port)
-        change "blob/" "raw/"
+        change "blob/" ("raw/")
         to end
     ] then text -> [
         return as url! text  ; The port will CORSIFY at a lower level
@@ -709,7 +709,7 @@ adjust-url-for-raw: func [
         start: here
         thru "/"  ; user name
         thru "/"  ; repository name
-        change "blob/" ""  ; GitHub puts the "raw" in the subdomain name
+        change "blob/" ("")  ; GitHub puts the "raw" in the subdomain name
         to end
     ] then [
         return as url! unspaced [
@@ -728,7 +728,7 @@ adjust-url-for-raw: func [
             |
             to end
         ]
-        insert "/raw/"
+        insert ("/raw/")
     ] then [
         return as url! unspaced [
             https://gist.githubusercontent.com/ start
