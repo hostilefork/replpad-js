@@ -405,7 +405,6 @@ read-line: js-awaiter [
 CORSify-gitlab-port: func [
     return: [port!]
     port [port!]
-    <local> user repo branch file_path
 ][
     ; While raw.github.com links are offered via CORS, raw gitlab.com links
     ; (specified by a /raw/ in their URL) are not.  However, GitLab offers CORS
@@ -425,27 +424,28 @@ CORSify-gitlab-port: func [
 
     assert [port.spec.host = "gitlab.com"]
 
-    parse port.spec.path [
+    uparse port.spec.path [
         "/"
-        copy user: to "/" skip
-        copy repo: to "/" skip
+        emit user: between <here> "/"
+        emit repo: between <here> "/"
         [opt "-/"]  ; TBD: figure out what this is for, but skip for now
-        "raw/" copy branch: to "/" skip  ; skip slash, file_path would %-encode
-        copy file_path: to end
-    ] then [
+        "raw/"
+        emit branch: between <here> "/"
+        emit file_path: between <here> <end>
+    ] then x -> [
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
-        replace/all file_path "/" "%2F"  ; API uses slashes for its delimiting
+        replace/all x.file_path "/" "%2F"  ; API uses slashes for its delimiting
 
         if port.spec.scheme = 'http [
             port.spec.scheme: 'https
-            write log:type=warn ["Converting non-HTTPS URL to HTTPS:" url]
+            write log:type=warn ["Converting non-HTTPS URL to HTTPS:" x.url]
         ]
 
         port.spec.path: join-all [
             "/api/v4/projects/"
-            user "%2F" repo  ; surrogate for numeric id, use escaped `/`
-            "/repository/files/" file_path "/raw?ref=" branch
+            x.user "%2F" x.repo  ; surrogate for numeric id, use escaped `/`
+            "/repository/files/" x.file_path "/raw?ref=" x.branch
         ]
     ]
 
@@ -698,7 +698,7 @@ adjust-url-for-raw: func [
         opt "-/"  ; mystery thing (see remarks on CORSify-gitlab-port)
         change "blob/" ("raw/")
         to end
-    ] then text -> [
+    ] then [
         return as url! text  ; The port will CORSIFY at a lower level
     ]
 
