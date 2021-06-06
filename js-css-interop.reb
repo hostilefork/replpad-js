@@ -41,8 +41,8 @@ js-do-dialect-helper: func [
     unspaced collect [
         let keep-transient: func [t /required [word!]] [
             switch type of t [
-                sym-word! sym-path! [keep api-transient get t]
-                sym-group! [keep api-transient reeval as group! t]
+                meta-word! meta-path! [keep api-transient get t]
+                meta-group! [keep api-transient reeval as group! t]
 
                 assert [required]
                 fail [required "must have its argument as ^^..., ^^(...)"]
@@ -54,7 +54,7 @@ js-do-dialect-helper: func [
                 text! [keep b/1]
                 group! [keep/only reeval b/1]
 
-                sym-word! sym-path! sym-group! [keep-transient b/1]
+                meta-word! meta-path! meta-group! [keep-transient b/1]
 
                 word! [switch b/1 [
                     'spell [
@@ -73,8 +73,8 @@ js-do-dialect-helper: func [
                 ]]
 
                 fail [
-                    {JS-DO dialect supports TEXT!, SYM-WORD!, SYM-GROUP!,}
-                    {SYM-PATH!...plus the keywords SPELL and UNBOX}
+                    {JS-DO dialect supports TEXT!, META-WORD!, META-GROUP!,}
+                    {META-PATH!...plus the keywords SPELL and UNBOX}
                 ]
             ]
         ]
