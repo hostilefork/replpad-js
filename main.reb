@@ -51,13 +51,13 @@ main: adapt :console [
     ; search location as well (may not be in all browsers?)
     ;
     autorun: _
-    parse system/options/args [while [
-        start: here
+    uparse system.options.args [while [
+        start: <here>
 
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.
 
-        'do: set autorun text!
+        ['do:] autorun: text!
     ]] else [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args

@@ -289,6 +289,9 @@ replpad-write: func [
         "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | end]
     ]
 
+    ; UPARSE is still orders of magnitude slower than native PARSE.  Until that
+    ; is remedied, don't use it for main printing output.
+
     let url
     parse param: copy param [
         while [
@@ -691,26 +694,26 @@ adjust-url-for-raw: func [
 ][
     let text: to text! url  ; URL! may become immutable, try thinking ahead
 
-    parse text [
+    uparse text [
         "http" opt "s" "://gitlab.com/"
         thru "/"  ; user name
         thru "/"  ; repository name
         opt "-/"  ; mystery thing (see remarks on CORSify-gitlab-port)
         change "blob/" ("raw/")
-        to end
+        to <end>
     ] then [
         return as url! text  ; The port will CORSIFY at a lower level
     ]
 
     ; Adjust a decorated GitHub UI to https://raw.githubusercontent.com
     let start
-    parse text [
+    uparse text [
         "http" opt "s" "://github.com/"
-        start: here
+        start: <here>
         thru "/"  ; user name
         thru "/"  ; repository name
         change "blob/" ("")  ; GitHub puts the "raw" in the subdomain name
-        to end
+        to <end>
     ] then [
         return as url! unspaced [
             https://raw.githubusercontent.com/ start
@@ -718,15 +721,15 @@ adjust-url-for-raw: func [
     ]
 
     ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
-    parse text [
+    uparse text [
         "http" opt "s" "://gist.github.com/"
-        start: here
+        start: <here>
         thru "/"  ; user name
         [
             to "#file="
-            remove to end  ; ignore the file for now, id does not match filename
+            remove to <end>  ; ignore file for now, id does not match filename
             |
-            to end
+            to <end>
         ]
         insert ("/raw/")
     ] then [

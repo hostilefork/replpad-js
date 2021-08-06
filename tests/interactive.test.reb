@@ -149,12 +149,12 @@ k: ok: okay: function [
         return
     ]
 
-    steps: parse* steps [
-        set label: issue!
-        opt set bug: integer!  ; optional GitHub issue number
-        copy description: [some text!] (print description)
-        opt [set code: group! (do code)]
-        here  ; return result
+    steps: uparse* steps [
+        label: issue!
+        opt bug: integer!  ; optional GitHub issue number
+        description: across [some text!] (print description)
+        opt [code: group! (do code)]
+        <here>  ; return result
     ] else [
         fail "Problem in STEPS parsing"
     ]
