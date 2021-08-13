@@ -243,7 +243,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             if not all [
                 in port/spec 'ref
                 url? port/spec/ref
-                port/spec/path: find/match form port/spec/ref storage::
+                port/spec/path: find/match/tail form port/spec/ref storage::
                 find ["local" "session"] port/spec/path
             ][
                 fail "Could not initiate storage port"

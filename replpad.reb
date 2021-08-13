@@ -150,7 +150,7 @@ use [
         name: 'log
 
         init: func [port][
-            port.spec.path: form find/match port.spec.ref log::
+            port.spec.path: form find/match/tail port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
