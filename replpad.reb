@@ -445,7 +445,7 @@ CORSify-gitlab-port: func [
             write log:type=warn ["Converting non-HTTPS URL to HTTPS:" x.url]
         ]
 
-        port.spec.path: join-all [
+        port.spec.path: unspaced [
             "/api/v4/projects/"
             x.user "%2F" x.repo  ; surrogate for numeric id, use escaped `/`
             "/repository/files/" x.file_path "/raw?ref=" x.branch
