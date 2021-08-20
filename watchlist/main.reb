@@ -2,7 +2,6 @@ REBOL [
     Title: {Watchlist}
     Type: Module
     Name: 'Watchlist
-    Options: [isolate]
 
     Description: {
         This is a web-based remake of a feature demonstrated in the Qt-Based
@@ -20,6 +19,8 @@ REBOL [
 
     Exports: [watch]
 ]
+
+import %../replpad.reb
 
 ; https://github.com/nathancahill/Split.js
 ;
@@ -121,8 +122,18 @@ update-watches: function [] [
     n: 1
     for-each w watches [
         result: case [
-            bad-word? ^ get/any w [mold ^ get/any w]  ; different color?
+            ;
+            ; The edge-case states for the watches would ideally be in some
+            ; different color to call attention to them.
+            ;
+            '~attached~ = binding of w [
+                ">attached<"
+            ]
+            bad-word? ^ get/any w [
+                spaced [mold ^ get/any w space space "; isotope"]
+            ]
             null? get w ["\null\"]
+
             true [mold/limit get w 1000]
         ]
 

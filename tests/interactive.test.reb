@@ -2,7 +2,6 @@ Rebol [
     Title: "ReplPad Guided Interactive Behavior Test"
 
     Type: Module
-    Options: [isolate]
 
     Description: {
         While automated testing can check some things, it is not necessarily

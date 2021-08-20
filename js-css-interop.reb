@@ -5,8 +5,7 @@ Rebol [
     Homepage: https://github.com/hostilefork/replpad-js/
 
     Type: Module
-    Name: ReplPad  ; !!! seems needed to get into system/modules list
-    Options: [isolate]  ; user redefinitions of IF, etc. can't break the REPL!
+    Name: JS-CSS-Interop  ; !!! seems needed to get into system/modules list
 
     Description: {
         This provides CSS-DO and JS-DO for running .js an .css files off of
@@ -241,7 +240,7 @@ css-do: func [
     ]
 ]
 
-sys/export [
+export [
     js-do
     js-eval
     css-do

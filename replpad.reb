@@ -6,7 +6,6 @@ Rebol [
 
     Type: Module
     Name: ReplPad  ; !!! seems needed to get into system/modules list
-    Options: [isolate]  ; user redefinitions of IF, etc. can't break the REPL!
 
     Rights: {
         Copyright (c) 2018-2021 hostilefork.com
@@ -320,7 +319,7 @@ replpad-write: func [
     replpad-write-js param
 ]
 
-write-stdout: func [
+lib.write-stdout: func [
     {Writes just text to the ReplPad}
     text [text! char!]
     /html
@@ -329,21 +328,8 @@ write-stdout: func [
     replpad-write/(html) text
 ]
 
-print: func [
-    {Helper that writes data and a newline to the ReplPad}
-    return: [<opt> bad-word!]
-    line [<blank> text! block! char!]
-    /html
-][
-    if char? line [
-        if line <> newline [fail "PRINT only supports CHAR! of newline"]
-        return write-stdout newline
-    ]
 
-    (write-stdout/(html) try spaced line) then [write-stdout newline]
-]
-
-read-line: js-awaiter [
+lib.read-line: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
@@ -742,7 +728,11 @@ adjust-url-for-raw: func [
 ]
 
 
-lib/do: adapt copy :lib/do [
+if find system.contexts.user 'do [
+    fail "User context has override of DO, won't inherit lib override."
+]
+
+lib.do: adapt copy :lib.do [
     ;
     ; We go ahead and update LIB's DO directly with an adaptation.  This way,
     ; the Redbol emulation layer keeps the URL interception.
@@ -780,20 +770,32 @@ lib/do: adapt copy :lib/do [
 ; it would be appended onto the current directory).  Switching to use schemes
 ; is not taking this interpretation.
 ;
-sys/export [  ; no clear way to provide this to the interop otherwise
-    adjust-url-for-raw
+append system.contexts.lib compose [  ; how else to make interop see this?
+    adjust-url-for-raw: (:adjust-url-for-raw)
 ]
-do ensure url! clean-path %js-css-interop.reb
+interop: import ensure url! clean-path %js-css-interop.reb
+
+; We want clients of replpad to see JS-DO etc.  Should they have to import
+; those functions explicitly?  Probably, but they didn't have to before.  So
+; try a trick where we just export their imports.
+;
+; Use INTERN to get the words bound to the ReplPad's versions so the export
+; is legal.
+;
+export intern (meta-of interop).exports
 
 
 === STORAGE SCHEME ===
 
 ; Import scheme for file:// URLs as interpreted as meaning URL storage.
 ;
-do ensure url! clean-path %js-css-interop.reb
+import ensure url! clean-path %storage.reb
 
-system.contexts.user.change-dir:  ; need to override previously imported value
-change-dir: func [
+if find system.contexts.user 'change-dir [
+    fail "User context has override of CHANGE-DIR, won't inherit lib override."
+]
+
+lib.change-dir: func [
     {Changes the current path (where scripts with relative paths will be run)}
     path [file! url!]
     return: [file! url!]
@@ -965,7 +967,7 @@ now: js-native [
 
 === {PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER} ===
 
-browse: func [
+lib.browse: func [
     {Provide a clickable link to the user to open in the browser}
     url [url!]
 ][
@@ -1143,30 +1145,28 @@ redbol: func [return: <none>] [
 === {EXPORT APPLICABLE ROUTINES TO USER CONTEXT} ===
 
 ; All new definitions are by default isolated to the ReplPad module.  This
-; appends them to the `user` context.
+; exports them so that whoever IMPORTs the module will get it.  In the case
+; of the ReplPad, the %index.html uses a <script> tag to indicate that the
+; %load-r3.js loader should IMPORT the replpad.
 ;
-; !!! R3-Alpha's notion of how modules/bindings/etc. interop was basically
-; never thought out and demonstrated coherently on any significant project.
-; So how this all would ever work correctly is very much up in the air.
+; Note: Functions like WRITE-STDOUT are overwritten in lib directly instead of
+; put in the module's export list.  This is because lib routines like PRINT
+; which use WRITE-STDOUT are isolated such that they are calling lib's version.
+; But we want to reuse PRINTs logic and have it use our output to the web page.
+; Blunt overwriting of lib.write-stdout is not the best solution to this kind
+; of problem (it should be an IO abstraction that is designed to be overridden)
+; but it's what we have for now.  :-/
 ;
-sys/export [
+export [
     !!
     watch
     about
     redbol
 
-    ; !!! These exports appear to overwrite LIB's definitions (e.g. the JS
-    ; build does not include the EVENT extension, hence does not have WAIT,
-    ; but the wait here seems to appear in both user and lib.)
-    ;
-    change-dir
+    now  ; we didn't include the Time extension, so there is no lib.now
     wait
-    write-stdout
-    print
-    read-line
-    browse
+
     download
-    now
 
     ; these are endpoints for objects in ReplPad's environs
     log
@@ -1177,15 +1177,3 @@ sys/export [
 
     replpad-write  ; for clients who want to write HTML, not just PRINT text
 ]
-
-; !!! Anything the user context has already pulled in before this runs will
-; not pick up the updated definitions from lib.  Since DO was used to run this
-; module by %load-js.r3, that means the user context still has the old
-; definition...regardless of what we push with EXPORT here.  This is a big
-; design area that R3-Alpha did not solve, which needs thinking:
-;
-; https://forum.rebol.info/t/the-real-story-about-user-and-lib-contexts/764
-;
-; As a workaround for now, manually override the user context's DO
-;
-system.contexts.user.do: :lib.do

@@ -1,3 +1,33 @@
+Rebol [
+    File: %main.reb
+
+    Name: 'Main
+    Type: 'Module
+
+    Exports: [main quit]
+
+    Description: {
+        Over the long run, the desire would be that the ReplPad console could
+        be a kind of "widget" that could be used in applications that had
+        their own notion of a main loop.  Or multiple instances of the
+        ReplPad, for instance, in a windowed environment like Golden Layouts:
+
+          https://golden-layout.com/
+
+        It's a long road to get to that point; but as a first step in
+        separation the %main.reb is a distinct file from the %replpad.reb.
+        The separation is mostly symbolic--as the two files are tightly
+        coupled at the moment.  But having them separate lets us start
+        thinking about what's part of the widget and what's part of this
+        particular usage of the widget.
+
+        The introduction text is a good example of something not all usages
+        would want, so that goes here as a start.
+    }
+]
+
+import %replpad.reb
+
 replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
 console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
 chat: https://chat.stackoverflow.com/rooms/291/rebol
@@ -134,5 +164,3 @@ quit: adapt copy :lib/quit [
 
     ; Fall through to normal QUIT handling
 ]
-
-

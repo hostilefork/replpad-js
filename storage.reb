@@ -7,7 +7,6 @@ Rebol [
     Type: Module
     Name: ReplStorage  ; !!! seems needed to get into system/modules list
     Exports: [storage]
-    Options: [isolate]
 
     Rights: {
         Copyright (c) 2021 Christopher Ross-Gill
