@@ -1072,76 +1072,6 @@ sys/make-scheme [  ; no URL form dictated
 clipboard: make port! clipboard::general
 
 
-=== {ABOUT COMMAND} ===
-
-; !!! The ABOUT command was not made part of the console extension, since
-; non-console builds might want to be able to ask it from the command line.
-; But it was put in HOST-START and not the mezzanine/help in general.  This
-; needs to be rethought, but including ABOUT doing *something* since it is
-; mentioned when the console starts up.
-
-about: does [
-    print [
-        {This Rebol is running completely in your browser!  The evaluations}
-        {aren't being sent to a remote server--the interpreter is client side!}
-        newline newline
-
-        {Please don't hesitate to submit any improvements, no matter how}
-        {small...and come join the discussion on the forum and chat!}
-    ]
-]
-
-
-=== {WATCHLIST STUB (INVOKES MODULE ON FIRST RUN)} ===
-
-; We don't want to pay for loading the watchlist unless it's used.  Do a
-; delayed-load that waits for the first use.
-;
-; Note: When it was being automatically loaded, it was observed that it
-; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
-
-watch: func [:arg] [
-    print "Loading watchlist extension for first use..."
-    do %watchlist/main.reb
-    let watch: :system.modules.Watchlist.watch
-    system.contexts.user.watch: :watch
-
-    ; !!! Watch hard quotes its argument...need some kind of variadic
-    ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
-    ; but be able to inline WATCH to gather args)
-    ;
-    do compose [watch (:arg)]
-]
-
-
-=== {COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation)} ===
-
-redbol: func [return: <none>] [
-    print [
-        LF
-        "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where" LF
-        "OF is an infix version of REFLECT that quotes its left argument to" LF
-        "get the property to reflect!)  Not *all* changes can be easily" LF
-        "'skinned' to provide old behavior, but many (most?) of them can." LF
-        LF
-        "REDBOL is a very experimental Rebol2 emulation.  Eventually it" LF
-        "will use module isolation so emulated code runs side-by-side with" LF
-        "new code.  But for today, it's an irreversible change to the user" LF
-        "context...so you will have to reload the page to get Ren-C back." LF
-        LF
-        "Note: Redbol PARSE is particularly slow right now because it's all" LF
-        "usermode.  That will change as the parser-combinator-based 'UPARSE'" LF
-        "is hardened into be the design for native PARSE.  Stay tuned." LF
-        LF
-        "Discuss this experiment on the chat/forum--and help if you can!" LF
-    ]
-    print "Fetching %redbol.reb from GitHub..."
-    do <redbol>
-
-    system.console.prompt: "redbol>>"
-]
-
-
 === {EXPORT APPLICABLE ROUTINES TO USER CONTEXT} ===
 
 ; All new definitions are by default isolated to the ReplPad module.  This
@@ -1159,9 +1089,6 @@ redbol: func [return: <none>] [
 ;
 export [
     !!
-    watch
-    about
-    redbol
 
     now  ; we didn't include the Time extension, so there is no lib.now
     wait

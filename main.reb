@@ -4,7 +4,18 @@ Rebol [
     Name: 'Main
     Type: 'Module
 
-    Exports: [main quit]
+    ; Things labeled with EXPORT in this module are IMPORT-ed to the user
+    ; context due to inclusion in the %index.html via the <script> tag.
+    ; They will not be added to LIB, but will be available in the console.
+    ; That makes it nice for things like ABOUT and REDBOL, and the tricky
+    ; WATCH loader command.
+    ;
+    ; If a module or script wishes to do something like add watches to
+    ; variables, it should include <watchlist> itself, as opposed to trying
+    ; to call things that were imported into the user context.
+    ;
+    ; It also exports MAIN, which isn't something the user should see.  A
+    ; way should be figured out to remove its visibility.
 
     Description: {
         Over the long run, the desire would be that the ReplPad console could
@@ -26,7 +37,11 @@ Rebol [
     }
 ]
 
-import %replpad.reb
+; We don't just IMPORT the ReplPad definitions for things like NOW and WAIT
+; into this module.  Instead we use IMPORT* to put the definitions into lib.
+; This makes them available to any script that's loaded.  Review.
+;
+sys.import* lib %replpad.reb
 
 replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
 console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
@@ -72,7 +87,7 @@ greeting-text:
 ; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
 ; https://github.com/hostilefork/replpad-js/issues/10
 ;
-main: adapt :console [
+export main: adapt :console [
     !! "MAIN executing (this should show in browser console log)"
 
     clear-screen  ; clears the progress messages displayed during load
@@ -149,11 +164,89 @@ main: adapt :console [
 ]
 
 
+=== ABOUT COMMAND ===
+
+; !!! The ABOUT command was not made part of the console extension, since
+; non-console builds might want to be able to ask it from the command line.
+; But it was put in HOST-START and not the mezzanine/help in general.  This
+; needs to be rethought, but including ABOUT doing *something* since it is
+; mentioned when the console starts up.
+
+export about: does [
+    print [
+        {This Rebol is running completely in your browser!  The evaluations}
+        {aren't being sent to a remote server--the interpreter is client side!}
+        newline newline
+
+        {Please don't hesitate to submit any improvements, no matter how}
+        {small...and come join the discussion on the forum and chat!}
+    ]
+]
+
+
+=== WATCHLIST STUB (INVOKES MODULE ON FIRST RUN) ===
+
+; We don't want to pay for loading the watchlist unless it's used.  Do a
+; delayed-load that waits for the first use.
+;
+; Note: When it was being automatically loaded, it was observed that it
+; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
+
+export watch: func [:arg] [
+    print "Loading watchlist extension for first use..."
+    do %watchlist/main.reb
+    let watch: :system.modules.Watchlist.watch
+    system.contexts.user.watch: :watch
+
+    ; !!! Watch hard quotes its argument...need some kind of variadic
+    ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
+    ; but be able to inline WATCH to gather args)
+    ;
+    do compose [watch (:arg)]
+]
+
+
+=== COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
+
+export redbol: func [return: <none>] [
+    print delimit LF [
+        ""
+        "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
+        "OF is an infix version of REFLECT that quotes its left argument to"
+        "get the property to reflect!)  But nearly all of these changes can be"
+        "'skinned' to provide alternative behaviors--including the old ones!"
+        ""
+        "REDBOL is an experimental emulation of Rebol2/Red conventions.  It"
+        "uses module isolation so emulated code can run side-by-side with"
+        "new code.  Scripts that wish to use it should `import <redbol>`."
+        "(But you just ran the REDBOL command which applies the change"
+        "irreversibly to the console context, just for trying it out.)"
+        ""
+        "Note: Redbol PARSE is particularly slow right now because it's all"
+        "usermode.  That will change as the parser-combinator-based 'UPARSE'"
+        "is hardened into be the design for native PARSE.  Stay tuned."
+        ""
+        "Discuss this experiment on the forum--and help if you can!"
+    ]
+    print "Fetching %redbol.reb from GitHub..."
+    do <redbol>
+
+    system.console.prompt: "redbol>>"
+]
+
+
+=== OVERRIDE QUIT IN LIB ===
+
 ; Having QUIT exit the interpreter can be useful in some debug builds which
 ; check various balances of state.
 ; https://github.com/hostilefork/replpad-js/issues/17
 ;
-quit: adapt copy :lib/quit [
+; This is an overwrite of LIB's quit.  It's not clear where the right place
+; for this is (should it be in %replpad.reb?) or what hook to use.  Put it
+; here for now, as it seems different embeddings of the console might want
+; to do different things when quitting.
+
+lib.quit: adapt copy :lib.quit [
     replpad-write/html spaced [
         {<div class='note'>}
         {<p><b><i>Sorry to see you go...</i></b></p>}
