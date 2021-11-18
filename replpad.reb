@@ -329,7 +329,10 @@ lib.write-stdout: func [
 ]
 
 
-lib.read-line: js-awaiter [
+; READ-LINE is part of the STDIO extension now, which means it does not
+; exist in LIB...so we export it here.
+;
+export read-line: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
