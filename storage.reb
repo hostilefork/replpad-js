@@ -4,7 +4,7 @@ Rebol [
     Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
     Homepage: https://github.com/hostilefork/replpad-js/
 
-    Type: Module
+    Type: module
     Name: ReplStorage  ; !!! seems needed to get into system/modules list
     Exports: [storage]
 

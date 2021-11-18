@@ -1,7 +1,8 @@
 REBOL [
     Title: {Watchlist}
-    Type: Module
-    Name: 'Watchlist
+
+    Type: module
+    Name: Watchlist
 
     Description: {
         This is a web-based remake of a feature demonstrated in the Qt-Based

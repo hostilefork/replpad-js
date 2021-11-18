@@ -1,8 +1,8 @@
 Rebol [
     File: %main.reb
 
-    Name: 'Main
-    Type: 'Module
+    Type: module
+    Name: Main
 
     ; Things labeled with EXPORT in this module are IMPORT-ed to the user
     ; context due to inclusion in the %index.html via the <script> tag.
