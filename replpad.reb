@@ -413,7 +413,7 @@ CORSify-gitlab-port: func [
 
     assert [port.spec.host = "gitlab.com"]
 
-    uparse port.spec.path [
+    uparse port.spec.path [gather [
         "/"
         emit user: between <here> "/"
         emit repo: between <here> "/"
@@ -421,7 +421,7 @@ CORSify-gitlab-port: func [
         "raw/"
         emit branch: between <here> "/"
         emit file_path: between <here> <end>
-    ] then x -> [
+    ]] then x -> [
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
         replace/all x.file_path "/" "%2F"  ; API uses slashes for its delimiting
