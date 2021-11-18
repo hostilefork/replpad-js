@@ -149,7 +149,7 @@ use [
         name: 'log
 
         init: func [port][
-            port.spec.path: form find/match/tail port.spec.ref log::
+            port.spec.path: find/match/tail as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
@@ -169,8 +169,8 @@ use [
 
 log: collect [
     for-each endpoint [info log warn error] [
-        keep ^endpoint
-        keep ^ make port! join copy log:: form endpoint
+        keep only endpoint
+        keep make port! join log:: endpoint
     ]
 ]
 
