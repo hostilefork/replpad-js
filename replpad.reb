@@ -940,7 +940,7 @@ now: js-native [
         return reb.Value("make-time-sn",
             reb.I(seconds),
             "try all [",
-                reb.ArgR('precise'), reb.I(nanoseconds),
+                "@", reb.ArgR('precise'), reb.I(nanoseconds),
             "]"
         )
 
@@ -953,18 +953,26 @@ now: js-native [
     // !!! For now, punt on timezone issues
     // https://stackoverflow.com/questions/1091372/
 
-    return reb.Value("ensure date! (make-date-ymdsnz",
+    var datetime = reb.Value("ensure date! (make-date-ymdsnz",
         reb.I(d.getFullYear()),  // year
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
         reb.I(seconds),
         "try all [",
-            reb.ArgR('precise'), reb.I(nanoseconds),
+            "@", reb.ArgR('precise'), reb.I(nanoseconds),
         "]",
         "try all [",
-            "not", reb.ArgR('local'), reb.I(0),  // zone
+            "not @", reb.ArgR('local'), reb.I(0),  // zone
         "]",
     ")")
+
+    // There's no separate generator for making just a date, so workaround
+    // to achieve /DATE by just picking the date out of the datetime.
+
+    if (reb.Did(reb.ArgR('date')))
+        return reb.Value("pick", reb.R(datetime), "'date")
+
+    return datetime
 }
 
 
