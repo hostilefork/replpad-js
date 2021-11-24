@@ -787,6 +787,40 @@ interop: import ensure url! clean-path %js-css-interop.reb
 ;
 export intern (meta-of interop).exports
 
+; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
+
+rfc2616-to-date: function [
+    {Make DATE! from e.g. `Tue, 15 Nov 1994 12:45:26 GMT`}
+    return: [date!]
+    idate "https://www.rfc-editor.org/rfc/rfc2616"
+        [text!]
+][
+    digit: charset [#"0" - #"9"]
+    alpha: charset [#"A" - #"Z" #"a" - #"z"]
+    uparse idate [
+        3 alpha "," space  ; skip day of week
+        day: between <here> space  ; 2 digit
+        month: between <here> space  ; 3 alpha
+        year: between <here> space  ; 4 digit
+        time: between <here> space
+        zone: between <here> <end>
+    ] else [
+        fail ["Invalid RFC2616 date:" idate]
+    ]
+    if zone = "GMT" [zone: copy "+0"]
+    to date! unspaced [day "-" month "-" year "/" time zone]
+]
+
+info?: func [url [url!]] [
+    o: js-head url
+    return make object! [
+        name: url
+        size: to integer! o.content-length
+        date: if in o 'last-modified [rfc2616-to-date o.last-modified] else [_]
+        type: 'url
+    ]
+]
+
 
 === STORAGE SCHEME ===
 
@@ -1104,6 +1138,7 @@ export [
     now  ; we didn't include the Time extension, so there is no lib.now
     wait
 
+    info?
     download
 
     ; these are endpoints for objects in ReplPad's environs
