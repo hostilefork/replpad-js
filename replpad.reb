@@ -5,7 +5,7 @@ Rebol [
     Homepage: https://github.com/hostilefork/replpad-js/
 
     Type: module
-    Name: ReplPad  ; !!! seems needed to get into system/modules list
+    Name: ReplPad  ; !!! seems needed to get into system.modules list
 
     Rights: {
         Copyright (c) 2018-2021 hostilefork.com
@@ -110,7 +110,7 @@ use [
             ]
 
             port! [
-                mold value/spec
+                mold value.spec
             ]
 
             action! [
@@ -144,7 +144,7 @@ use [
         )
     }
 
-    sys/make-scheme [
+    sys.make-scheme [
         title: "Console.log Scheme"
         name: 'log
 
@@ -163,8 +163,8 @@ use [
 ]
 
 ; establish endpoints for each log type, thus can be invoked using:
-; WRITE LOG/INFO "MESSAGE"
-; APPEND LOG/ERROR :ERROR
+; WRITE LOG.INFO "MESSAGE"
+; APPEND LOG.ERROR :ERROR
 ; writing to a log URL will still work from any context
 
 log: collect [
@@ -460,7 +460,7 @@ read-url-helper: js-awaiter [
     return reb.Binary(buffer)
 }
 
-sys/make-scheme [
+sys.make-scheme [
     title: "In-Browser HTTP Scheme"
     name: 'http
 
@@ -490,7 +490,7 @@ sys/make-scheme [
     ]
 ]
 
-sys/make-scheme [
+sys.make-scheme [
     title: "In-Browser HTTPS Scheme"
     name: 'https
 
@@ -518,7 +518,7 @@ sys/make-scheme [
 
 ; File schemes permit relative file access to HTTP(S) resources
 
-sys/make-scheme [
+sys.make-scheme [
     title: "File Access"
     name: 'file
 
@@ -594,7 +594,7 @@ sys/make-scheme [
     ]
 ]
 
-sys/make-scheme [
+sys.make-scheme [
     title: "File Directory Access"
     name: 'dir
 
@@ -912,7 +912,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
 ; An alternate interface to the DOWNLOAD function
 ; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
 
-sys/make-scheme [
+sys.make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
@@ -1087,7 +1087,7 @@ copy-to-clipboard-helper: js-native [
     }
 }
 
-sys/make-scheme [  ; no URL form dictated
+sys.make-scheme [  ; no URL form dictated
     title: "In-Browser Clipboard Scheme"
     name: 'clipboard
 
