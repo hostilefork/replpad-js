@@ -756,6 +756,7 @@ lib.do: adapt copy :lib.do [
         <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
         <chess> [%create-board.reb]
         <uparse> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/uparse.reb]
+        <latest-of> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/latest-of.reb]
     ]
 
     ; If URL is decorated source (syntax highlighting, etc.) get raw form.
@@ -1117,6 +1118,31 @@ sys/make-scheme [  ; no URL form dictated
 clipboard: make port! clipboard::general
 
 
+=== {INCORPORATE LATEST-OF UTILITY FOR DOWNLOADING BUILDS} ===
+
+; There's more than a little said in the documentation for the script for why
+; I think it's premature to be offering prebuilt downloads.  But such a thing
+; will eventually be needed, so as long as expectations are kept in check it's
+; good to have a workflow for it.  LATEST-OF will even try to detect the
+; platform from the browser, if used with no arguments.
+
+latest-of: do <latest-of>
+
+comment [
+    ; This caching mechanism doesn't work with modularization, because once
+    ; LATEST-OF is exported to the user context it can't be updated.  Review.
+    ;
+    latest-of: macro [
+        {Use LATEST-OF/CACHE to load actual function so HELP is available}
+        /cache
+    ][
+        latest-of: do <latest-of>  ; not packaged as a module, just a function
+
+        reduce [if not cache [:latest-of]]
+    ]
+]
+
+
 === {EXPORT APPLICABLE ROUTINES TO USER CONTEXT} ===
 
 ; All new definitions are by default isolated to the ReplPad module.  This
@@ -1149,4 +1175,6 @@ export [
     cls
 
     replpad-write  ; for clients who want to write HTML, not just PRINT text
+
+    latest-of
 ]
