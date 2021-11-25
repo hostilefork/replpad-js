@@ -48,7 +48,7 @@ Rebol [
 ]
 
 
-=== {REPLPAD CONSOLE OUTPUT (step 1)} ===
+=== REPLPAD CONSOLE OUTPUT (step 1) ===
 
 ; While it's nice to be able to use PRINT statements to debug, the JS console
 ; is a good last resort...and the last resort should be defined right first.
@@ -175,7 +175,7 @@ log: collect [
 ]
 
 
-=== {REPLPAD CONSOLE OUTPUT (step 2)} ===
+=== REPLPAD CONSOLE OUTPUT (step 2) ===
 
 ; Next we define basic output to the ReplPad, which empowers conventional
 ; PRINT.  This way non-JavaScript-aware Rebol code that has PRINT statements
@@ -381,7 +381,7 @@ export read-line: js-awaiter [
 }
 
 
-=== {ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3)} ===
+=== ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3) ===
 
 ; In order to modularize the code into separate .reb files, we need to be able
 ; to DO those files.  That requires setting up a scheme for reading `http://`
@@ -663,7 +663,7 @@ sys.make-scheme [
 ]
 
 
-=== {OVERRIDE THE WAY `DO` HANDLES SOME URLS} (step 4) ===
+=== OVERRIDE THE WAY "DO" HANDLES SOME URLS (step 4) ===
 
 ; Some URLs that represent executable code have a HTML presentation layer on
 ; them.  This is why a GitHub link has a "raw" offering without all that extra
@@ -765,7 +765,7 @@ lib.do: adapt copy :lib.do [
 ]
 
 
-=== {JAVASCRIPT AND CSS INTEROPERABILITY (step 5)} ===
+=== JAVASCRIPT AND CSS INTEROPERABILITY (step 5) ===
 
 ; Now that we can DO files, go ahead and import the JS interop.
 ;
@@ -930,7 +930,7 @@ sys.make-scheme [
 ]
 
 
-=== {IMPLEMENT `NOW` FUNCTION USING JAVASCRIPT CALLS} ===
+=== IMPLEMENT "NOW" FUNCTION USING JAVASCRIPT CALLS ===
 
 ; We could use the "Time extension" built for POSIX, because Emscripten will
 ; emulate those APIs.  But we can interface with JavaScript directly and cut
@@ -1011,7 +1011,7 @@ now: js-native [
 }
 
 
-=== {PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER} ===
+=== PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER ===
 
 lib.browse: func [
     {Provide a clickable link to the user to open in the browser}
@@ -1044,7 +1044,7 @@ lib.browse: func [
 ]
 
 
-=== {WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout} ===
+=== WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout ===
 
 wait: js-awaiter [
     {Sleep for the requested number of seconds}
@@ -1056,7 +1056,7 @@ wait: js-awaiter [
 }
 
 
-=== {CLIPBOARD SCHEME} ===
+=== CLIPBOARD SCHEME ===
 
 ; For security reasons, web applications can't read the clipboard.  But they
 ; can write to it if you provoke the app with sufficient interactivity.
@@ -1118,7 +1118,7 @@ sys.make-scheme [  ; no URL form dictated
 clipboard: make port! clipboard::general
 
 
-=== {INCORPORATE LATEST-OF UTILITY FOR DOWNLOADING BUILDS} ===
+=== INCORPORATE LATEST-OF UTILITY FOR DOWNLOADING BUILDS ===
 
 ; There's more than a little said in the documentation for the script for why
 ; I think it's premature to be offering prebuilt downloads.  But such a thing
@@ -1143,7 +1143,7 @@ comment [
 ]
 
 
-=== {EXPORT APPLICABLE ROUTINES TO USER CONTEXT} ===
+=== EXPORT APPLICABLE ROUTINES TO USER CONTEXT ===
 
 ; All new definitions are by default isolated to the ReplPad module.  This
 ; exports them so that whoever IMPORTs the module will get it.  In the case
