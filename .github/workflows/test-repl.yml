@@ -1,0 +1,132 @@
+#
+# File: %test-repl.yml
+#
+#=============================================================================#
+#
+# This is just the web repl testing part of the Web Build Workflow.
+#
+# It is factored out so the REPL can be tested without doing a full build of
+# the Ren-C interpreter.
+
+name: Test Repl
+
+
+# See README: When To Trigger Builds
+#
+on:
+  push:
+    branches: [
+      master
+    ]
+  pull_request:
+    branches: [
+      master
+    ]
+  workflow_dispatch:  # Allows running this workflow manually from Actions tab
+
+
+# Standardize to use bash on all platforms.
+#
+# See README: Using The Strict Erroring Bash Shell
+#
+defaults:
+  run:
+    shell: bash
+
+
+# Each "Job" runs in its own VM, and a workflow run is made up of one or more
+# jobs that can run sequentially or in parallel.
+#
+# See README: Jobs
+#
+jobs:
+  test-repl:  # Name of this workflow's only job
+
+    # https://github.com/actions/virtual-environments#available-environments
+    #
+    runs-on: ubuntu-20.04
+
+
+    # See README: Build Matrix
+    #
+    strategy:
+      matrix:
+       include:
+         - os-id: 0.16.1  # "asyncify" Emscripten build (only variant ATM)
+
+
+    # Steps are a sequence of tasks that will be executed within a single VM
+    # as part of the job.
+    #
+    # See README: Steps
+    #
+    steps:  # (no indentatation needed below; so indent the minimum!)
+
+
+  #====# CHECKOUT STEPS #=====================================================#
+
+
+    # https://github.com/actions/checkout
+    #
+    # See README: Checkout Action
+    #
+    - uses: actions/checkout@v2  # See README: Trusted Actions
+
+
+    # The full commit is passed to make to build into the binary, and the
+    # abbreviated commit is used to name the executable.
+    #
+    # See README: Portably Capturing Git Hashes
+    #
+    - name: Grab Git Hash and Short Hash Into Environment Variables
+      run: |
+        git_commit="$(git show --format="%H" --no-patch)"
+        git_commit_short="$(git show --format="%h" --no-patch)"
+        echo "GIT_COMMIT=$git_commit" >> $GITHUB_ENV
+        echo "GIT_COMMIT_SHORT=$git_commit_short" >> $GITHUB_ENV
+
+
+  #====# TESTING STEPS #======================================================#
+
+    # The ren-c-action is able to deploy a web browser and use the commit of
+    # a non-greenlit hash.  It does this via a local Firefox, which it talks
+    # to through Python equipped with the "Marionette" protocol.  (Ren-C can't
+    # be used at time of writing, because it lacks websockets...which are
+    # needed to remote-control Firefox).
+    #
+    - name: Test ReplPad Against Uploaded Lib By Running In Headless Firefox
+      if: github.ref == 'refs/heads/master'  # see notes on UPLOAD STEPS
+      uses: metaeducation/ren-c-action@release
+      with:
+        web: true
+        timeout: 15 
+        screenshot: repl
+        script: |
+          x: 10
+          watch x
+          assert [10 = watch 1]
+          assert [url? latest-of]
+          redbol
+
+
+    # Early on, @gchiu wrote some code to interoperate with a JS chess board.
+    # Since we have that example, test that it works.  We don't know what the
+    # screen looks like, but we can check it loads and runs to completion with
+    # the shortest possible gameplay.
+    #
+    - name: Test Chess GUI Example
+      if: github.ref == 'refs/heads/master'  # see notes on UPLOAD STEPS
+      uses: metaeducation/ren-c-action@release
+      with:
+        web: true
+        timeout: 15 
+        screenshot: chess
+        script: |
+          animate-game: do @chess
+          assert [
+              comment [https://en.wikipedia.org/wiki/Fool%27s_mate]
+              <done> = animate-game [
+                  f2f3 e7e6
+                  g2g4 d8h4
+              ]
+          ]
