@@ -123,7 +123,7 @@ js-do: func [
 
         ; If URL is decorated source (syntax highlighting, etc.) get raw form.
         ;
-        source: maybe adjust-url-for-raw source
+        source: maybe sys.adjust-url-for-raw source
 
         any [automime, local] then [
             let code: as text! read source
@@ -238,7 +238,7 @@ css-do: func [
 
         ; If URL is decorated source (syntax highlighting, etc.) get raw form.
         ;
-        source: maybe adjust-url-for-raw source
+        source: maybe sys.adjust-url-for-raw source
 
         if automime [
             css-do-text-helper as text! read source

@@ -665,71 +665,11 @@ sys.make-scheme [
 
 === OVERRIDE THE WAY "DO" HANDLES SOME URLS (step 4) ===
 
-; Some URLs that represent executable code have a HTML presentation layer on
-; them.  This is why a GitHub link has a "raw" offering without all that extra
-; stuff on it (line numbers, buttons, etc.)
-;
-; We don't want to hook at the READ level to redirect those UI pages to give
-; back the raw data...because you might want to READ and process the UI
-; decorations!  But if you ask to DO such a page, it's reasonable to assume
-; that what you actually wanted was to DO the raw content implied by it.
-;
-; This performs that forwarding for GitLab and GitHub UI links.  The JS
-; interop routines (like JS-DO and CSS-DO) want the same thing.
-
-adjust-url-for-raw: func [
-    return: [<opt> url!]
-    url [<blank> url!]
-][
-    let text: to text! url  ; URL! may become immutable, try thinking ahead
-
-    uparse text [
-        "http" opt "s" "://gitlab.com/"
-        thru "/"  ; user name
-        thru "/"  ; repository name
-        opt "-/"  ; mystery thing (see remarks on CORSify-gitlab-port)
-        change "blob/" ("raw/")
-        to <end>
-    ] then [
-        return as url! text  ; The port will CORSIFY at a lower level
-    ]
-
-    ; Adjust a decorated GitHub UI to https://raw.githubusercontent.com
-    let start
-    uparse text [
-        "http" opt "s" "://github.com/"
-        start: <here>
-        thru "/"  ; user name
-        thru "/"  ; repository name
-        change "blob/" ("")  ; GitHub puts the "raw" in the subdomain name
-        to <end>
-    ] then [
-        return as url! unspaced [
-            https://raw.githubusercontent.com/ start
-        ]
-    ]
-
-    ; Adjust a Github Gist URL to https://gist.github.com/.../raw/
-    uparse text [
-        "http" opt "s" "://gist.github.com/"
-        start: <here>
-        thru "/"  ; user name
-        [
-            to "#file="
-            remove to <end>  ; ignore file for now, id does not match filename
-            |
-            to <end>
-        ]
-        insert ("/raw/")
-    ] then [
-        return as url! unspaced [
-            https://gist.githubusercontent.com/ start
-        ]
-    ]
-
-    return null
-]
-
+; This tweak was necessary to subvert the master index of "named links" at
+; one point.  It used to also do redirection to raw links from html decorated
+; links on GitHub and GitLab, but that was decided to be useful enough to
+; put into the main DO and IMPORT, so it's now SYS.ADJUST-URL-FOR-RAW and not
+; needed here.
 
 if find system.contexts.user 'do [
     fail "User context has override of DO, won't inherit lib override."
@@ -755,10 +695,6 @@ lib.do: adapt copy :lib.do [
         @test-repl [%tests/interactive.test.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
     ]
-
-    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
-    ;
-    source: maybe adjust-url-for-raw try match url! :source
 ]
 
 
@@ -771,9 +707,6 @@ lib.do: adapt copy :lib.do [
 ; it would be appended onto the current directory).  Switching to use schemes
 ; is not taking this interpretation.
 ;
-append system.contexts.lib compose [  ; how else to make interop see this?
-    adjust-url-for-raw: (:adjust-url-for-raw)
-]
 interop: import ensure url! clean-path %js-css-interop.reb
 
 ; We want clients of replpad to see JS-DO etc.  Should they have to import
