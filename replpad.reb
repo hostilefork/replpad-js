@@ -750,13 +750,10 @@ lib.do: adapt copy :lib.do [
     ; here to shorten calling demos and get them out of the root directory.
     ;
     source: maybe switch :source [
-        <popupdemo> [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
-        <redbol> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
-        <test-repl> [%tests/interactive.test.reb]
-        <trello> [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
-        <chess> [%create-board.reb]
-        <uparse> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/uparse.reb]
-        <latest-of> [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/latest-of.reb]
+        @popupdemo [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
+        @redbol [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
+        @test-repl [%tests/interactive.test.reb]
+        @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
     ]
 
     ; If URL is decorated source (syntax highlighting, etc.) get raw form.
