@@ -104,10 +104,14 @@ js-do: func [
 
     return: [<opt> bad-word!]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes ^^-values)"
-        [<blank> block! text! file! url!]
+        [<blank> block! text! file! url! tag!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
 ][
+    if tag? source [
+        source: join system.script.path as file! source
+    ]
+
     if block? source [source: my js-do-dialect-helper]
 
     either text? source [
@@ -218,9 +222,13 @@ css-do: func [
 
     return: <none>  ; Could return an auto-generated ID for later removing (?)
     ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
-    source [text! file! url!]
+    source "TAG! interpreted as relative to currently running script"
+        [text! file! url! tag!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
+    if tag? source [
+        source: join system.script.path as file! source
+    ]
     if text? source [
         css-do-text-helper source
     ] else [
