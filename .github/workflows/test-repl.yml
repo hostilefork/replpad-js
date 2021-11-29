@@ -88,25 +88,49 @@ jobs:
 
   #====# TESTING STEPS #======================================================#
 
-    # The ren-c-action is able to deploy a web browser and use the commit of
-    # a non-greenlit hash.  It does this via a local Firefox, which it talks
-    # to through Python equipped with the "Marionette" protocol.  (Ren-C can't
-    # be used at time of writing, because it lacks websockets...which are
-    # needed to remote-control Firefox).
-    #
-    - name: Test ReplPad Against Uploaded Lib By Running In Headless Firefox
+    # The ren-c-action is able to deploy a web browser and automate it.  It
+    # does this via a local Firefox, which it talks to through Python equipped
+    # with the "Marionette" protocol.  (Ren-C can't be used for the protocol at
+    # time of writing, because it lacks websockets...which are needed to
+    # remote-control Firefox.  Chrome DevTools are similar.)
+
+    - name: LATEST-OF Smoke Test
       if: github.ref == 'refs/heads/master'  # see notes on UPLOAD STEPS
       uses: metaeducation/ren-c-action@release
       with:
         web: true
-        timeout: 15 
-        screenshot: repl
+        timeout: 15
+        screenshot: latest-of
+        script: |
+          (url: latest-of)
+          print ["Result was:" mold url]
+          assert [url? url]
+
+
+    - name: Watchlist Smoke Test
+      if: github.ref == 'refs/heads/master'  # see notes on UPLOAD STEPS
+      uses: metaeducation/ren-c-action@release
+      with:
+        web: true
+        timeout: 15
+        screenshot: watch
         script: |
           x: 10
           watch x
           assert [10 = watch 1]
-          assert [url? latest-of]
+
+
+    - name: Redbol Smoke Test
+      if: github.ref == 'refs/heads/master'  # see notes on UPLOAD STEPS
+      uses: metaeducation/ren-c-action@release
+      with:
+        web: true
+        timeout: 15
+        screenshot: redbol
+        script: |
           redbol
+          block: [b c]
+          assert [[a b c d] = compose [a (block) d]]
 
 
     # Early on, @gchiu wrote some code to interoperate with a JS chess board.
@@ -119,7 +143,7 @@ jobs:
       uses: metaeducation/ren-c-action@release
       with:
         web: true
-        timeout: 15 
+        timeout: 15
         screenshot: chess
         script: |
           animate-game: do @chess

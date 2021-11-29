@@ -229,7 +229,13 @@ export redbol: func [return: <none>] [
         "Discuss this experiment on the forum--and help if you can!"
     ]
     print "Fetching %redbol.reb from GitHub..."
-    import @redbol
+
+    ; !!! If we do just `import @redbol` here we will import it to this main
+    ; (which will mess things up).  We want it to go to the user context.  This
+    ; is a somewhat sloppy command...people should be doing their own imports.
+    ; But it's just to demonstrate.
+    ;
+    sys.import* system.contexts.user @redbol
 
     system.console.prompt: "redbol>>"
 ]
