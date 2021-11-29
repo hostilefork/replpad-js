@@ -218,7 +218,7 @@ export redbol: func [return: <none>] [
         ""
         "REDBOL is an experimental emulation of Rebol2/Red conventions.  It"
         "uses module isolation so emulated code can run side-by-side with"
-        "new code.  Scripts that wish to use it should `import <redbol>`."
+        "new code.  Scripts that wish to use it should `import @redbol`."
         "(But you just ran the REDBOL command which applies the change"
         "irreversibly to the console context, just for trying it out.)"
         ""
@@ -229,7 +229,7 @@ export redbol: func [return: <none>] [
         "Discuss this experiment on the forum--and help if you can!"
     ]
     print "Fetching %redbol.reb from GitHub..."
-    do <redbol>
+    import @redbol
 
     system.console.prompt: "redbol>>"
 ]
