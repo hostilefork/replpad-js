@@ -188,28 +188,6 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /*display: inline-block;*/
 }
 
-.input-container {
-    /*
-     * !!! This was set to display as a table, which does not suit multi-line
-     * well, but may be necessary to achieve a good single-line effect.
-     */
-    /*display: table;*/
-}
-
-.input-prompt {
-    /*
-     * Input prompts are an "evolving work" as the mechanism in the Repl is
-     * figured out.  But while .line wants to be able to do word breaks, the
-     * .input-prompt (which also carries the line style) seems to think it
-     * needs to break `>>` across lines as `>` and `>`, due to how the layout
-     * is done.  For now, we override it back to default breaking behavior.
-     */
-    word-break: normal;
-    white-space: pre;  /* inheriting pre-wrap won't show trailing space */
-
-    display: inline-block;
-}
-
 .input {
     /*
      * None of these properties seem to work from CSS, so squiggly underlines

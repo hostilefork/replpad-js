@@ -133,6 +133,23 @@ function DeactivateInput() {
     el.style.height = 'auto'
 }
 
+// Last replpad child may or may not be <div class="line"> (arbitrary content
+// can be injected for rich html content).  This adds if not already.  Also,
+// will find a span in that line of the given class or add if not already.
+//
+function EnsureLastLineSpan(classname) {
+    let line = replpad.lastChild  // want to add to last div *if* it's a "line"
+    if (!line || line.className != 'line') {
+        line = load("<div class='line'></div>")
+        replpad.appendChild(line)
+    }
+    let span = line.lastChild
+    if (!span || span.className != classname) {
+        span = load("<span class='" + classname + "'></span>")
+        line.appendChild(span)
+    }
+    return span
+}
 
 document.addEventListener('DOMContentLoaded', function () {  //...don't indent
 

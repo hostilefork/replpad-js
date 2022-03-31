@@ -214,11 +214,7 @@ replpad-write-js: js-awaiter [
         return reb.None()
     }
 
-    let line = replpad.lastChild  // want to add to last div *if* it's a "line"
-    if (!line || line.className != 'line') {
-        line = load("<div class='line'></div>")
-        replpad.appendChild(line)
-    }
+    let span = EnsureLastLineSpan('stdout')  // write to a stdout span
 
     // We want each line in its own `<div>`.  Split string into lines first,
     // otherwise the `\n` gets translated into `<br>`.  Note that splitting a
@@ -234,12 +230,14 @@ replpad-write-js: js-awaiter [
     // new line
     //
     while (pieces.length > 1) {
-        line.innerHTML += pieces.shift() + "\n"  // shift() is like Rebol's TAKE
+        span.innerHTML += pieces.shift() + "\n"  // shift() is like Rebol's TAKE
         line = load("<div class='line'></div>")
+        span = load("<span class='stdout'></span>")
+        line.appendChild(span)
         replpad.appendChild(line)
     }
 
-    line.innerHTML += pieces.shift()
+    span.innerHTML += pieces.shift()
     return reb.None()
 }
 
@@ -336,33 +334,7 @@ export read-line: js-awaiter [
     {Read single-line or multi-line input from the user}
     return: [text!]
 ]{
-    // The current prompt is always the last child in the last "line" div
-    //
-    let prompt = replpad.lastChild.lastChild
-
-    // The prompt is always a text node, and so we need to create a HTML
-    // version of it to be able to adjust its layout next to the input.
-    //
-    var prompt_html = document.createElement("span")
-    prompt_html.innerHTML = prompt.textContent
-    prompt_html.className = "input-prompt"
-
-    let new_input = load("<span class='input'></span>")
-
-    // Add a container to place the prompt and input into.  This allows us to
-    // adjust the width the input takes without making it drop to a new line.
-    //
-    var container = document.createElement("div")
-    container.className = "input-container"
-    container.appendChild(prompt_html)
-    container.appendChild(new_input)
-
-    // Add the new container before the old prompt
-    prompt.parentNode.insertBefore(container, prompt)
-
-    // Remove the old prompt
-    prompt.parentNode.removeChild(prompt)
-
+    let new_input = EnsureLastLineSpan('input')
     ActivateInput(new_input)
 
     // This body of JavaScript ending isn't enough to return to the Rebol
