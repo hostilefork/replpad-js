@@ -173,20 +173,6 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* margin-left: -20px; */  /* !!! Not working :-( */
 }
 
-.line:after {
-    /*
-     * An empty .line (e.g. <div class="line"></div>) represents an empty line
-     * in the console, but by default HTML will hide these.  This solution
-     * was tried, but it does not seem to work:
-     *
-     * https://stackoverflow.com/a/41503905
-     *
-     * So for the moment, we have to put "zero width non-joiners" in the
-     * HTML...which is not very elegant.
-     */
-    /*content: '\200b';*/
-    /*display: inline-block;*/
-}
 
 .input {
     /*
@@ -198,10 +184,6 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     /* autocorrect: "off"; */
     /* autocapitalize: "off"; */
     /* spellcheck: "false"; */
-
-    padding-right: 1px;  /* needs room to display cursor */
-
-    vertical-align: top;
 
     font-weight: normal;
     color: #000000;
@@ -241,12 +223,44 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      */
     display: inline;
 
+    /* SEE GITHUB ISSUE FOR WHY THIS IS NEEDED AND THE OTHER FAILED ATTEMPTS!
+     *
+     * https://github.com/hostilefork/replpad-js/issues/37
+     *
+     * But to try and solve giving people enough of a clickable area to paste
+     * at the head of the input we use a *positive* padding on the left with
+     * a *negative* margin to compensate.  This makes the clickable area of the
+     * input overlap its left neighbor--if any--a little bit without actually
+     * disrupting the fixed-font layout.  (Use the browser's CSS inspector
+     * to see the effect of adding or removing this.)
+     *
+     * See also: https://stackoverflow.com/a/8090502
+     */
+    padding-left: 10px;
+    margin-left: -10px;
+    /*
+     * Note: The RIGHT hand side is handled by the ::after effect, injecting
+     * invisible content.  This subverts the "can't have a minimum size"
+     * problem without sacrificing space on the right margin (it doesn't seem
+     * to parallel the behavior on the left when there's no neighbor).
+     */
 }
 
 .input:focus {
     /* https://stackoverflow.com/a/2260788 */
     outline: 0px solid transparent;  /* avoid border on contenteditable div */
 }
+
+.input:focus::after {  /* ^-- SEE ABOVE remarks on padding-left/margin-left */
+    content: "     ";  /* see also https://stackoverflow.com/a/41503905 */
+
+    /* When an input element is focused, there shouldn't be anything under it.
+     * So adding padding underneath gives a bigger area for clicking to get
+     * the right context menu with Paste, etc. on it.
+     */
+    padding-bottom: 40px;
+}
+
 
 /* There's no way to disable the key shortcuts for making things bold or italic
  * in contentEditable, short of hooking key codes.  But since <b> and <i> are
