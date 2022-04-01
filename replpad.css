@@ -202,10 +202,45 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     padding-right: 1px;  /* needs room to display cursor */
 
     vertical-align: top;
-    display: inline-block;
 
     font-weight: normal;
     color: #000000;
+
+    /* The preferred choice for input spans is `display: inline`.  If it were
+     * `display: block` then a long prompt or text to the left would make the
+     * input unable to use the space underneath that prompt:
+     *
+     *     YOUR LONG PROMPT HERE>> the input you type when it's long will wrap
+     *                             like this with `display: block`
+     *
+     * A second choice is `display: inline-block`, which looks good at first
+     *
+     *     YOUR LONG PROMPT HERE>> so far so good for `display: inline-block`
+     *
+     * But it will jump to the next line if it gets too long for one line:
+     *
+     *     YOUR LONG PROMPT HERE>>
+     *     so far so good for `display: inline-block` but wait, now it's not
+     *
+     * With `display: inline` we get the desired wrapping...
+     *
+     * ...HOWEVER...there have been many unfortunate quirks encountered.  They
+     * seem mitigated at this point (or at least feature ideas that triggered
+     * the quirks have been scrapped).  At various points we've seen:
+     *
+     *    [x] Empty inline elements have no insertion caret
+     *    https://stackoverflow.com/q/25897883/
+     *
+     *    [x] Cursor "jumps" between typing words on Android inline elements
+     *    https://stackoverflow.com/q/68187400/
+     *
+     * ...as well as other problems.  At one point the empty element cursor
+     * issue was solved with JavaScript flipping `inline` and `inline-block`
+     * based on detecting emptiness, but possibly using click() as well as
+     * doing a focus() sorted it out.
+     */
+    display: inline;
+
 }
 
 .input:focus {
