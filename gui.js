@@ -30,6 +30,8 @@
 'use strict'  // <-- FIRST statement! https://stackoverflow.com/q/1335851
 
 
+//=//// UTILITY ROUTINES ///////////////////////////////////////////////////=//
+
 // Lets us do something like jQuery $("<div class='foo'>content</div>").
 // load("&lt;") gives `<` while document.createTextNode("&lt;") gives `&lt;`
 //
@@ -48,6 +50,19 @@ function load(html) {
     return loaded
 }
 
+let mold = JSON.stringify  // shorter name
+
+function removeCharAt(s, pos) {
+    let before = input.textContent.slice(0, pos)
+    let after = input.textContent.slice(pos + 1)
+    return before + after
+}
+
+
+//=//// FORWARD DECLARATIONS ///////////////////////////////////////////////=//
+//
+// When you have `use strict` at the top of your file, everything has to be
+// declared before it is assigned or used.
 
 var replpad
 
@@ -60,6 +75,7 @@ var input_history = []
 var input_history_index = -1
 var first_input = null
 var onInputKeyDown
+var onInputEvent
 var placeCaretAtEnd
 
 var RowClick
@@ -79,10 +95,18 @@ var OnMenuPaste
 var OnMenuCopy
 
 
+//=//// REPLPAD ////////////////////////////////////////////////////////////=//
 
 function ActivateInput(el) {
-    el.onkeydown = onInputKeyDown
     el.contentEditable = true
+
+    // !!! Due to many issues with keyboard handling on Android, you sometimes
+    // get an `Enter` keydown event...and sometimes you get a newline tagging
+    // along with your input and no enter event.  So we do the Enter handling
+    // in either case, and strip the newline out of the input if we get one.
+    //
+    el.onkeydown = onInputKeyDown
+    el.addEventListener('input', onInputEvent)
 
     // These don't seem to work from CSS, so they have to be assigned from
     // the JS directly like this.  They're not completely standard, but
@@ -130,8 +154,11 @@ function ActivateInput(el) {
 function DeactivateInput() {
     var el = input
     input = null
-    el.onkeydown = null
+
     el.contentEditable = false
+
+    el.onkeydown = null
+    el.removeEventListener('input', onInputEvent)
 
     // shrinks the previous input down to a
     // minimum size that will fit its contents
@@ -333,6 +360,87 @@ function HandleEnter(e) {
     e.preventDefault()  // Allowing enter puts a <br>
 }
 
+
+// It is a known issue that the Gboard Android keyboard will not send raw
+// keydown/keyup/keypress events.  Most it sends are code 229, "incomplete":
+//
+// https://stackoverflow.com/q/30743490/
+//
+// Although it *occasionally* will send a keydown ENTER event (what we are
+// most interested in), it usually does not.  It will often slip the newline
+// as an `InputEvent` along with other content.
+//
+// So if the user types `xy`<Enter> we sometimes get two events:
+//
+//    [1] input event where e.data is `x`
+//    [2] input event where e.data is `y\n`
+//
+// Even more aggravatingly, the textContent of the node from those two events
+// may come back as `xy\n\n` with the newlines doubled!
+//
+// https://stackoverflow.com/q/56535416/
+//
+// It would be nice to pretend Google's keyboard did not exist, and force
+// everyone to install something like the Hacker's Keyboard.  But it seems that
+// enough pieces are available to get it sort of working.  :-/
+
+onInputEvent = function(e) {
+    if (input.classList.contains("multiline"))
+        return  // let newline handling be done normally
+
+    // NOTE: There is no consistent information in the inputEvent of where the
+    // information was inserted (e.rangeOffset can tell you in (some?) desktop
+    // browser buts Android doesn't seem to have it).  We do a lot of guessing.
+
+    let text = input.textContent
+
+    // See above for how textContent on Chrome may double up newlines at the
+    // tail, e.g. `xy\n\n` instead of `xy\n`.  (Also note some events have
+    // e.data as null...)
+    //
+    if (e.data && e.data.endsWith('\n')) {
+        let data_pos = text.indexOf(e.data)
+        let data_tail = data_pos + e.data.length
+        if (data_tail < text.length && text.charAt(data_tail) == '\n')
+            text = removeCharAt(text, data_tail)
+    }
+
+    let num_line_breaks = (text.match(/\n/g)||[]).length
+    if (num_line_breaks == 0)
+        return  // as it should be, ideally (all `Enter` hooked by keydown)
+
+    // Note that pasting content could produce newlines typically, *but* we
+    // hook the paste event so this should force multiline.
+    //
+    if (num_line_breaks == 1) {  // sneaky Android bug
+        //
+        // Find the newline that was inserted, and check that it was the result
+        // of this insertion event.
+        //
+        let newline_pos = text.indexOf('\n')
+        console.assert(newline_pos != -1)
+        let data_pos = text.indexOf(e.data)
+        let data_len = e.data.length
+        if ((newline_pos < data_pos) || (newline_pos > data_pos + data_len)) {
+            alert("unnanounced newline found: data is " + mold(e.data)
+                    + " and text is " + mold(text))
+        }
+
+        // Remove the newline-that-was-supposed-to-be-Enter
+        //
+        input.textContent = removeCharAt(text, newline_pos)
+
+        HandleEnter(e)  // Simulate an enter being pressed
+        return
+    }
+
+    // If we got here, there were multiple newlines inserted.  Ordinarly this
+    // could happen legitimately with a PASTE, but we are trapping pastes so
+    // it should not.
+
+    alert("bad multiple newlines: data is " + mold(e.data)
+        + " and text is " + mold(text))
+}
 
 onInputKeyDown = function(e) {
     e = e || window.event  // !!! "ensure not null"... necessary? :-/
