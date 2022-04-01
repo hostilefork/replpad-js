@@ -247,6 +247,93 @@ function CollapseMultiline() {
     input.classList.remove("multiline")
 }
 
+
+function HandleEnter(e) {
+    // https://stackoverflow.com/a/6015906
+    if (e.shiftKey && !input.classList.contains("multiline")) {
+        //
+        // SHIFT-ENTER transitions into multiline, but it's too commonly
+        // used to inject plain newlines into submittable-data to be
+        // allowed to do anything else but add a normal line once you
+        // are in the multiline mode.  Hence, CTRL-ENTER submits, and
+        // we only toggle multiline *on* from shift enter.  Escape can
+        // be used to get out of multiline.
+        //
+        let arrow = load(
+            "<span class='multiline-arrow'>[Ctrl-Enter to evaluate]</span>"
+        )
+        input.parentNode.insertBefore(arrow, input)
+        input.classList.add("multiline")
+
+        // One might argue that a person in the middle of a line who hits
+        // Shift-Enter wants to enter multiline mode *and* get a newline,
+        // but it could also be just a partial thought to type "a" and then
+        // realize you want to be in multiline mode.  So getting "a" on
+        // its own line and a cursor on the next, having to backspace,
+        // could be annoying.  Since the user's finger is on the ENTER
+        // key already they cna just hit it again if they want (even can
+        // keep shift held down).  So prevent propagating to the editable
+        // div so it doesn't insert a newline.
+        //
+        e.preventDefault()
+        return
+    }
+
+    if (input.classList.contains("multiline") && !e.ctrlKey) {
+        //
+        // In Ren Garden this had some logic that if you hit a couple of
+        // blank lines at the end, it assumed you wanted to submit...but
+        // didn't do any analysis of when the code was "complete".  This
+        // should be reviewed.
+        //
+        // For the moment, just fall through to the default newline insert
+        return
+    }
+
+    // Otherwise, consider the input ready for evaluation
+
+    // We don't want to get <br>, <div>, or &nbsp; in the Rebol text.
+    // But to preserve the undo information, we also don't want to reach
+    // in and canonize the mess the browser made during contentEditable.
+    //
+    // Do in steps; tweak the HTML of a copy, then get the textContent.
+    // https://stackoverflow.com/a/5959455
+    //
+    // `/g` is global replace, `/gi` is global replace case-insensitively
+    //
+    let clone_children = true
+    let temp = input.cloneNode(clone_children)
+    temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n")
+    temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n")
+    temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n")
+    temp.innerHTML = temp.innerHTML.replace(/&nbsp;/gi, ' ')
+    temp.innerHTML = temp.innerHTML.replace(/\u200C/g, ' ')
+
+    // Note: textContent is different from innerText
+    // http://perfectionkills.com/the-poor-misunderstood-innerText/
+    //
+    let text = temp.textContent
+    DeactivateInput()
+
+    // We want the replpad to act equivalently to what's generally possible
+    // on consoles.  With stdio, if the user hits enter, the cursor goes
+    // to the next line.  Hence getting input up to a return should act
+    // that way for plain INPUT.  Richer choices should be available, but
+    // one wants a standard program to work standardly.
+    //
+    let new_line = load("<div class='line'></div>")
+    replpad.appendChild(new_line)
+
+    input_resolve(text)
+    input_resolve = undefined
+
+    input_history.push(text)
+    input_history_index = input_history.length
+
+    e.preventDefault()  // Allowing enter puts a <br>
+}
+
+
 onInputKeyDown = function(e) {
     e = e || window.event  // !!! "ensure not null"... necessary? :-/
 
@@ -256,91 +343,10 @@ onInputKeyDown = function(e) {
     }
 
     if (e.key == 'Enter' || e.keyCode == 13) { // !!! 13 is enter, standard??
-
-        // https://stackoverflow.com/a/6015906
-        if (e.shiftKey && !input.classList.contains("multiline")) {
-            //
-            // SHIFT-ENTER transitions into multiline, but it's too commonly
-            // used to inject plain newlines into submittable-data to be
-            // allowed to do anything else but add a normal line once you
-            // are in the multiline mode.  Hence, CTRL-ENTER submits, and
-            // we only toggle multiline *on* from shift enter.  Escape can
-            // be used to get out of multiline.
-            //
-            let arrow = load(
-                "<span class='multiline-arrow'>[Ctrl-Enter to evaluate]</span>"
-            )
-            input.parentNode.insertBefore(arrow, input)
-            input.classList.add("multiline")
-
-            // One might argue that a person in the middle of a line who hits
-            // Shift-Enter wants to enter multiline mode *and* get a newline,
-            // but it could also be just a partial thought to type "a" and then
-            // realize you want to be in multiline mode.  So getting "a" on
-            // its own line and a cursor on the next, having to backspace,
-            // could be annoying.  Since the user's finger is on the ENTER
-            // key already they cna just hit it again if they want (even can
-            // keep shift held down).  So prevent propagating to the editable
-            // div so it doesn't insert a newline.
-            //
-            e.preventDefault()
-            return
-        }
-
-        if (input.classList.contains("multiline") && !e.ctrlKey) {
-            //
-            // In Ren Garden this had some logic that if you hit a couple of
-            // blank lines at the end, it assumed you wanted to submit...but
-            // didn't do any analysis of when the code was "complete".  This
-            // should be reviewed.
-            //
-            // For the moment, just fall through to the default newline insert
-            return
-        }
-
-        // Otherwise, consider the input ready for evaluation
-
-        // We don't want to get <br>, <div>, or &nbsp; in the Rebol text.
-        // But to preserve the undo information, we also don't want to reach
-        // in and canonize the mess the browser made during contentEditable.
-        //
-        // Do in steps; tweak the HTML of a copy, then get the textContent.
-        // https://stackoverflow.com/a/5959455
-        //
-        // `/g` is global replace, `/gi` is global replace case-insensitively
-        //
-        let clone_children = true
-        let temp = input.cloneNode(clone_children)
-        temp.innerHTML = temp.innerHTML.replace(/<br\s*[\/]?>/gi, "\n")
-        temp.innerHTML = temp.innerHTML.replace(/<div>/gi, "\n")
-        temp.innerHTML = temp.innerHTML.replace(/<\/div>/gi, "\n")
-        temp.innerHTML = temp.innerHTML.replace(/&nbsp;/gi, ' ')
-        temp.innerHTML = temp.innerHTML.replace(/\u200C/g, ' ')
-
-        // Note: textContent is different from innerText
-        // http://perfectionkills.com/the-poor-misunderstood-innerText/
-        //
-        let text = temp.textContent
-        DeactivateInput()
-
-        // We want the replpad to act equivalently to what's generally possible
-        // on consoles.  With stdio, if the user hits enter, the cursor goes
-        // to the next line.  Hence getting input up to a return should act
-        // that way for plain INPUT.  Richer choices should be available, but
-        // one wants a standard program to work standardly.
-        //
-        let new_line = load("<div class='line'></div>")
-        replpad.appendChild(new_line)
-
-        input_resolve(text)
-        input_resolve = undefined
-
-        input_history.push(text)
-        input_history_index = input_history.length
-
-        e.preventDefault()  // Allowing enter puts a <br>
+        HandleEnter(e)  // Note Android may signal Enter only via `input` event
         return
-    } else if (e.keyCode == 38) { // arrow - up
+    }
+    else if (e.keyCode == 38) { // arrow - up
         if (!input.classList.contains("multiline")) {
             if (input_history_index > 0) {
                 input_history_index--
@@ -349,7 +355,8 @@ onInputKeyDown = function(e) {
 
             e.preventDefault()
         }
-    } else if (e.keyCode == 40) { // arrow - down
+    }
+    else if (e.keyCode == 40) { // arrow - down
         if (!input.classList.contains("multiline")) {
             if (input_history_index < input_history.length - 1) {
                 input_history_index++
