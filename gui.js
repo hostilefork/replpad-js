@@ -394,6 +394,14 @@ onInputEvent = function(e) {
 
     let text = input.textContent
 
+    // NOTE: See %replpad.css for why this switcheroo is needed; empty `inline`
+    // elements in contenteditable don't show an insertion caret.  We don't
+    // mind them being `inline-block` if empty, so flip it only if empty.
+    //
+    let display = (text == '') ? 'inline-block' : 'inline'
+    if (display != window.getComputedStyle(input, null).display)
+        input.style.display = display
+
     // See above for how textContent on Chrome may double up newlines at the
     // tail, e.g. `xy\n\n` instead of `xy\n`.  (Also note some events have
     // e.data as null...)

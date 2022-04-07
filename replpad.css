@@ -216,12 +216,11 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      *    [x] Cursor "jumps" between typing words on Android inline elements
      *    https://stackoverflow.com/q/68187400/
      *
-     * ...as well as other problems.  At one point the empty element cursor
-     * issue was solved with JavaScript flipping `inline` and `inline-block`
-     * based on detecting emptiness, but possibly using click() as well as
-     * doing a focus() sorted it out.
+     * Attempts to fix the no caret problem with things like padding didn't
+     * work consistently.  So it is fixed by making it inline-block ONLY when
+     * it is empty, managed by a little bit of JavaScript code.
      */
-    display: inline;
+    display: inline-block;  /* ^-- switched by JS to inline when has content */
 
     /* SEE GITHUB ISSUE FOR WHY THIS IS NEEDED AND THE OTHER FAILED ATTEMPTS!
      *
