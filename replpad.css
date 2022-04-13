@@ -208,19 +208,15 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      *
      * ...HOWEVER...there have been many unfortunate quirks encountered.  They
      * seem mitigated at this point (or at least feature ideas that triggered
-     * the quirks have been scrapped).  At various points we've seen:
+     * the quirks have been scrapped).  One problem was that the cursor would
+     * "jump" between typing words on Android inline elements, not seen now:
      *
-     *    [x] Empty inline elements have no insertion caret
-     *    https://stackoverflow.com/q/25897883/
+     * https://stackoverflow.com/q/68187400/
      *
-     *    [x] Cursor "jumps" between typing words on Android inline elements
-     *    https://stackoverflow.com/q/68187400/
-     *
-     * Attempts to fix the no caret problem with things like padding didn't
-     * work consistently.  So it is fixed by making it inline-block ONLY when
-     * it is empty, managed by a little bit of JavaScript code.
+     * Another problem is that in Chromium browsers, empty inline elements
+     * will not show a cursor.  A special selector switches to `inline-block`
      */
-    display: inline-block;  /* ^-- switched by JS to inline when has content */
+    display: inline;  /* ^-- overridden when `.input:not(.multiline):empty` */
 
     /* SEE GITHUB ISSUE FOR WHY THIS IS NEEDED AND THE OTHER FAILED ATTEMPTS!
      *
@@ -243,6 +239,13 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      * problem without sacrificing space on the right margin (it doesn't seem
      * to parallel the behavior on the left when there's no neighbor).
      */
+}
+
+/* Our workaround for "Empty inline elements have no insertion caret"
+ * https://stackoverflow.com/q/25897883/
+ */
+.input:not(.multiline):empty {
+    display: inline-block;  /* .input has `display: inline` when not empty */
 }
 
 .input:focus {
