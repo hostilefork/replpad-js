@@ -139,11 +139,13 @@ function ActivateInput(el) {
     if (replcontainer.scrollTop < 3) {
         replcontainer.scrollTop = 0  // go ahead and snap to bottom
 
-        // On Android you have to "click" the element or the text caret cursor
-        // will not show up.  This has to be done *after* it is focused.
-        //
         el.focus()
-        el.click()
+        //
+        // Once we called input.click() here for good measure, but that runs
+        // our own OnClick callback; confusing if not needed.  Is it?
+        //
+        //    el = input  // click handler needed `input` set
+        //    input.click()
 
         placeCaretAtEnd(el)
     }
