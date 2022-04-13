@@ -75,40 +75,40 @@ js-do-dialect-helper: func [
     unspaced collect [
         let keep-transient: func [t /required [word!]] [
             switch type of t [
-                meta-word! meta-path! [keep api-transient get t]
-                meta-group! [keep api-transient reeval as group! t]
+                the-word! the-tuple! [keep api-transient get t]
+                the-group! [keep api-transient reeval as group! t]
 
                 assert [required]
-                fail [required "must have its argument as ^^..., ^^(...)"]
+                fail [required "must have its argument as @x, @x.y @(...)"]
             ]
         ]
 
         iterate b [
-            switch type of b/1 [
-                text! [keep b/1]
-                group! [keep/only reeval b/1]
+            switch type of b.1 [
+                text! [keep b.1]
+                group! [keep/only reeval b.1]
 
-                meta-word! meta-path! meta-group! [keep-transient b/1]
+                the-word! the-path! the-group! [keep-transient b.1]
 
-                word! [switch b/1 [
+                word! [switch b.1 [
                     'spell [
                         keep "reb.Spell("
                         b: next b
-                        keep-transient/required try :b/1 'SPELL
+                        keep-transient/required try :b.1 'SPELL
                         keep ")"
                     ]
                     'unbox [
                         keep "reb.Unbox("
                         b: next b
-                        keep-transient/required try :b/1 'UNBOX
+                        keep-transient/required try :b.1 'UNBOX
                         keep ")"
                     ]
-                    fail ["Unknown JS-DO dialect keyword:" b/1]
+                    fail ["Unknown JS-DO dialect keyword:" b.1]
                 ]]
 
                 fail [
-                    {JS-DO dialect supports TEXT!, META-WORD!, META-GROUP!,}
-                    {META-PATH!...plus the keywords SPELL and UNBOX}
+                    {JS-DO dialect supports TEXT!, THE-WORD!, THE-TUPLE!,}
+                    {THE-PATH!...plus the keywords SPELL and UNBOX}
                 ]
             ]
         ]
@@ -138,7 +138,7 @@ js-do: func [
     {Execute JavaScript file or evaluate a string of JavaScript source}
 
     return: [<opt> bad-word!]  ; What useful return result could there be?
-    source "If BLOCK!, interpreted in JS-DO dialect (substitutes ^^-values)"
+    source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<blank> block! text! file! url! tag!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
@@ -182,7 +182,7 @@ js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
     return: [<opt> bad-word! integer! text!]
-    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes ^^-values)"
+    expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<blank> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]

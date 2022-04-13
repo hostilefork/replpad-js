@@ -105,7 +105,7 @@ watch: function [
                 // good when making HTML from strings.  Use innerText assign.
                 //
                 let td_name = load("<td></td>")
-                td_name.innerText = } spell ^(quote arg) {
+                td_name.innerText = } spell @(quote arg) {
                 tr.appendChild(td_name)
 
                 tr.appendChild(load("<td></td>"))  // UPDATE-WATCHES fills in
@@ -146,7 +146,7 @@ update-watches: function [] [
             let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
             let td = tr.childNodes[2]  // 1-based indexing, so 2 is 3rd column
 
-            td.innerText = } spell ^result {
+            td.innerText = } spell @result {
         }]
         n: n + 1
     ]
