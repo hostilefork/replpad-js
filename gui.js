@@ -202,6 +202,13 @@ replpad.onclick = OnClickReplPad
 replpad.addEventListener("paste", (e) => {
     e.preventDefault();  // cancel HTML-based paste
     var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+
+    // If the text contains newlines, we want to switch into multi-line editing
+    // mode automatically.
+    //
+    if (!input.classList.contains("multiline") && -1 != text.indexOf('\n'))
+        ExpandMultiline();
+
     document.execCommand("insertText", false, text);  // insertText is new-ish
 });
 
@@ -275,6 +282,15 @@ function CollapseMultiline() {
 }
 
 
+function ExpandMultiline() {
+    let arrow = load(
+        "<span class='multiline-arrow'>[Ctrl-Enter when input finished]</span>"
+    )
+    input.parentNode.insertBefore(arrow, input)
+    input.classList.add("multiline")
+}
+
+
 function HandleEnter(e) {
     // https://stackoverflow.com/a/6015906
     if (e.shiftKey && !input.classList.contains("multiline")) {
@@ -286,11 +302,7 @@ function HandleEnter(e) {
         // we only toggle multiline *on* from shift enter.  Escape can
         // be used to get out of multiline.
         //
-        let arrow = load(
-            "<span class='multiline-arrow'>[Ctrl-Enter to evaluate]</span>"
-        )
-        input.parentNode.insertBefore(arrow, input)
-        input.classList.add("multiline")
+        ExpandMultiline()
 
         // One might argue that a person in the middle of a line who hits
         // Shift-Enter wants to enter multiline mode *and* get a newline,
