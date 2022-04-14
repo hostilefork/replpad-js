@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {  //...don't indent
 
 //=//// DOMContentLoaded Handled ///////////////////////////////////////////=//
 
+var container = document.querySelector("#container")
 var replcontainer = document.getElementById('replcontainer')
 replpad = document.getElementById('replpad')
 replpad.onclick = OnClickReplPad
@@ -791,6 +792,107 @@ function replaceSelectedText(newText) { // https://stackoverflow.com/a/3997896
 }
 
 
+  //=//// DRAGGABLE CIRCULAR MENU //////////////////////////////////////////=//
+  //
+  // Techniques taken from: https://www.kirupa.com/html5/drag.htm
+  //
+
+var circular = (function() {
+    let menu = document.querySelector("#circularMenu")
+    let center = document.querySelector("#circularMenuCenter")
+    let center_icon = document.querySelector("#circularMenuCenter i")
+
+    let active = false
+    let currentX
+    let currentY
+    let initialX
+    let initialY
+
+    let xOffset = 0
+    let yOffset = 0
+
+    function dragStart(e) {
+        if (e.type === "touchstart") {
+            initialX = e.touches[0].clientX - xOffset
+            initialY = e.touches[0].clientY - yOffset
+        } else {
+            initialX = e.clientX - xOffset
+            initialY = e.clientY - yOffset
+        }
+
+        if (e.target === circularMenuCenter)
+           active = true
+    }
+
+    function dragEnd(e) {
+        initialX = currentX
+        initialY = currentY
+
+        active = false
+    }
+
+    function drag(e) {
+        if (!active)
+            return
+
+        e.preventDefault()
+
+        if (e.type === "touchmove") {
+            currentX = e.touches[0].clientX - initialX
+            currentY = e.touches[0].clientY - initialY
+        }
+        else {
+            currentX = e.clientX - initialX
+            currentY = e.clientY - initialY
+        }
+
+        xOffset = currentX
+        yOffset = currentY
+
+        setTranslate(currentX, currentY, menu)  // was dragitem
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"
+    }
+
+    function toggleExpand() {
+        menu.classList.toggle('active')
+    }
+
+    // Notice we are listening on the container and not on the dragged item:
+    //
+    // "...when you are dragging your element really quickly, your pointer will
+    // leave the hit area of the element you are dragging.  When that happens,
+    // your drag will abruptly stop (...) we can avoid that by listening for
+    // the events on the dragged element's container instead."
+    //
+    container.addEventListener("touchstart", dragStart, false)
+    container.addEventListener("touchend", dragEnd, false)
+    container.addEventListener("touchmove", drag, false)
+    container.addEventListener("mousedown", dragStart, false)
+    container.addEventListener("mouseup", dragEnd, false)
+    container.addEventListener("mousemove", drag, false)
+
+    // The position the user leaves the circular menu at may be too close to
+    // the edge of the screen to see all the options.  So we want to ease it
+    // into view and then back to the position the user wanted it when done.
+    //
+    center_icon.onclick = toggleExpand
+
+    return {
+        show: function() {
+            menu.style.display = null  // falls back to default CSS properties
+        },
+
+        hide: function() {
+            menu.style.display = 'none'
+        }
+    }
+})()
+
+
+
 //=//// END `DOMContentLoaded` HANDLER /////////////////////////////////////=//
 
 
@@ -863,6 +965,12 @@ reb.Startup({
     error:  rewired(console.error, "error")
 
 }).then(() => {
+
+    // Show the circular menu (this should heed a sticky setting of whether the
+    // user actually wants it or not, and where they'd like it to try to
+    // locate itself)
+    //
+    circular.show()
 
     return reb.Promise("main")
 

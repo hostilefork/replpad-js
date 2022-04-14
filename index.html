@@ -104,10 +104,29 @@
     <script type="text/rebol" src="./main.reb"></script>
 
     <link rel="stylesheet" type="text/css" href="replpad.css">
+
+    <!-- Just for testing with the radial menu -->
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   </head>
   <body>
-    <div class="container">
-      <div id="replcontainer" class="split">
+    <div id="container" class="container">  <!-- This container is NOT flipped upside down -->
+
+      <div id="circularMenu" class="circular-menu" style="display: none;">
+
+        <a id="circularMenuCenter" class="floating-btn">
+          <i class="fa fa-bars" style="cursor: pointer;"></i>
+        </a>
+
+        <menu class="items-wrapper">
+          <a href="#" class="menu-item fa fa-undo"></a>
+          <a href="#" class="menu-item fa fa-code"></a>
+          <a href="#" class="menu-item fa fa-bomb"></a>
+          <a href="#" class="menu-item fa fa-anchor"></a>
+        </menu>
+
+      </div>
+
+      <div id="replcontainer" class="split">  <!-- Flipped upside down! -->
         <div id="replpad">
           <!-- Due to `white-space: pre;` in CSS, these can't line break -->
 
