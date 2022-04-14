@@ -312,7 +312,7 @@ function HandleEnter(e) {
         // realize you want to be in multiline mode.  So getting "a" on
         // its own line and a cursor on the next, having to backspace,
         // could be annoying.  Since the user's finger is on the ENTER
-        // key already they cna just hit it again if they want (even can
+        // key already they can just hit it again if they want (even can
         // keep shift held down).  So prevent propagating to the editable
         // div so it doesn't insert a newline.
         //

@@ -206,17 +206,21 @@ img.center { /* https://stackoverflow.com/a/7055404 */
      *
      * With `display: inline` we get the desired wrapping...
      *
-     * ...HOWEVER...there have been many unfortunate quirks encountered.  They
-     * seem mitigated at this point (or at least feature ideas that triggered
-     * the quirks have been scrapped).  One problem was that the cursor would
-     * "jump" between typing words on Android inline elements, not seen now:
+     * ...HOWEVER...there have been many unfortunate quirks encountered.  One
+     * issue is that in Chromium browsers, empty inline elements will not show
+     * a cursor.  But since there is an `:empty` CSS selector, those can be
+     * set to `inline-block` without it making a difference.
      *
-     * https://stackoverflow.com/q/68187400/
+     * But a problem that could not be overcome was that input is mucked up
+     * when typing words on android inline contentEditable elements, when using
+     * the default "Gboard".  Many people have looked at this with no easy fix:
      *
-     * Another problem is that in Chromium browsers, empty inline elements
-     * will not show a cursor.  A special selector switches to `inline-block`
+     * https://github.com/hostilefork/replpad-js/issues/98
+     *
+     * !!! For now we say `display: inline-block` just to not have conditional
+     * Android behavior, to see if that's going to be good enough.
      */
-    display: inline;  /* ^-- overridden when `.input:not(.multiline):empty` */
+    display: inline-block;
 
     /* SEE GITHUB ISSUE FOR WHY THIS IS NEEDED AND THE OTHER FAILED ATTEMPTS!
      *
@@ -243,6 +247,9 @@ img.center { /* https://stackoverflow.com/a/7055404 */
 
 /* Our workaround for "Empty inline elements have no insertion caret"
  * https://stackoverflow.com/q/25897883/
+ *
+ * (Currently no effect, since we defer to the Android behavior for needing
+ * input to be `inline-block` to see how well that goes)
  */
 .input:not(.multiline):empty {
     display: inline-block;  /* .input has `display: inline` when not empty */
