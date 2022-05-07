@@ -296,10 +296,12 @@ replpad-write: func [
             | change '> ("&gt;")
             | change '& ("&amp;")
 
-            ; Make all URL!s printed in the output show as clickable.
+            ; Make all URL!s printed in the output show as clickable.  Consider
+            ; it a "good reason" to use `target='_blank'` to avoid losing work.
+            ; https://css-tricks.com/use-target_blank/
             ;
             | change [copy url url-rule] (
-                unspaced [{<a href='} url {'>} url {</a>}]
+                unspaced [{<a href='} url {' target='_blank'>} url {</a>}]
             )
 
             ; This is a little tweak for the bridge code.  There should be
