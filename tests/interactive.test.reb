@@ -91,8 +91,8 @@ steps: [
 
     (
         write-stdout "Hit [Enter] when you're ready to scroll up..."
-        input
-        loop 16 [
+        ask text!
+        repeat 16 [
             print "Scroll up and be sure this output isn't interfering!"
             wait 0.5
         ]
