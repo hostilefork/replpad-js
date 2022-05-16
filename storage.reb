@@ -437,7 +437,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 switch type of port.spec.ref [
                     file! [
                         either any [
-                            did find [%/ %/tmp/] port.spec.ref
+                            find [%/ %/tmp/] port.spec.ref
                             storage-exists? port.spec.target form port.spec.ref
                         ][
                             collect [
@@ -462,7 +462,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 switch type of port.spec.ref [
                     file! [
                         if any [
-                            did find [%/ %/tmp/] port.spec.ref
+                            find [%/ %/tmp/] port.spec.ref
                             storage-exists? port.spec.target form port.spec.ref
                         ][
                             fail "Directory already exists"
@@ -483,7 +483,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 switch type of port.spec.ref [
                     file! [
                         case [
-                            did find [%/ %/tmp/] port.spec.ref [
+                            find [%/ %/tmp/] port.spec.ref [
                                 port
                             ]
 
@@ -513,7 +513,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 switch type of port.spec.ref [
                     file! [
                         if any [
-                            did find [%/ %/tmp/] port.spec.ref
+                            find [%/ %/tmp/] port.spec.ref
                             storage-exists? port.spec.target form port.spec.ref
                         ][
                             make system.standard.file-info [
