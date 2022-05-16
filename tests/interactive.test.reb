@@ -168,7 +168,9 @@ nope: function [
 ][
     ; Always restore the prompt, in case a test changed it.
     ;
-    system/console/print-prompt: :saved-print-prompt
+    if saved-print-prompt [  ; won't be set if NOPE was the first thing!
+        system.console.print-prompt: :saved-print-prompt
+    ]
 
     print ["O noes." if bug ["Broken, again?!!"] "(✖╭╮✖)"]
 
