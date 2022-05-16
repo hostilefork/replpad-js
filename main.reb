@@ -98,11 +98,13 @@ export main: adapt :console [
     autorun: _
     uparse system.options.args [while [
         start: <here>
-
+        ||
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.
 
-        ['do:] autorun: text!
+        ['do:] autorun: text! (importing: false)
+            |
+        ['import:] autorun: text! (importing: true)
     ]] else [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
@@ -127,7 +129,32 @@ export main: adapt :console [
     ]
 
     if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
-        result: do as tag! autorun  ; may be BAD-WORD!
+        ;
+        ; !!! @gchiu wants to suppress the loading information for dependent
+        ; modules, as well as not show any output from the import itself.
+        ; While it seems like a reasonable default when running scripts in
+        ; "release mode", a more holistic story for this is needed.
+        ;
+        ; https://forum.rebol.info/t/1801
+        ;
+        sys.script-pre-load-hook: _   ; !!! Would BLANK! allow no-op APPLY
+
+        if importing [
+            ;
+            ; !!! There's a lot of nuance involved in "adding commands to the
+            ; console", because it straddles the line between being a script
+            ; and a module.  We have to do some hacking here to push the
+            ; module exports from inside this %main.reb module out to where
+            ; the console can see them.  Think through this more!
+            ;
+            ; https://forum.rebol.info/t/1802
+
+            result: import as tag! autorun
+            sys.import* system.contexts.user result
+        ]
+        else [
+            result: do as tag! autorun  ; may be BAD-WORD!
+        ]
 
         ; !!! Right now, all modules return void.  This is a limitation of
         ; having DO be based on IMPORT:
