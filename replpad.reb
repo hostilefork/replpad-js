@@ -664,9 +664,7 @@ lib.do: adapt copy :lib.do [
     ; here to shorten calling demos and get them out of the root directory.
     ;
     source: maybe switch :source [
-        @popupdemo [https://gitlab.com/hostilefork/popupdemo/raw/master/popupdemo.reb]
         @redbol [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
-        @test-repl [%tests/interactive.test.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
     ]
 ]
@@ -787,7 +785,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     //
     let d = reb.Arg('data')
     let blob;
-    if (reb.Did("binary?", d)) {
+    if (reb.UnboxLogic("binary?", d)) {
         let uint8_array = reb.Bytes(d)
         blob = new Blob([uint8_array], {type: mime_type || "octet/stream"})
     }
