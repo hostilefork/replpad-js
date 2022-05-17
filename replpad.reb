@@ -663,9 +663,13 @@ lib.do: adapt copy :lib.do [
     ; The tag registry is maintained remotely, but hook with a few exceptions
     ; here to shorten calling demos and get them out of the root directory.
     ;
-    source: maybe switch :source [
+    ; !!! This used to use MAYBE, review once the semantics sort out.
+    ;
+    switch :source [
         @redbol [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
+    ] then url -> [
+        source: url
     ]
 ]
 

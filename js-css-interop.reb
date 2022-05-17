@@ -158,9 +158,10 @@ js-do: func [
 
         ; If URL is decorated source (syntax highlighting, etc.) get raw form.
         ;
-        source: maybe sys.adjust-url-for-raw source
-
-        automime: maybe detect-automime source
+        ; !!! These used to use MAYBE, review once semantics sort out.
+        ;
+        (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+        (detect-automime source) then detected -> [automime: detected]
 
         any [automime, local] then [
             let code: as text! read source
@@ -275,9 +276,10 @@ css-do: func [
 
         ; If URL is decorated source (syntax highlighting, etc.) get raw form.
         ;
-        source: maybe sys.adjust-url-for-raw source
-
-        automime: maybe detect-automime source
+        ; !!! These used to use MAYBE, review once semantics sort out.
+        ;
+        (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+        (detect-automime source) then detected -> [automime: detected]
 
         if automime [
             css-do-text-helper as text! read source
