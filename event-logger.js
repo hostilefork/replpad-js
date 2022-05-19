@@ -71,7 +71,7 @@ function stringify_object(object, depth=0, max_depth=2) {
 
     export keylog: func [] [
         let key
-        loop [key: try-get-one-keylog] [
+        while [key: try-get-one-keylog] [
             print mold key
             print newline
         ]

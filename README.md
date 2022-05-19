@@ -75,7 +75,7 @@ expecting to see feedback while it is running--instead of waiting until it has
 finished running.  For instance:
 
     sum: 0
-    loop 5 [
+    repeat 5 [
        print "Enter a value:"
        x: ask integer!
        sum: sum + x
@@ -83,7 +83,7 @@ finished running.  For instance:
     print ["The sum was" sum]
 
 This is an example of doing synchronous I/O--displaying output and gathering
-input--while a C function implementing LOOP is running.  Yet a JavaScript
+input--while a C function implementing REPEAT is running.  Yet a JavaScript
 browser does not have a mechanism for information from DOM manipulations to
 reach code in such a synchronous style.  It must yield to the browser, and be
 called back.
