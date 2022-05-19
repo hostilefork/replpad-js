@@ -291,7 +291,7 @@ replpad-write: func [
 
     let url
     parse param: copy param [
-        while [
+        maybe some [
             change '< ("&lt;")
             | change '> ("&gt;")
             | change '& ("&amp;")

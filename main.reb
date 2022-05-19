@@ -96,7 +96,7 @@ export main: adapt :console [
     ; search location as well (may not be in all browsers?)
     ;
     autorun: _
-    uparse system.options.args [while [
+    uparse system.options.args [maybe some [
         start: <here>
         ||
         ; local, remote, tracing_on, git_commit not passed through by the
