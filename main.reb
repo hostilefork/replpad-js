@@ -221,7 +221,7 @@ export about: does [
 
 export watch: func [:arg] [
     print "Loading watchlist extension for first use..."
-    do %watchlist/main.reb
+    import %watchlist/main.reb
     let watch: :system.modules.Watchlist.watch
     system.contexts.user.watch: :watch
 
