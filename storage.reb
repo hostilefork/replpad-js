@@ -373,16 +373,19 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            query: func [port] [
+            query: func [return: [<opt> object!] port [port!]] [
                 switch type-of port.spec.ref [
                     file! [
-                        if storage-exists? port.spec.target form port.spec.ref [
-                            make system.standard.file-info [
-                                name: port.spec.ref
-                                size: 0
-                                date: lib.now  ; we're in a module in a module
-                                type: 'file
-                            ]
+                        let store: port.spec.target
+                        let path: form port.spec.ref
+
+                        if not storage-exists? store path [return null]
+
+                        make system.standard.file-info [
+                            name: port.spec.ref
+                            size: 0
+                            date: lib.now  ; we're in a module in a module
+                            type: 'file
                         ]
                     ]
 
