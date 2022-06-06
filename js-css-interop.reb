@@ -119,11 +119,16 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     {Run JS URL via a <script> tag}
 
     url [url!] "URL or JavaScript code"
+    /module "Execute code as a module"
 ]{
     return new Promise(function(resolve, reject) {
         let script = document.createElement('script')
 
         script.src = reb.Spell(reb.ArgR('url'))
+
+        if (reb.Truthy(reb.ArgR('module')))
+            script.type = "module"
+
         script.onload = function() {
             script.parentNode.removeChild(script)  // !!! necessary for GC?
             resolve()  // can't take onload()'s arg directly
@@ -142,6 +147,7 @@ js-do: func [
         [<blank> block! text! file! url! tag!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
+    /module "Execute JS code as a module"
 ][
     if tag? source [
         source: join system.script.path as file! source
@@ -167,7 +173,7 @@ js-do: func [
             let code: as text! read source
             js-eval*/(opt if local [/local]) code
         ] else [
-            js-do-url-helper source
+            apply :js-do-url-helper [source /module module]
         ]
     ]
 ]
