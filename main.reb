@@ -37,6 +37,8 @@ Rebol [
     }
 ]
 
+replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
+
 ; We don't just IMPORT the ReplPad definitions for things like NOW and WAIT
 ; into this module.  Instead we use IMPORT* to put the definitions into lib.
 ; This makes them available to any script that's loaded.  Review.
@@ -188,6 +190,8 @@ export main: adapt :console [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
+
+    change-dir %/  ; switch to local filesystem as "current directory"
 ]
 
 
@@ -221,7 +225,7 @@ export about: does [
 
 export watch: func [:arg] [
     print "Loading watchlist extension for first use..."
-    import %watchlist/main.reb
+    import join replpad-dir %watchlist/main.reb
     let watch: :system.modules.Watchlist.watch
     system.contexts.user.watch: :watch
 
