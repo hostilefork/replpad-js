@@ -374,12 +374,12 @@ img.center { /* https://stackoverflow.com/a/7055404 */
  * happens is "you just get the default OS scroll bar" that is fine.
  */
 
-#replcontainer::-webkit-scrollbar {
+.cm-scroller::-webkit-scrollbar, #replcontainer::-webkit-scrollbar {
     width: 9px;
     background-color: #eee;
 }
 
-#replcontainer::-webkit-scrollbar-track {
+.cm-scroller::-webkit-scrollbar-track, #replcontainer::-webkit-scrollbar-track {
     /*border-radius: 10px;
     background: rgba(0,0,0,0.1);
     border: 1px solid #ccc;*/  /* colors too dark */
@@ -388,7 +388,7 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     border-left: 1px solid #E8E8E8;  /* softer than gray, harder than white */
 }
 
-#replcontainer::-webkit-scrollbar-thumb {
+.cm-scroller::-webkit-scrollbar-thumb, #replcontainer::-webkit-scrollbar-thumb {
     border-radius: 9px;
     /*background: linear-gradient(left, #fff, #e4e4e4); */
     background: #ddd;
@@ -396,11 +396,11 @@ img.center { /* https://stackoverflow.com/a/7055404 */
     border: 1px solid #ddd;  /* match the lines of the watchlist */
 }
 
-#replcontainer::-webkit-scrollbar-thumb:hover {
+.cm-scroller::-webkit-scrollbar-thumb:hover, #replcontainer::-webkit-scrollbar-thumb:hover {
     background: #fff;
 }
 
-#replcontainer::-webkit-scrollbar-thumb:active {
+.cm-scoller::-webkit-scrollbar-thumb:active, #replcontainer::-webkit-scrollbar-thumb:active {
     /*background: linear-gradient(left, #22ADD4, #1E98BA); */
 }
 

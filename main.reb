@@ -292,6 +292,122 @@ export ensure-golden-layouts-loaded: func [<static> loaded (false)] [
 ]
 
 
+=== CODEMIRROR 6 EDITOR DEMO ===
+
+export edit: func [
+    source [url! text! file!]
+    /marks
+    <static> codemirror-loaded (false)
+][
+    ensure-golden-layouts-loaded
+
+    if not codemirror-loaded [
+        ;
+        ; The interop is a module that makes `window.CodeMirror` available to
+        ; this non-modularized code.
+        ;
+        js-do/module join replpad-dir %codemirror-interop.js
+
+        css-do {
+            .cm-editor {  /* https://discuss.codemirror.net/t/2882 */
+                height: 100% !important
+            }
+            .cm-scroller {
+                overflow-y: scroll !important;  /* always show */
+                overflow-x: auto
+            }
+        }
+
+        codemirror-loaded: true
+
+        js-eval {
+            const { EditorState } = CodeMirror.state
+            const { EditorView } = CodeMirror.view
+
+            const {
+                lineNumbers,
+
+                highlightActiveLine, highlightActiveLineGutter,
+
+                highlightSpecialChars,
+
+                drawSelection, rectangularSelection,
+
+                dropCursor, crosshairCursor,
+
+                keymap
+            } = CodeMirror.view
+
+            const { Extension } = CodeMirror.state
+
+          golden.registerComponent('mirror', function (container, gl_state) {
+
+            // https://codemirror.net/6/docs/ref/#state
+            let cm_state = EditorState.create({
+                doc: gl_state.text,
+                extensions: [
+                    lineNumbers(),
+
+                    highlightActiveLine(),
+                    highlightActiveLineGutter(),
+
+                    highlightSpecialChars(),
+
+                    drawSelection(),
+                    rectangularSelection(),
+
+                    dropCursor(),
+                    crosshairCursor()
+                ]
+            })
+
+            // https://codemirror.net/6/docs/ref/#view
+            let cm_view = new EditorView({
+                state: cm_state,
+                parent: container.getElement()
+            })
+
+            gl_state.cm_view = cm_view
+            window.cm = cm_view
+
+            // https://stackoverflow.com/a/40569014
+            // https://github.com/golden-layout/golden-layout/issues/173
+            //
+            let first_show = true
+            container.on('shown', function () {
+                if (!first_show)
+                    cm_view.focus()
+                first_show = false
+                cm = cm_view  // capture last editor in cm
+            })
+          })
+        }
+    ]
+
+    let [text title]: unpack switch type of source [
+        text! [
+            [source, "TEXT!"]
+        ]
+        url! file! [
+            [as text! read source, last split-path source]
+        ]
+    ]
+
+    js-eval [
+        {let text =} spell @text {;}
+        {let title =} spell @title {;}
+        {
+            let state = { text: text }
+            golden.addComponent('mirror', state, title)
+        }
+    ]
+]
+
+export ed-text: js-native [] {
+    return reb.Text(cm.state.doc.text.join('\n'))
+}
+
+
 === OVERRIDE QUIT IN LIB ===
 
 ; Having QUIT exit the interpreter can be useful in some debug builds which
