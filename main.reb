@@ -408,6 +408,73 @@ export ed-text: js-native [] {
 }
 
 
+=== "EPARSE" INTEGRATION DEMO OF UPARSE AND CODEMIRROR ===
+
+; This demonstration is set up in a way so that it shows the modularity of
+; the approach.  The `underline_extension.js` is not loaded unless EPARSE is
+; used.  More factoring should push the EPARSE codebase itself into something
+; that is loaded on demand (like the watchlist, but the technique needs work)
+
+ensure-underline-extension-loaded: func [<static> loaded (false)] [
+    if not loaded [
+        js-do/module join replpad-dir %underline-extension.js
+        loaded: true
+    ]
+]
+
+export ed-add-underline: js-native [
+    {Add an underline to the last activated editor}
+    from [integer!]
+    to [integer!]
+] {
+    CodeMirror.AddUnderline(
+        reb.UnboxInteger(reb.ArgR("from")),
+        reb.UnboxInteger(reb.ArgR("to"))
+    )
+    return reb.None()
+}
+
+export ed-clear-underlines: js-awaiter [
+    {Clear all underlines from the last activated editor}
+] {
+    CodeMirror.ClearUnderlines()
+}
+
+eparse-combinators: copy default-combinators
+
+eparse-combinators.('mark): combinator [
+    {Run one rule and if it matches, draw a mark across that content}
+    return: "Result of one evaluation step"
+        [<opt> any-value!]
+    pending: [blank! block!]
+    parser [action!]
+    <local> subpending rest result'
+][
+    ([^result' rest subpending]: parser input) else [return null]
+
+    set pending glom subpending make pair! :[
+        (index of input) - 1
+        (index of rest) - 1
+    ]
+
+    set remainder rest
+
+    return unmeta result'
+]
+
+export eparse: func [rules [block!]] [
+    ensure-underline-extension-loaded
+
+    ed-clear-underlines
+
+    [# furthest pending]: uparse/combinators ed-text rules eparse-combinators also [
+        for-each pair pending [
+            ed-add-underline first pair second pair
+        ]
+    ]
+]
+
+
 === OVERRIDE QUIT IN LIB ===
 
 ; Having QUIT exit the interpreter can be useful in some debug builds which
