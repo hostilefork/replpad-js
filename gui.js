@@ -399,6 +399,9 @@ function HandleEnter(e) {
 // enough pieces are available to get it sort of working.  :-/
 
 onInputEvent = function(e) {
+    if (!replpad.contains(document.activeElement))
+        return true
+
     if (input.classList.contains("multiline"))
         return  // let newline handling be done normally
 
@@ -458,6 +461,9 @@ onInputEvent = function(e) {
 
 onInputKeyDown = function(e) {
     e = e || window.event  // !!! "ensure not null"... necessary? :-/
+
+    if (!replpad.contains(document.activeElement))
+        return true
 
     if (!input || !input.classList.contains("input")) {
         alert("key down but div class isn't input")
@@ -721,7 +727,9 @@ function OnEscape() {
 // take that deprecation with a grain of salt and use it anyway.
 //
 document.addEventListener('keypress', function(e) {
-    //
+    if (!replpad.contains(document.activeElement))
+        return true
+
     // Activate input if a printable key is pressed
     // Shouldn't have to AbandonEscapeMode(), onkeydown should do that
     //
@@ -730,6 +738,9 @@ document.addEventListener('keypress', function(e) {
 });
 
 document.onkeydown = function(e) {
+    if (!replpad.contains(document.activeElement))
+        return true
+
     // https://stackoverflow.com/a/3369743/211160
     let isEscape = false
     if ("key" in e)
