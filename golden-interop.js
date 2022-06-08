@@ -10,10 +10,26 @@ var replcontainer = document.getElementById('replcontainer')
 var container = replcontainer.parentNode
 replcontainer.parentNode.removeChild(replcontainer)
 
+// We decide to split either horizontally or vertically, based on whether the
+// viewport is wider than it is tall or not.  This means a cell phone will
+// typically split two windows one on top of the other...while a desktop/laptop
+// will typically do them side-by-side.
+//
+// https://stackoverflow.com/a/8876069
+//
+const vw = Math.max(
+    document.documentElement.clientWidth || 0, window.innerWidth || 0
+)
+const vh = Math.max(
+    document.documentElement.clientHeight || 0, window.innerHeight || 0
+)
+
+let side_by_side = (vw > vh)
+
 var config = {
     content: [
       {
-        type: 'row',
+        type: side_by_side ? 'row' : 'column',
         content: [
           {
             type: 'stack',
@@ -23,7 +39,7 @@ var config = {
                 // (for now that's the CodeMirror editor)
             ]
           },{
-            type: 'column',
+            type: side_by_side ? 'column' : 'row',
             content:[
               {
                 type: 'component',
