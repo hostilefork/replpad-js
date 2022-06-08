@@ -18,22 +18,17 @@ Rebol [
     ; way should be figured out to remove its visibility.
 
     Description: {
-        Over the long run, the desire would be that the ReplPad console could
-        be a kind of "widget" that could be used in applications that had
-        their own notion of a main loop.  Or multiple instances of the
-        ReplPad, for instance, in a windowed environment like Golden Layouts:
+        The ReplPad console is a "widget" that tries to have few dependencies,
+        but can be integrated into bulkier contexts.  One of those is as a
+        panel in Golden Layouts:
 
           https://golden-layout.com/
 
-        It's a long road to get to that point; but as a first step in
-        separation the %main.reb is a distinct file from the %replpad.reb.
-        The separation is mostly symbolic--as the two files are tightly
-        coupled at the moment.  But having them separate lets us start
-        thinking about what's part of the widget and what's part of this
-        particular usage of the widget.
+        Hence this %main.reb file is an attempt at separating functionality
+        for containers from the %replpad.reb.
 
         The introduction text is a good example of something not all usages
-        would want, so that goes here as a start.
+        would want, so that's an example of something that belongs here.
     }
 ]
 
@@ -269,6 +264,31 @@ export redbol: func [return: <none>] [
     sys.import* system.contexts.user @redbol
 
     system.console.prompt: "redbol>>"
+]
+
+
+=== GOLDEN LAYOUTS DEMO ===
+
+export ensure-golden-layouts-loaded: func [<static> loaded (false)] [
+    if loaded [return]
+
+    css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
+    css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
+    css-do {
+        h2 {  /* this was in the golden layout simple demo */
+            font: 14px Arial, sans-serif;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+    }
+
+    ; The interop is a module that makes `window.golden` available to this
+    ; non-modularized code.
+    ;
+    js-do/module join replpad-dir %golden-interop.js
+
+    loaded: true
 ]
 
 
