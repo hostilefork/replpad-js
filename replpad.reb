@@ -718,8 +718,12 @@ rfc2616-to-date: function [
     to date! unspaced [day "-" month "-" year "/" time zone]
 ]
 
-info?: func [url [url!]] [
+info?: func [
+    url [url!]
+    /only
+][
     o: js-head url
+    if only [return 'file]
     return make object! [
         name: url
         size: to integer! o.content-length
