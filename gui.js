@@ -738,7 +738,11 @@ document.addEventListener('keypress', function(e) {
 });
 
 document.onkeydown = function(e) {
-    if (!replpad.contains(document.activeElement))
+    let active = document.activeElement
+    if (active == document.body)  // <body> same meaning as null active element
+        active = null
+
+    if (active && !replpad.contains(active))
         return true
 
     // https://stackoverflow.com/a/3369743/211160
