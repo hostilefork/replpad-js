@@ -66,7 +66,7 @@ Rebol [
 use [
     form-error form-value write-console
 ][
-    form-error: func [error [error!]] [
+    form-error: lambda [error [error!]] [
         unspaced [
             "** " form error.type " Error: " case [
                 text? error.message [error.message]
@@ -91,7 +91,7 @@ use [
     ]
 
     ; there's still some values that will trip this function up
-    form-value: func [value] [
+    form-value: lambda [value] [
         switch type-of get/any 'value [
             null [
                 "<NULL>"
@@ -148,7 +148,7 @@ use [
         title: "Console.log Scheme"
         name: 'log
 
-        init: func [port][
+        init: func [return: <none> port][
             port.spec.path: find/match/tail as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
@@ -156,7 +156,7 @@ use [
         actor: make object! [
             write: append: func [port value] [
                 write-console port.spec.path form-value get/any 'value
-                port
+                return port
             ]
         ]
     ]
@@ -316,7 +316,7 @@ replpad-write: func [
         ]
     ]
 
-    replpad-write-js param
+    return replpad-write-js param
 ]
 
 lib.write-stdout: func [
@@ -325,7 +325,7 @@ lib.write-stdout: func [
     /html
 ][
     if char? text [text: my to-text]
-    replpad-write/(html) text
+    return replpad-write/(html) text
 ]
 
 
@@ -415,7 +415,7 @@ CORSify-gitlab-port: func [
         ]
     ]
 
-    port
+    return port
 ]
 
 read-url-helper: js-awaiter [
@@ -446,7 +446,7 @@ sys.make-scheme [
                 CORSify-gitlab-port port
             ]
 
-            read-url-helper unspaced [
+            return read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host
                     if in port.spec 'port-id [unspaced [":" port.spec.port-id]]
                     port.spec.path
@@ -474,7 +474,7 @@ sys.make-scheme [
                 CORSify-gitlab-port port
             ]
 
-            read-url-helper unspaced [
+            return read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host port.spec.path
             ]
         ]
@@ -496,7 +496,7 @@ sys.make-scheme [
     title: "File Access"
     name: 'file
 
-    init: func [port [port!]] [
+    init: func [return: <none> port [port!]] [
         case [
             not all [
                 in port.spec 'ref
@@ -526,7 +526,7 @@ sys.make-scheme [
     ]
 
     actor: [
-        read: func [port] [
+        read: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -536,7 +536,7 @@ sys.make-scheme [
             ]
         ]
 
-        write: func [port data] [
+        write: lambda [port data] [
             switch type of port.spec.ref [
                 file! []
 
@@ -546,7 +546,7 @@ sys.make-scheme [
             ]
         ]
 
-        delete: func [port] [
+        delete: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -556,7 +556,7 @@ sys.make-scheme [
             ]
         ]
 
-        query: func [port] [
+        query: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -603,7 +603,7 @@ sys.make-scheme [
     ]
 
     actor: [
-        read: func [port] [
+        read: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -613,7 +613,7 @@ sys.make-scheme [
             ]
         ]
 
-        delete: func [port] [
+        delete: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -624,7 +624,7 @@ sys.make-scheme [
 
         ]
 
-        query: func [port] [
+        query: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -666,7 +666,7 @@ lib.do: adapt copy :lib.do [
     ; !!! This used to use MAYBE, review once the semantics sort out.
     ;
     switch :source [
-        @redbol [https://raw.githubusercontent.com/metaeducation/ren-c/master/scripts/redbol.reb]
+        @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
     ] then url -> [
         source: url
@@ -745,8 +745,8 @@ if find system.contexts.user 'change-dir [
 
 lib.change-dir: func [
     {Changes the current path (where scripts with relative paths will be run)}
-    path [file! url!]
     return: [file! url!]
+    path [file! url!]
 ][
     ; NOTE: The CHANGE-DIR function has to be aware of filesystems, but the
     ; core does not presume any particular filesystem implementation.  However
@@ -771,7 +771,7 @@ lib.change-dir: func [
         fail "Path does not exist"
     ]
 
-    system.options.current-path: path
+    return system.options.current-path: path
 ]
 
 
@@ -826,7 +826,7 @@ sys.make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    init: func [port] [
+    init: func [return: <none> port] [
         assert [match text! port.spec.path]
         port.spec.path: last split-path port.spec.path
     ]
@@ -834,7 +834,7 @@ sys.make-scheme [
     actor: [
         write: func [port data] [
             download port.spec.path data
-            port
+            return port
         ]
     ]
 ]
@@ -925,6 +925,7 @@ now: js-native [
 
 lib.browse: func [
     {Provide a clickable link to the user to open in the browser}
+    return: <none>
     url [url!]
 ][
     comment {
@@ -1002,7 +1003,7 @@ sys.make-scheme [  ; no URL form dictated
     name: 'clipboard
 
     actor: [
-        read: func [port] [
+        read: lambda [port] [
             fail {READ is not supported in the web console}
         ]
 
@@ -1016,7 +1017,7 @@ sys.make-scheme [  ; no URL form dictated
             ]
 
             copy-to-clipboard-helper form data
-            port
+            return port
         ]
     ]
 ]

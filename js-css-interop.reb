@@ -60,9 +60,10 @@ detect-automime: func [
         ]
     ] then [
         if hostname <> js-eval "window.location.hostname" [
-            #  ; cross-origin on GitHub or GitLab, we need /AUTOMIME
+            return #  ; cross-origin on GitHub or GitLab, we need /AUTOMIME
         ]
     ]
+    return null
 ]
 
 
@@ -72,8 +73,8 @@ js-do-dialect-helper: func [
     return: [text!]
     b [block!]
 ][
-    unspaced collect [
-        let keep-transient: func [t /required [word!]] [
+    return unspaced collect [
+        let keep-transient: lambda [t /required [word!]] [
             switch type of t [
                 the-word! the-tuple! [keep api-transient get t]
                 the-group! [keep api-transient reeval as group! t]
@@ -155,27 +156,27 @@ js-do: func [
 
     if block? source [source: my js-do-dialect-helper]
 
-    either text? source [
-        js-eval*/(opt if local [/local]) source
-    ][
-        if file? source [  ; make absolute w.r.t. *current* script URL location
-            source: join (ensure url! what-dir) source
-        ]
-
-        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
-        ;
-        ; !!! These used to use MAYBE, review once semantics sort out.
-        ;
-        (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
-        (detect-automime source) then detected -> [automime: detected]
-
-        any [automime, local] then [
-            let code: as text! read source
-            js-eval*/(opt if local [/local]) code
-        ] else [
-            apply :js-do-url-helper [source /module module]
-        ]
+    if text? source [
+        return js-eval*/(opt if local [/local]) source
     ]
+
+    if file? source [  ; make absolute w.r.t. *current* script URL location
+        source: join (ensure url! what-dir) source
+    ]
+
+    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+    ;
+    ; !!! These used to use MAYBE, review once semantics sort out.
+    ;
+    (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    (detect-automime source) then detected -> [automime: detected]
+
+    if automime or local [
+        let code: as text! read source
+        return js-eval*/(opt if local [/local]) code
+    ]
+
+    return apply :js-do-url-helper [source /module module]
 ]
 
 ; JS-DO runs scripts by URL and generically does not return an evaluative
@@ -273,26 +274,27 @@ css-do: func [
     if tag? source [
         source: join system.script.path as file! source
     ]
+
     if text? source [
-        css-do-text-helper source
-    ] else [
-        if file? source [  ; make absolute w.r.t. *current* script URL location
-            source: join (ensure url! what-dir) source
-        ]
-
-        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
-        ;
-        ; !!! These used to use MAYBE, review once semantics sort out.
-        ;
-        (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
-        (detect-automime source) then detected -> [automime: detected]
-
-        if automime [
-            css-do-text-helper as text! read source
-        ] else [
-            css-do-url-helper source
-        ]
+        return css-do-text-helper source
     ]
+
+    if file? source [  ; make absolute w.r.t. *current* script URL location
+        source: join (ensure url! what-dir) source
+    ]
+
+    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+    ;
+    ; !!! These used to use MAYBE, review once semantics sort out.
+    ;
+    (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    (detect-automime source) then detected -> [automime: detected]
+
+    if automime [
+        return css-do-text-helper as text! read source
+    ]
+
+    css-do-url-helper source
 ]
 
 export [

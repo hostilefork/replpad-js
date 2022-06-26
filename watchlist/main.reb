@@ -194,4 +194,5 @@ system.console.print-result: enclose :system.console.print-result func [f] [
     if "none" <> js-eval {document.getElementById('right').style.display} [
         update-watches
     ]
+    return none
 ]

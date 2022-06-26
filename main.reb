@@ -181,7 +181,7 @@ export main: adapt :console [
             [greeting: greeting-text]
         ]))
 
-        print-halted: meth [] [
+        print-halted: meth [return: <none>] [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
@@ -228,7 +228,7 @@ export watch: func [:arg] [
     ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
     ; but be able to inline WATCH to gather args)
     ;
-    do compose [watch (:arg)]
+    return do compose [watch (:arg)]
 ]
 
 
@@ -269,7 +269,10 @@ export redbol: func [return: <none>] [
 
 === GOLDEN LAYOUTS DEMO ===
 
-export ensure-golden-layouts-loaded: func [<static> loaded (false)] [
+export ensure-golden-layouts-loaded: func [
+    return: <none>
+    <static> loaded (false)
+][
     if loaded [return]
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
@@ -295,6 +298,7 @@ export ensure-golden-layouts-loaded: func [<static> loaded (false)] [
 === CODEMIRROR 6 EDITOR DEMO ===
 
 export edit: func [
+    return: <none>
     source [url! text! file!]
     /marks
     <static> codemirror-loaded (false)
@@ -415,7 +419,10 @@ export ed-text: js-native [] {
 ; used.  More factoring should push the EPARSE codebase itself into something
 ; that is loaded on demand (like the watchlist, but the technique needs work)
 
-ensure-underline-extension-loaded: func [<static> loaded (false)] [
+ensure-underline-extension-loaded: func [
+    return: <none>
+    <static> loaded (false)
+][
     if not loaded [
         js-do/module join replpad-dir %underline-extension.js
         loaded: true
@@ -467,7 +474,7 @@ export eparse: func [rules [block!]] [
 
     ed-clear-underlines
 
-    [# furthest pending]: uparse/combinators ed-text rules eparse-combinators also [
+    return [# furthest pending]: uparse/combinators ed-text rules eparse-combinators also [
         for-each pair pending [
             ed-add-underline first pair second pair
         ]

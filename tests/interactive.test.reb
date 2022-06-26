@@ -145,7 +145,7 @@ k: ok: okay: function [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
         steps: head steps
-        return
+        return none
     ]
 
     steps: uparse* steps [

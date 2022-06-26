@@ -69,7 +69,7 @@ function stringify_object(object, depth=0, max_depth=2) {
         return reb.Text(JSON.stringify(window.keylog.shift()))
     }
 
-    export keylog: func [] [
+    export keylog: func [return: <none>] [
         let key
         while [key: try-get-one-keylog] [
             print mold key

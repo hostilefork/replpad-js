@@ -238,7 +238,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "Browser Storage API"
         name: 'storage
 
-        init: func [port [port!]] [
+        init: func [return: <none> port [port!]] [
             if not all [
                 in port.spec 'ref
                 url? port.spec.ref
@@ -250,11 +250,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: make object! [
-            pick: select: func [port key] [
+            pick: select: lambda [port key] [
                 storage-get port.spec.path form key
             ]
 
-            poke: func [port key value] [
+            poke: lambda [port key value] [
                 either null? :value [
                     storage-unset port.spec.path form key
                 ][
@@ -262,13 +262,13 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            query: copy: func [port] [
+            query: copy: lambda [port] [
                 storage-list port.spec.path
             ]
 
             clear: func [port] [
                 storage-clear port.spec.path
-                port
+                return port
             ]
         ]
     ]
@@ -280,7 +280,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Access"
         name: 'file
 
-        init: func [port [port!]] [
+        init: func [return: <none> port [port!]] [
             case [
                 not all [
                     in port.spec 'ref
@@ -313,7 +313,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: [
-            read: func [port] [
+            read: lambda [port] [
                 switch type-of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
@@ -332,7 +332,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            write: func [port data] [
+            write: lambda [port data] [
                 switch type-of port.spec.ref [
                     file! [
                         ensure [binary! text!] data
@@ -355,7 +355,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            delete: func [port] [
+            delete: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
@@ -381,7 +381,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
                         if not storage-exists? store path [return null]
 
-                        make system.standard.file-info [
+                        return make system.standard.file-info [
                             name: port.spec.ref
                             size: 0
                             date: lib.now  ; we're in a module in a module
@@ -390,9 +390,10 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     ]
 
                     url! [
-                        query port.spec.ref
+                        return query port.spec.ref
                     ]
                 ]
+                return null
             ]
         ]
     ]
@@ -401,7 +402,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Directory Access"
         name: 'dir
 
-        init: func [port [port!]] [
+        init: func [return: <none> port [port!]] [
             case [
                 not all [
                     in port.spec 'ref
@@ -436,7 +437,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: [
-            read: func [port] [
+            read: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either any [
@@ -461,7 +462,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            create: func [port] [
+            create: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         if any [
@@ -482,7 +483,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
             ]
 
-            delete: func [port] [
+            delete: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         case [
@@ -512,7 +513,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
             ]
 
-            query: func [port] [
+            query: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         if any [
