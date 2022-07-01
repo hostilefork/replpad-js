@@ -168,7 +168,7 @@ js-do: func [
     ;
     ; !!! These used to use MAYBE, review once semantics sort out.
     ;
-    (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    (sys.util.adjust-url-for-raw source) then adjusted -> [source: adjusted]
     (detect-automime source) then detected -> [automime: detected]
 
     if automime or local [
@@ -287,7 +287,7 @@ css-do: func [
     ;
     ; !!! These used to use MAYBE, review once semantics sort out.
     ;
-    (sys.adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    (sys.util.adjust-url-for-raw source) then adjusted -> [source: adjusted]
     (detect-automime source) then detected -> [automime: detected]
 
     if automime [

@@ -38,7 +38,7 @@ replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
 ; into this module.  Instead we use IMPORT* to put the definitions into lib.
 ; This makes them available to any script that's loaded.  Review.
 ;
-sys.import* lib %replpad.reb
+sys.util.import* lib %replpad.reb
 
 replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
 console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
@@ -134,7 +134,7 @@ export main: adapt :console [
         ;
         ; https://forum.rebol.info/t/1801
         ;
-        sys.script-pre-load-hook: _   ; !!! Would BLANK! allow no-op APPLY
+        sys.util.script-pre-load-hook: _   ; !!! Would BLANK! allow no-op APPLY
 
         if importing [
             ;
@@ -147,7 +147,7 @@ export main: adapt :console [
             ; https://forum.rebol.info/t/1802
 
             result: import as tag! autorun
-            sys.import* system.contexts.user result
+            sys.util.import* system.contexts.user result
         ]
         else [
             result: do as tag! autorun  ; may be BAD-WORD!
@@ -261,7 +261,7 @@ export redbol: func [return: <none>] [
     ; is a somewhat sloppy command...people should be doing their own imports.
     ; But it's just to demonstrate.
     ;
-    sys.import* system.contexts.user @redbol
+    sys.util.import* system.contexts.user @redbol
 
     system.console.prompt: "redbol>>"
 ]

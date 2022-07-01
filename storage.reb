@@ -234,7 +234,7 @@ storage: [
 ]
 
 if storage-enabled? [  ; Browser reported that it is storage-capable
-    sys.make-scheme [
+    sys.util.make-scheme [
         title: "Browser Storage API"
         name: 'storage
 
@@ -276,7 +276,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
     storage.local: make port! storage::local
     storage.session: make port! storage::session
 
-    sys.make-scheme [
+    sys.util.make-scheme [
         title: "File Access"
         name: 'file
 
@@ -398,7 +398,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
     ]
 
-    sys.make-scheme [
+    sys.util.make-scheme [
         title: "File Directory Access"
         name: 'dir
 

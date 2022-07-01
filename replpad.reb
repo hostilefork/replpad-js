@@ -144,7 +144,7 @@ use [
         )
     }
 
-    sys.make-scheme [
+    sys.util.make-scheme [
         title: "Console.log Scheme"
         name: 'log
 
@@ -434,7 +434,7 @@ read-url-helper: js-awaiter [
     return reb.Binary(buffer)
 }
 
-sys.make-scheme [
+sys.util.make-scheme [
     title: "In-Browser HTTP Scheme"
     name: 'http
 
@@ -464,7 +464,7 @@ sys.make-scheme [
     ]
 ]
 
-sys.make-scheme [
+sys.util.make-scheme [
     title: "In-Browser HTTPS Scheme"
     name: 'https
 
@@ -492,7 +492,7 @@ sys.make-scheme [
 
 ; File schemes permit relative file access to HTTP(S) resources
 
-sys.make-scheme [
+sys.util.make-scheme [
     title: "File Access"
     name: 'file
 
@@ -568,7 +568,7 @@ sys.make-scheme [
     ]
 ]
 
-sys.make-scheme [
+sys.util.make-scheme [
     title: "File Directory Access"
     name: 'dir
 
@@ -822,7 +822,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
 ; An alternate interface to the DOWNLOAD function
 ; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
 
-sys.make-scheme [
+sys.util.make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
@@ -998,7 +998,7 @@ copy-to-clipboard-helper: js-native [
     }
 }
 
-sys.make-scheme [  ; no URL form dictated
+sys.util.make-scheme [  ; no URL form dictated
     title: "In-Browser Clipboard Scheme"
     name: 'clipboard
 
