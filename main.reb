@@ -146,11 +146,11 @@ export main: adapt :console [
             ;
             ; https://forum.rebol.info/t/1802
 
-            result: import as tag! autorun
+            result: import as the-word! autorun
             sys.util.import* system.contexts.user result
         ]
         else [
-            result: do as tag! autorun  ; may be BAD-WORD!
+            result: do as the-word! autorun  ; may be BAD-WORD!
         ]
 
         ; !!! Right now, all modules return void.  This is a limitation of
