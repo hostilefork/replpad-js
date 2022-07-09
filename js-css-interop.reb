@@ -74,8 +74,8 @@ js-do-dialect-helper: func [
     b [block!]
 ][
     return unspaced collect [
-        let keep-transient: lambda [t /required [word!]] [
-            switch type of t [
+        let keep-transient: func [t /required [word!]] [
+            return switch type of t [
                 the-word! the-tuple! [keep api-transient get t]
                 the-group! [keep api-transient reeval as group! t]
 

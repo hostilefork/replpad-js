@@ -66,8 +66,8 @@ Rebol [
 use [
     form-error form-value write-console
 ][
-    form-error: lambda [error [error!]] [
-        unspaced [
+    form-error: func [return: [text!] error [error!]] [
+        return unspaced [
             "** " form error.type " Error: " case [
                 text? error.message [error.message]
                 block? error.message [
@@ -668,6 +668,7 @@ lib.do: adapt copy :lib.do [
     switch :source [
         @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
+        @dungeon [https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.reb]
     ] then url -> [
         source: url
     ]
