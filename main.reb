@@ -93,7 +93,7 @@ export main: adapt :console [
     ; search location as well (may not be in all browsers?)
     ;
     autorun: _
-    uparse system.options.args [maybe some [
+    parse system.options.args [maybe some [
         start: <here>
         ||
         ; local, remote, tracing_on, git_commit not passed through by the
@@ -457,14 +457,12 @@ eparse-combinators.('mark): combinator [
     parser [action!]
     <local> subpending rest result'
 ][
-    ([^result' rest subpending]: parser input) else [return null]
+    ([^result' remainder subpending]: parser input) else [return null]
 
-    set pending glom subpending make pair! :[
+    pending: glom subpending make pair! :[
         (index of input) - 1
-        (index of rest) - 1
+        (index of remainder) - 1
     ]
-
-    set remainder rest
 
     return unmeta result'
 ]
@@ -474,7 +472,7 @@ export eparse: func [rules [block!]] [
 
     ed-clear-underlines
 
-    return [# furthest pending]: uparse/combinators ed-text rules eparse-combinators also [
+    return [# furthest pending]: parse/combinators ed-text rules eparse-combinators also [
         for-each pair pending [
             ed-add-underline first pair second pair
         ]

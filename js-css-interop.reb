@@ -52,7 +52,7 @@ detect-automime: func [
     ; right MIME types on main site, it's just the raw service with the issue).
     ;
     let hostname
-    uparse (try match url! source) [
+    parse (try match url! source) [
         "https://" [
             hostname: "raw.githubusercontent.com" "/" to <end>
             |

@@ -290,7 +290,7 @@ replpad-write: func [
     ; is remedied, don't use it for main printing output.
 
     let url
-    parse param: copy param [
+    parse3 param: copy param [
         maybe some [
             change '< ("&lt;")
             | change '> ("&gt;")
@@ -390,7 +390,7 @@ CORSify-gitlab-port: func [
 
     assert [port.spec.host = "gitlab.com"]
 
-    uparse port.spec.path [gather [
+    parse port.spec.path [gather [
         "/"
         emit user: between <here> "/"
         emit repo: between <here> "/"
@@ -705,7 +705,7 @@ rfc2616-to-date: function [
 ][
     digit: charset [#"0" - #"9"]
     alpha: charset [#"A" - #"Z" #"a" - #"z"]
-    uparse idate [
+    parse idate [
         3 alpha "," space  ; skip day of week
         day: between <here> space  ; 2 digit
         month: between <here> space  ; 3 alpha
