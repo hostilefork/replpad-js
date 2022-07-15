@@ -200,7 +200,7 @@ replpad-write-js: js-awaiter [
     {Output lines of text to the REPLPAD (no automatic newline after)}
 
     return: [<opt> bad-word!]
-    param [<blank> text!]
+    param [<try> text!]
     /html
 ]{
     let param = reb.Spell(reb.ArgR('param'))
@@ -263,7 +263,7 @@ replpad-write: func [
     {Output a string of text to the REPLPAD (no automatic newline after)}
 
     return: [<opt> bad-word!]
-    param [<blank> text!]
+    param [<try> text!]
     /html
 ][
     if html [
@@ -645,7 +645,7 @@ sys.util.make-scheme [
 ; put into the main DO and IMPORT, so it's now SYS.ADJUST-URL-FOR-RAW and not
 ; needed here.
 
-if find system.contexts.user 'do [
+if did select system.contexts.user 'do [
     fail "User context has override of DO, won't inherit lib override."
 ]
 
@@ -740,7 +740,7 @@ info?: func [
 ;
 import ensure url! clean-path %storage.reb
 
-if find system.contexts.user 'change-dir [
+if did select system.contexts.user 'change-dir [
     fail "User context has override of CHANGE-DIR, won't inherit lib override."
 ]
 
@@ -885,7 +885,7 @@ now: js-native [
     if (reb.Did(reb.ArgR('time')))
         return reb.Value("make-time-sn",
             reb.I(seconds),
-            "try all [",
+            "all [",
                 "@", reb.ArgR('precise'), reb.I(nanoseconds),
             "]"
         )
@@ -904,10 +904,10 @@ now: js-native [
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
         reb.I(seconds),
-        "try all [",
+        "all [",
             "@", reb.ArgR('precise'), reb.I(nanoseconds),
         "]",
-        "try all [",
+        "all [",
             "not @", reb.ArgR('local'), reb.I(0),  // zone
         "]",
     ")")

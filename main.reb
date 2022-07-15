@@ -453,7 +453,7 @@ eparse-combinators.('mark): combinator [
     {Run one rule and if it matches, draw a mark across that content}
     return: "Result of one evaluation step"
         [<opt> any-value!]
-    pending: [blank! block!]
+    pending: [<opt> block!]
     parser [action!]
     <local> subpending rest result'
 ][
