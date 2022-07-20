@@ -242,7 +242,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             if not all [
                 in port.spec 'ref
                 url? port.spec.ref
-                port.spec.path: find/match/tail form port.spec.ref storage::
+                [# port.spec.path]: find/match form port.spec.ref storage::
                 find ["local" "session"] port.spec.path
             ][
                 fail "Could not initiate storage port"
@@ -446,10 +446,12 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ][
                             collect [
                                 if port.spec.ref = %/ [
-                                    keep [%tmp/]
+                                    keep %tmp/
                                 ]
 
-                                keep ^ storage-list-dir port.spec.target form port.spec.ref
+                                keep spread (
+                                    storage-list-dir port.spec.target form port.spec.ref
+                                )
                             ]
                         ][
                             fail "No such file or directory"

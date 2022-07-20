@@ -74,9 +74,9 @@ use [
                     collect [
                         for-each part error.message [
                             case [
-                                text? part [keep ^part]
+                                text? part [keep part]
                                 get-word? part [
-                                    keep ^ form get in :error to word! part
+                                    keep form get in :error to word! part
                                 ]
                             ]
                         ]
@@ -149,7 +149,7 @@ use [
         name: 'log
 
         init: func [return: <none> port][
-            port.spec.path: find/match/tail as text! port.spec.ref log::
+            [# port.spec.path]: find/match as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
@@ -169,8 +169,8 @@ use [
 
 log: collect [
     for-each endpoint [info log warn error] [
-        keep only endpoint
-        keep make port! join log:: endpoint
+        keep endpoint
+        keep make port! join log:: as text! endpoint
     ]
 ]
 
@@ -787,7 +787,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
         [text!]
 ]{
     let filename = reb.Spell(reb.ArgR('filename'))
-    let mime_type = reb.Spell("try", reb.ArgR('mime-type'))
+    let mime_type = reb.TrySpell(reb.ArgR('mime-type'))
 
     // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
     // It can also include strings in that array.
