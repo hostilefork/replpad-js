@@ -157,7 +157,7 @@ js-do: func [
     if block? source [source: my js-do-dialect-helper]
 
     if text? source [
-        return js-eval*/(opt if local [/local]) source
+        return js-eval*/(if local [/local]) source
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
@@ -173,7 +173,7 @@ js-do: func [
 
     if automime or local [
         let code: as text! read source
-        return js-eval*/(opt if local [/local]) code
+        return js-eval*/(if local [/local]) code
     ]
 
     return apply :js-do-url-helper [source /module module]
