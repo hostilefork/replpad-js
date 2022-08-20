@@ -322,10 +322,9 @@ replpad-write: func [
 lib.write-stdout: func [
     {Writes just text to the ReplPad}
     text [text! char!]
-    /html
 ][
     if char? text [text: my to-text]
-    return replpad-write/(html) text
+    return replpad-write text
 ]
 
 
