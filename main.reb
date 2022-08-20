@@ -453,11 +453,11 @@ eparse-combinators.('mark): combinator [
     {Run one rule and if it matches, draw a mark across that content}
     return: "Result of one evaluation step"
         [<opt> any-value!]
-    pending: [<opt> block!]
+    @pending [<opt> block!]
     parser [action!]
     <local> subpending rest result'
 ][
-    ([^result' remainder subpending]: parser input) else [return null]
+    [^result' remainder subpending]: parser input except e -> [return raise e]
 
     pending: glom subpending make pair! :[
         (index of input) - 1
