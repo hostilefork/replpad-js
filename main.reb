@@ -175,11 +175,11 @@ export main: adapt :console [
     ; such hooks)
 
     skin: make console! compose [  ; /SKIN is a refinement to CONSOLE
-        ((either autorun [
+        (spread either autorun [
             [print-greeting: does []]
         ][
             [greeting: greeting-text]
-        ]))
+        ])
 
         print-halted: meth [return: <none>] [
             print "[interrupted by Escape key or HALT instruction]"
