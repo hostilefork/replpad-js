@@ -134,7 +134,7 @@ export main: adapt :console [
         ;
         ; https://forum.rebol.info/t/1801
         ;
-        sys.util.script-pre-load-hook: _   ; !!! Would BLANK! allow no-op APPLY
+        sys.util.script-pre-load-hook: ~
 
         if importing [
             ;
