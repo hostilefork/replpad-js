@@ -92,7 +92,8 @@ export main: adapt :console [
     ; Note: There is a URLSearchParams() object we could use to parse the
     ; search location as well (may not be in all browsers?)
     ;
-    autorun: _
+    let autorun: null
+    let importing: false
     parse system.options.args [maybe some [
         start: <here>
         ||
@@ -273,7 +274,7 @@ export ensure-golden-layouts-loaded: func [
     return: <none>
     <static> loaded (false)
 ][
-    if loaded [return]
+    if loaded [return none]
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css

@@ -183,7 +183,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
-    return: []
+    return: <void>
 ]{
     replpad.innerHTML = ""
 
@@ -193,13 +193,13 @@ cls: clear-screen: js-awaiter [
     // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
     // So we now defer adding that first line until it is needed.
 
-    return reb.None()  // tells console to suppress result
+    return reb.Void()  // tells console to suppress result
 }
 
 replpad-write-js: js-awaiter [
     {Output lines of text to the REPLPAD (no automatic newline after)}
 
-    return: [<opt> bad-word!]
+    return: <none>
     param [<try> text!]
     /html
 ]{
@@ -828,7 +828,7 @@ sys.util.make-scheme [
 
     init: func [return: <none> port] [
         assert [match text! port.spec.path]
-        port.spec.path: last split-path port.spec.path
+        port.spec.path: split-path port.spec.path
     ]
 
     actor: [

@@ -121,7 +121,7 @@ steps: [
 ]
 
 
-label: description: bug: null  ; state we need to know about to report error
+label: description: bug: _  ; state we need to know about to report error
 
 k: ok: okay: function [
     return: <none>
