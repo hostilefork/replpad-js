@@ -29,7 +29,7 @@ Rebol [
 ; this script fall through to normal console processing, and let the first
 ; run of OKAY capture it.
 ;
-saved-print-prompt: _
+saved-print-prompt: null
 
 steps: [
     #EMPTY-LEFT-CLICK-TEST 39
