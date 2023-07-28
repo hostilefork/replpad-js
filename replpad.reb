@@ -705,7 +705,7 @@ rfc2616-to-date: function [
     digit: charset [#"0" - #"9"]
     alpha: charset [#"A" - #"Z" #"a" - #"z"]
     parse idate [
-        3 alpha "," space  ; skip day of week
+        repeat 3 alpha "," space  ; skip day of week
         day: between <here> space  ; 2 digit
         month: between <here> space  ; 3 alpha
         year: between <here> space  ; 4 digit
@@ -715,7 +715,7 @@ rfc2616-to-date: function [
         fail ["Invalid RFC2616 date:" idate]
     ]
     if zone = "GMT" [zone: copy "+0"]
-    to date! unspaced [day "-" month "-" year "/" time zone]
+    return to date! unspaced [day "-" month "-" year "/" time zone]
 ]
 
 info?: func [
