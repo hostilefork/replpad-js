@@ -389,12 +389,12 @@ export edit: func [
         }
     ]
 
-    let [text title]: unpack switch type of source [
+    let [text title]: pack switch/type source [
         text! [
             [source, "TEXT!"]
         ]
         url! file! [
-            [as text! read source, last split-path source]
+            [as text! read source, split-path source]
         ]
     ]
 
@@ -455,7 +455,7 @@ eparse-combinators.('mark): combinator [
     return: "Result of one evaluation step"
         [<opt> any-value!]
     @pending [<opt> block!]
-    parser [action!]
+    parser [activation!]
     <local> subpending rest result'
 ][
     [^result' remainder subpending]: parser input except e -> [return raise e]
@@ -473,11 +473,19 @@ export eparse: func [rules [block!]] [
 
     ed-clear-underlines
 
-    return [# furthest pending]: parse/combinators ed-text rules eparse-combinators also [
-        for-each pair pending [
-            ed-add-underline first pair second pair
-        ]
+    let [^synthesized' pending]: (
+        parse*/combinators ed-text rules eparse-combinators
+    ) except [
+        return null
     ]
+    
+    for-each item maybe pending [
+        if not pair? item [
+            fail "residual non-PAIR! found in EPARSE pending list"
+        ]
+        ed-add-underline first pair second pair
+    ]
+    return/forward heavy unmeta synthesized'
 ]
 
 
