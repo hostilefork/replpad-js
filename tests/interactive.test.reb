@@ -148,12 +148,12 @@ k: ok: okay: function [
         return none
     ]
 
-    steps: parse* steps [
+    steps: parse steps [
         label: issue!
         opt bug: integer!  ; optional GitHub issue number
         description: across [some text!] (print description)
-        opt [code: group! (do code)]
-        <here>  ; return result
+        opt [code: group! (do as block! code)]
+        accept <here>
     ] else [
         fail "Problem in STEPS parsing"
     ]
