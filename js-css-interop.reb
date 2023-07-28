@@ -143,9 +143,9 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 js-do: func [
     {Execute JavaScript file or evaluate a string of JavaScript source}
 
-    return: [<opt> bad-word!]  ; What useful return result could there be?
+    return: <none>  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<try> block! text! file! url! tag!]
+        [<maybe> block! text! file! url! tag!]
     /automime "Subvert incorrect server MIME-type by requesting via fetch()"
     /local "Run code in a local scope, rather than global"
     /module "Execute JS code as a module"
@@ -191,7 +191,7 @@ js-eval: func [
 
     return: [<opt> bad-word! integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<try> block! text!]
+        [<maybe> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
     return js-eval*/local/value expression
