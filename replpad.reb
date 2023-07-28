@@ -149,7 +149,7 @@ use [
         name: 'log
 
         init: func [return: <none> port][
-            [# port.spec.path]: find/match as text! port.spec.ref log::
+            [@ port.spec.path]: find/match as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 

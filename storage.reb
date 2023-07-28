@@ -242,7 +242,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             if not all [
                 in port.spec 'ref
                 url? port.spec.ref
-                [# port.spec.path]: find/match form port.spec.ref storage::
+                [@ port.spec.path]: find/match form port.spec.ref storage::
                 find ["local" "session"] port.spec.path
             ][
                 fail "Could not initiate storage port"
@@ -332,7 +332,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            write: lambda [port data] [
+            write: lambda [port data <local> dir] [
                 switch type-of port.spec.ref [
                     file! [
                         ensure [binary! text!] data
@@ -341,7 +341,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             data: to binary! data  ; could use AS ?
                         ]
 
-                        either exists? first split-path port.spec.ref [
+                        either exists? [_ @dir]: split-path port.spec.ref [
                             storage-set port.spec.target form port.spec.ref enbase/base data 64
                             port
                         ][
