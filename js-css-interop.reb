@@ -56,7 +56,7 @@ detect-automime: func [
         "https://" [
             hostname: "raw.githubusercontent.com" "/" to <end>
             |
-            hostname: "gitlab.com" "/" thru "/" thru "/" opt "-/" "raw/" to <end>
+            hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/" to <end>
         ]
     ] then [
         if hostname <> js-eval "window.location.hostname" [

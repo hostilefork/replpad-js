@@ -283,7 +283,7 @@ replpad-write: func [
     ; https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
 
     let url-rule: [
-        "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | newline | end]
+        "http" try "s" ":" to ["]" | ")" | {"} | "'" | space | newline | end]
     ]
 
     ; UPARSE is still orders of magnitude slower than native PARSE.  Until that
@@ -291,7 +291,7 @@ replpad-write: func [
 
     let url
     parse3 param: copy param [
-        maybe some [
+        try some [
             change '< ("&lt;")
             | change '> ("&gt;")
             | change '& ("&amp;")
@@ -393,7 +393,7 @@ CORSify-gitlab-port: func [
         "/"
         emit user: between <here> "/"
         emit repo: between <here> "/"
-        [opt "-/"]  ; TBD: figure out what this is for, but skip for now
+        [try "-/"]  ; TBD: figure out what this is for, but skip for now
         "raw/"
         emit branch: between <here> "/"
         emit file_path: between <here> <end>
