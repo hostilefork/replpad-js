@@ -52,16 +52,17 @@ detect-automime: func [
     ; right MIME types on main site, it's just the raw service with the issue).
     ;
     let hostname
-    parse (try match url! source) [
+    try parse (maybe match url! source) [
         "https://" [
-            hostname: "raw.githubusercontent.com" "/" to <end>
+            hostname: "raw.githubusercontent.com" "/"
             |
-            hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/" to <end>
+            hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/"
         ]
-    ] then [
-        if hostname <> js-eval "window.location.hostname" [
+        (if hostname <> js-eval "window.location.hostname" [
             return #  ; cross-origin on GitHub or GitLab, we need /AUTOMIME
-        ]
+        ] else [
+            return null
+        ])
     ]
     return null
 ]

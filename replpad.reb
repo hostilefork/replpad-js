@@ -389,7 +389,8 @@ CORSify-gitlab-port: func [
 
     assert [port.spec.host = "gitlab.com"]
 
-    parse port.spec.path [gather [
+    let x
+    if x: try parse port.spec.path [gather [
         "/"
         emit user: between <here> "/"
         emit repo: between <here> "/"
@@ -397,7 +398,7 @@ CORSify-gitlab-port: func [
         "raw/"
         emit branch: between <here> "/"
         emit file_path: between <here> <end>
-    ]] then x -> [
+    ]][
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
         replace/all x.file_path "/" "%2F"  ; API uses slashes for its delimiting
@@ -711,7 +712,7 @@ rfc2616-to-date: function [
         year: between <here> space  ; 4 digit
         time: between <here> space
         zone: between <here> <end>
-    ] else [
+    ] except [
         fail ["Invalid RFC2616 date:" idate]
     ]
     if zone = "GMT" [zone: copy "+0"]

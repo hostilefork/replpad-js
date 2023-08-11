@@ -154,7 +154,7 @@ k: ok: okay: function [
         description: across [some text!] (print description)
         try [code: group! (do as block! code)]
         accept <here>
-    ] else [
+    ] except [
         fail "Problem in STEPS parsing"
     ]
 

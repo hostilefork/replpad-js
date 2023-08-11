@@ -103,7 +103,7 @@ export main: adapt :console [
         ['do:] autorun: text! (importing: false)
             |
         ['import:] autorun: text! (importing: true)
-    ]] else [
+    ]] except [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
         print newline
