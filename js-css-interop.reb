@@ -190,7 +190,7 @@ js-do: func [
 js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
-    return: [<opt> bad-word! integer! text!]
+    return: [<opt> <none> logic! integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<maybe> block! text!]
 ][
