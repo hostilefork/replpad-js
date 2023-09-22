@@ -124,7 +124,7 @@ steps: [
 label: description: bug: _  ; state we need to know about to report error
 
 k: ok: okay: function [
-    return: <none>
+    return: [<nihil>]
     <with> steps label description bug saved-print-prompt
 ][
     ; Console must be started when first OKAY is run, so SYSTEM/CONSOLE should
@@ -145,7 +145,7 @@ k: ok: okay: function [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
         steps: head steps
-        return none
+        return nihil
     ]
 
     steps: parse steps [
@@ -160,11 +160,12 @@ k: ok: okay: function [
 
     print newline
     print "    (Type OKAY, K, or OK if it works, NOPE if there's a problem)"
+    return nihil
 ]
 
 
 nope: function [
-    return: <none>
+    return: [<nihil>]
 ][
     ; Always restore the prompt, in case a test changed it.
     ;
@@ -186,6 +187,7 @@ nope: function [
     ]
 
     print "    (Then type OKAY to continue)"
+    return nihil
 ]
 
 
@@ -200,7 +202,7 @@ print [
 ]
 
 ; !!! This falls through to the console, so that we get things set up like
-; `system/console` so we can tweak the prompt, etc. and have all the
+; `system.console` so we can tweak the prompt, etc. and have all the
 ; interactivity the user expects...even if they ran it from `?do=` vs.
 ; by having a console already and running `do`.  At the moment, there's no
 ; way to communicate back to the caller whether a console is desired or not,
