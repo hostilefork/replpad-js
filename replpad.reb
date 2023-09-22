@@ -283,7 +283,7 @@ replpad-write: func [
     ; https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
 
     let url-rule: [
-        "http" try "s" ":" to ["]" | ")" | {"} | "'" | space | newline | end]
+        "http" try "s" ":" to ["]" | ")" | {"} | "'" | space | newline | <end>]
     ]
 
     ; UPARSE is still orders of magnitude slower than native PARSE.  Until that
