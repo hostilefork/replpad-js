@@ -408,85 +408,23 @@ export edit: func [
     ]
 ]
 
-export ed-text: js-native [] {
+export ed-text: js-native [] {  // repeated in %eparse.reb
     return reb.Text(cm.state.doc.text.join('\n'))
 }
 
-
-=== "EPARSE" INTEGRATION DEMO OF UPARSE AND CODEMIRROR ===
-
-; This demonstration is set up in a way so that it shows the modularity of
-; the approach.  The `underline_extension.js` is not loaded unless EPARSE is
-; used.  More factoring should push the EPARSE codebase itself into something
-; that is loaded on demand (like the watchlist, but the technique needs work)
-
-ensure-underline-extension-loaded: func [
-    return: <none>
-    <static> loaded (false)
-][
-    if not loaded [
-        js-do/module join replpad-dir %underline-extension.js
-        loaded: true
-    ]
-]
-
-export ed-add-underline: js-native [
-    {Add an underline to the last activated editor}
-    from [integer!]
-    to [integer!]
-] {
-    CodeMirror.AddUnderline(
-        reb.UnboxInteger(reb.ArgR("from")),
-        reb.UnboxInteger(reb.ArgR("to"))
-    )
-    return reb.None()
-}
-
-export ed-clear-underlines: js-awaiter [
+ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
     {Clear all underlines from the last activated editor}
 ] {
     CodeMirror.ClearUnderlines()
 }
 
-eparse-combinators: copy default-combinators
 
-eparse-combinators.('mark): combinator [
-    {Run one rule and if it matches, draw a mark across that content}
-    return: "Result of one evaluation step"
-        [<opt> any-value!]
-    @pending [<opt> block!]
-    parser [activation!]
-    <local> subpending rest result'
-][
-    [^result' remainder subpending]: parser input except e -> [return raise e]
 
-    pending: glom subpending make pair! :[
-        (index of input) - 1
-        (index of remainder) - 1
-    ]
+=== "EPARSE" INTEGRATION DEMO OF UPARSE AND CODEMIRROR ===
 
-    return unmeta result'
-]
+import ensure url! clean-path %eparse.reb
 
-export eparse: func [rules [block!]] [
-    ensure-underline-extension-loaded
-
-    ed-clear-underlines
-
-    let [^synthesized' pending]: (
-        parse*/combinators ed-text rules eparse-combinators
-    ) except [
-        return null
-    ]
-    
-    for-each item maybe pending [
-        if not pair? item [
-            fail "residual non-PAIR! found in EPARSE pending list"
-        ]
-        ed-add-underline first pair second pair
-    ]
-    return/forward heavy unmeta synthesized'
-]
+export [eparse eparse-debug]
 
 
 === OVERRIDE QUIT IN LIB ===
