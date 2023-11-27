@@ -113,7 +113,7 @@ use [
                 mold value.spec
             ]
 
-            action! [
+            action?! [
                 spaced [
                     "func"
                     mold spec-of :value
@@ -183,7 +183,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
-    return: <void>
+    return: [<void>]
 ]{
     replpad.innerHTML = ""
 
@@ -321,7 +321,7 @@ replpad-write: func [
 
 lib.write-stdout: func [
     {Writes just text to the ReplPad}
-    text [text! char!]
+    text [text! char?]
 ][
     if char? text [text: my to-text]
     return replpad-write text

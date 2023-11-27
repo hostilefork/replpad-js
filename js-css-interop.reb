@@ -33,7 +33,7 @@ Rebol [
 
 detect-automime: func [
     {Figure out if a source comes with no MIME type and would break CORS}
-    return: [<opt> blackhole!]
+    return: [<opt> blackhole?]
     source [file! url!]
 ][
     ; GitLab and GitHub raw links are served with no MIME type.  Browsers have
@@ -190,7 +190,7 @@ js-do: func [
 js-eval: func [
     {Evaluate JavaScript expression in local environment and return result}
 
-    return: [<opt> <none> logic! integer! text!]
+    return: [<opt> <none> logic? integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<maybe> block! text!]
 ][

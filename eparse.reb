@@ -74,7 +74,7 @@ eparse-combinators.('mark): combinator [
     return: "Result of one evaluation step"
         [<opt> any-value!]
     @pending [<opt> block!]
-    parser [activation!]
+    parser [action?]
     <local> subpending rest result'
 ][
     [^result' remainder subpending]: parser input except e -> [return raise e]
@@ -91,7 +91,7 @@ eparse-combinators.('mark): combinator [
 ; EPARSE is a PARSE variant that implicitly assumes you want to parse the
 ; content of the CodeMirror editor.
 ;
-export eparse: func [rules [block!] /hook [action!]] [
+export eparse: func [rules [block!] /hook [<unrun> frame!]] [
     ensure-underline-extension-loaded
 
     ed-clear-underlines

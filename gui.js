@@ -875,7 +875,7 @@ reb.Startup({
     info: rewired(console.info, "info"),
     log: rewired(console.log, "log"),
     warn: rewired(console.warn, "warn"),
-    error:  rewired(console.error, "error")
+    error: rewired(console.error, "error")
 
 }).then(() => {
 
