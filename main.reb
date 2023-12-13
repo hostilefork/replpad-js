@@ -182,7 +182,7 @@ export main: adapt :console [
             [greeting: greeting-text]
         ])
 
-        print-halted: meth [return: <none>] [
+        print-halted: meth [return: [~]] [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
@@ -235,7 +235,7 @@ export watch: func [:arg] [
 
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
-export redbol: func [return: <none>] [
+export redbol: func [return: [~]] [
     print delimit LF [
         ""
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
@@ -271,10 +271,10 @@ export redbol: func [return: <none>] [
 === GOLDEN LAYOUTS DEMO ===
 
 export ensure-golden-layouts-loaded: func [
-    return: <none>
+    return: [~]
     <static> loaded (false)
 ][
-    if loaded [return none]
+    if loaded [return ~]
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
@@ -299,7 +299,7 @@ export ensure-golden-layouts-loaded: func [
 === CODEMIRROR 6 EDITOR DEMO ===
 
 export edit: func [
-    return: <none>
+    return: [~]
     source [url! text! file!]
     /marks
     <static> codemirror-loaded (false)

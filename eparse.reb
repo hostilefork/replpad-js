@@ -29,7 +29,7 @@ ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.reb
 }
 
 ensure-underline-extension-loaded: func [
-    return: <none>
+    return: [~]
     <static> loaded (false)
 ][
     if not loaded [
@@ -47,7 +47,6 @@ ed-add-underline: js-native [
         reb.UnboxInteger(reb.ArgR("from")),
         reb.UnboxInteger(reb.ArgR("to"))
     )
-    return reb.None()
 }
 
 ed-select: js-native [
@@ -129,7 +128,7 @@ pdebug-loaded: false
 ensure-debug-panel-loaded: func [
     {Create GoldenLayout panel with a toolbar and div for stack display}
 ] [
-    if pdebug-loaded [return none]
+    if pdebug-loaded [return ~]
 
   css-do {
     .pd-panel {  /* https://discuss.codemirror.net/t/2882 */

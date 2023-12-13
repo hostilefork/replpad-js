@@ -42,7 +42,7 @@ js-do %watchlist.js
 watches: []
 
 delete-watch: function [
-    return: <none>
+    return: [~]
     n [integer!]
 ][
     if n > length of watches [
@@ -194,5 +194,5 @@ system.console.print-result: enclose :system.console.print-result func [f] [
     if "none" <> js-eval {document.getElementById('right').style.display} [
         update-watches
     ]
-    return none
+    return ~
 ]

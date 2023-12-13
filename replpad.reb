@@ -148,7 +148,7 @@ use [
         title: "Console.log Scheme"
         name: 'log
 
-        init: func [return: <none> port][
+        init: func [return: [~] port][
             [@ port.spec.path]: find/match as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
@@ -199,19 +199,19 @@ cls: clear-screen: js-awaiter [
 replpad-write-js: js-awaiter [
     {Output lines of text to the REPLPAD (no automatic newline after)}
 
-    return: <none>
+    return: [~]
     param [<maybe> text!]
     /html
 ]{
     let param = reb.Spell(reb.ArgR('param'))
     if (param == "")
-        return reb.None()  // no-op if content is empty
+        return reb.Trash()  // no-op if content is empty
 
     let html = reb.Did(reb.ArgR('html'))
 
     if (html) {
         replpad.insertAdjacentHTML('beforeend', param)
-        return reb.None()
+        return reb.Trash()
     }
 
     let span = EnsureLastLineSpan('stdout')  // write to a stdout span
@@ -238,7 +238,7 @@ replpad-write-js: js-awaiter [
     }
 
     span.innerHTML += pieces.shift()
-    return reb.None()
+    return reb.Trash()
 }
 
 ; There are several issues with escaping to be considered in trying to write
@@ -262,13 +262,13 @@ replpad-write-js: js-awaiter [
 replpad-write: func [
     {Output a string of text to the REPLPAD (no automatic newline after)}
 
-    return: <none>
+    return: [~]
     param [<maybe> text!]
     /html
 ][
     if html [
         replpad-write-js/html param
-        return none
+        return ~
     ]
 
     ; Since we aren't using <pre> or a <textarea>, this initially had some
@@ -496,7 +496,7 @@ sys.util.make-scheme [
     title: "File Access"
     name: 'file
 
-    init: func [return: <none> port [port!]] [
+    init: func [return: [~] port [port!]] [
         case [
             not all [
                 in port.spec 'ref
@@ -827,7 +827,7 @@ sys.util.make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    init: func [return: <none> port] [
+    init: func [return: [~] port] [
         assert [match text! port.spec.path]
         port.spec.path: split-path port.spec.path
     ]
@@ -926,7 +926,7 @@ now: js-native [
 
 lib.browse: func [
     {Provide a clickable link to the user to open in the browser}
-    return: <none>
+    return: [~]
     url [url!]
 ][
     comment {
