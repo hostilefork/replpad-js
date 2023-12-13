@@ -134,7 +134,7 @@ use [
     write-console: js-awaiter [
         return: []
         type [text!]
-        value [any-value!]
+        value [element?]
     ] {
         let type = reb.ArgR('type')
         let value = reb.ArgR('value')
