@@ -76,7 +76,7 @@ use [
                             case [
                                 text? part [keep part]
                                 get-word? part [
-                                    keep form get in :error to word! part
+                                    keep form get has :error to word! part
                                 ]
                             ]
                         ]
@@ -448,7 +448,7 @@ sys.util.make-scheme [
 
             return read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host
-                    if in port.spec 'port-id [unspaced [":" port.spec.port-id]]
+                    if has port.spec 'port-id [unspaced [":" port.spec.port-id]]
                     port.spec.path
             ]
         ]
@@ -499,7 +499,7 @@ sys.util.make-scheme [
     init: func [return: [~] port [port!]] [
         case [
             not all [
-                in port.spec 'ref
+                has port.spec 'ref
                 file? port.spec.ref
             ][
                 ; port has been invoked using BLOCK! or FILE:// URL!
@@ -575,7 +575,7 @@ sys.util.make-scheme [
     init: func [port [port!]] [
         case [
             not all [
-                in port.spec 'ref
+                has port.spec 'ref
                 file? port.spec.ref
                 ; equal? #"/" first port.spec.ref
             ][
@@ -728,7 +728,7 @@ info?: func [
     return make object! [
         name: url
         size: to integer! o.content-length
-        date: if in o 'last-modified [rfc2616-to-date o.last-modified] else [_]
+        date: if has o 'last-modified [rfc2616-to-date o.last-modified] else [_]
         type: 'url
     ]
 ]

@@ -240,7 +240,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
         init: func [return: [~] port [port!]] [
             if not all [
-                in port.spec 'ref
+                has port.spec 'ref
                 url? port.spec.ref
                 [@ port.spec.path]: find/match form port.spec.ref storage::
                 find ["local" "session"] port.spec.path
@@ -283,7 +283,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         init: func [return: [~] port [port!]] [
             case [
                 not all [
-                    in port.spec 'ref
+                    has port.spec 'ref
                     file? port.spec.ref
                 ][
                     fail "File scheme is only accessible through the FILE! datatype"
@@ -405,7 +405,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         init: func [return: [~] port [port!]] [
             case [
                 not all [
-                    in port.spec 'ref
+                    has port.spec 'ref
                     file? port.spec.ref
                     ; equal? #"/" first port.spec.ref
                 ][
