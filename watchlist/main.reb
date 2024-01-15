@@ -131,7 +131,7 @@ update-watches: function [] [
                 ">attached<"
             ]
             bad-word? ^ get/any w [
-                spaced [mold ^ get/any w space space "; isotope"]
+                spaced [mold ^ get/any w space space "; anti"]
             ]
             null? get w ["\null\"]
 

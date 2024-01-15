@@ -382,16 +382,16 @@ eparse-debug-hook: func [
         ]
         else [
             let synthesized: first unquasi result'
-            let is-isotope
+            let is-antiform
             if quasi? synthesized [
-                is-isotope: true
+                is-antiform: true
                 synthesized: unquasi synthesized
             ] else [
-                is-isotope: false
+                is-antiform: false
                 synthesized: unquote synthesized
             ]
             pd-stack-push/class f [
-                "=>" (mold synthesized) if is-isotope ["; isotope"]
+                "=>" (mold synthesized) if is-antiform ["; anti"]
             ] "match-succeeded"
 
             ed-select 0 ((index of unmeta second unquasi result') - 1)
