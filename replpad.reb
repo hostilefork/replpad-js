@@ -697,21 +697,21 @@ export intern (adjunct-of interop).exports
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
-rfc2616-to-date: function [
+rfc2616-to-date: func [
     {Make DATE! from e.g. `Tue, 15 Nov 1994 12:45:26 GMT`}
     return: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
         [text!]
 ][
-    digit: charset [#"0" - #"9"]
-    alpha: charset [#"A" - #"Z" #"a" - #"z"]
-    parse idate [
+    let digit: charset [#"0" - #"9"]
+    let alpha: charset [#"A" - #"Z" #"a" - #"z"]
+    using parse idate [
         repeat 3 alpha "," space  ; skip day of week
-        day: between <here> space  ; 2 digit
-        month: between <here> space  ; 3 alpha
-        year: between <here> space  ; 4 digit
-        time: between <here> space
-        zone: between <here> <end>
+        emit day: between <here> space  ; 2 digit
+        emit month: between <here> space  ; 3 alpha
+        emit year: between <here> space  ; 4 digit
+        emit time: between <here> space
+        emit zone: between <here>
     ] except [
         fail ["Invalid RFC2616 date:" idate]
     ]
