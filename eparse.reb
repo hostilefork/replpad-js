@@ -343,7 +343,7 @@ eparse-debug-hook: func [
     if (not stop-frame) and f.rule-start [
         ed-select 0 ((index of f.input) - 1)
 
-        pd-stack-push f [mold/only copy/part f.rule-start f.rule-end]
+        pd-stack-push f [mold spread copy/part f.rule-start f.rule-end]
         pushed: true
 
         let mode: either stop-frame = <run> ["run"] [wait-for-step]
