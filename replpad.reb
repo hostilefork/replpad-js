@@ -690,10 +690,10 @@ interop: import ensure url! clean-path %js-css-interop.reb
 ; those functions explicitly?  Probably, but they didn't have to before.  So
 ; try a trick where we just export their imports.
 ;
-; Use INTERN to get the words bound to the ReplPad's versions so the export
+; Use INSIDE to get the words bound to the ReplPad's versions so the export
 ; is legal.
 ;
-export intern (adjunct-of interop).exports
+export inside [] (adjunct-of interop).exports
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
@@ -1038,7 +1038,7 @@ clipboard: make port! clipboard::general
 ; good to have a workflow for it.  LATEST-OF will even try to detect the
 ; platform from the browser, if used with no arguments.
 
-latest-of: do <latest-of>
+latest-of: do 'latest-of
 
 comment [
     ; This caching mechanism doesn't work with modularization, because once
@@ -1048,7 +1048,7 @@ comment [
         {Use LATEST-OF/CACHE to load actual function so HELP is available}
         /cache
     ][
-        latest-of: do <latest-of>  ; not packaged as a module, just a function
+        latest-of: do 'latest-of  ; not packaged as a module, just a function
 
         reduce [if not cache [:latest-of]]
     ]
