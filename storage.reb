@@ -294,7 +294,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            switch type-of port.spec.ref: clean-path port.spec.ref [
+            switch type of port.spec.ref: clean-path port.spec.ref [
                 file! [
                     extend port.spec 'target either find/match port.spec.ref %/tmp/ [
                         "session"
@@ -314,7 +314,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
         actor: [
             read: lambda [port] [
-                switch type-of port.spec.ref [
+                switch type of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
                             any [
@@ -333,7 +333,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             ]
 
             write: lambda [port data <local> dir] [
-                switch type-of port.spec.ref [
+                switch type of port.spec.ref [
                     file! [
                         ensure [binary! text!] data
 
@@ -374,7 +374,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             ]
 
             query: func [return: [<opt> object!] port [port!]] [
-                switch type-of port.spec.ref [
+                switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target
                         let path: form port.spec.ref

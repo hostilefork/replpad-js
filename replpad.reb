@@ -92,7 +92,7 @@ use [
 
     ; there's still some values that will trip this function up
     form-value: lambda [value] [
-        switch type-of get/any 'value [
+        switch type of get/any 'value [
             null [
                 "<NULL>"
             ]
@@ -117,7 +117,7 @@ use [
                 spaced [
                     "func"
                     mold spec-of :value
-                    switch type-of body-of :value [
+                    switch type of body-of :value [
                         block! [
                             mold body-of :value
                         ]
