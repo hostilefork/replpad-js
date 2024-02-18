@@ -96,13 +96,13 @@ js-do-dialect-helper: func [
                     'spell [
                         keep "reb.Spell("
                         b: next b
-                        keep-transient/required try :b.1 'SPELL
+                        keep-transient/required inside b :b.1 'SPELL
                         keep ")"
                     ]
                     'unbox [
                         keep "reb.Unbox("
                         b: next b
-                        keep-transient/required try :b.1 'UNBOX
+                        keep-transient/required inside b :b.1 'UNBOX
                         keep ")"
                     ]
                     fail ["Unknown JS-DO dialect keyword:" b.1]
