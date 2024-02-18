@@ -975,7 +975,7 @@ wait: js-awaiter [
 
 copy-to-clipboard-helper: js-native [
     {https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f}
-    data [any-value!]
+    data [any-value?]
 ]{
     // interface to clipboard is `execCommand` which copies a selection.  We
     // must preserve the current selection, make an invisible text area with

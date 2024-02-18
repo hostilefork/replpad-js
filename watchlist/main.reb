@@ -61,7 +61,7 @@ watch: function [
     :arg [
         word! get-word! path! get-path!
         block! group!
-        integer! tag! refinement!
+        integer! tag! refinement?
     ]
 ][
     case [
