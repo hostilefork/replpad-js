@@ -136,12 +136,7 @@ use [
         type [text!]
         value [element?]
     ] {
-        let type = reb.ArgR('type')
-        let value = reb.ArgR('value')
-
-        console[reb.Spell(type)](
-            reb.Spell(value)
-        )
+        console[reb.Spell("type")](reb.Spell("value"))
     }
 
     sys.util.make-scheme [
@@ -203,13 +198,11 @@ replpad-write-js: js-awaiter [
     param [<maybe> text!]
     /html
 ]{
-    let param = reb.Spell(reb.ArgR('param'))
+    let param = reb.Spell("param")
     if (param == "")
         return reb.Trash()  // no-op if content is empty
 
-    let html = reb.Did(reb.ArgR('html'))
-
-    if (html) {
+    if (reb.Did("html")) {
         replpad.insertAdjacentHTML('beforeend', param)
         return reb.Trash()
     }
@@ -422,7 +415,7 @@ read-url-helper: js-awaiter [
     return: [binary!]
     url [text!]
 ]{
-    let url = reb.Spell(reb.ArgR('url'))
+    let url = reb.Spell("url")
 
     let response = await fetch(url)  // can be relative
 
@@ -786,8 +779,8 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     /mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
         [text!]
 ]{
-    let filename = reb.Spell(reb.ArgR('filename'))
-    let mime_type = reb.TrySpell(reb.ArgR('mime-type'))
+    let filename = reb.Spell("filename")
+    let mime_type = reb.TrySpell("mime-type")
 
     // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
     // It can also include strings in that array.
@@ -870,30 +863,28 @@ now: js-native [
 ]{
     var d = new Date()
 
-    if (reb.Did(reb.ArgR('year')))
+    if (reb.Did("year"))
         return reb.Integer(d.getFullYear())
 
-    if (reb.Did(reb.ArgR('month')))
+    if (reb.Did("month"))
         return reb.Integer(d.getMonth() + 1)  // add 1 because it's 0-11
 
-    if (reb.Did(reb.ArgR('day')))
+    if (reb.Did("day"))
         return reb.Integer(d.getDate())  // "date" (1-31), "day" is weekday
 
     var seconds = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()
     var nanoseconds = d.getMilliseconds() * 1000000
 
-    if (reb.Did(reb.ArgR('time')))
+    if (reb.Did("time"))
         return reb.Value("make-time-sn",
             reb.I(seconds),
-            "all [",
-                "@", reb.ArgR('precise'), reb.I(nanoseconds),
-            "]"
+            "all [precise", reb.I(nanoseconds), "]"
         )
 
-    if (reb.Did(reb.ArgR('weekday')))
+    if (reb.Did("weekday"))
         return reb.Integer(d.getDay() + 1)  // add 1 because it's 0-6
 
-    if (reb.Did(reb.ArgR('yearday')))  // !!! not particularly important
+    if (reb.Did("yearday"))  // !!! not particularly important
         throw ("To implement /YEARDAY: https://stackoverflow.com/a/26426761/")
 
     // !!! For now, punt on timezone issues
@@ -904,18 +895,14 @@ now: js-native [
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
         reb.I(seconds),
-        "all [",
-            "@", reb.ArgR('precise'), reb.I(nanoseconds),
-        "]",
-        "all [",
-            "not @", reb.ArgR('local'), reb.I(0),  // zone
-        "]",
+        "all [precise", reb.I(nanoseconds), "]",
+        "all [not local", reb.I(0), "]",  // zone
     ")")
 
     // There's no separate generator for making just a date, so workaround
     // to achieve /DATE by just picking the date out of the datetime.
 
-    if (reb.Did(reb.ArgR('date')))
+    if (reb.Did("date"))
         return reb.Value("pick", reb.R(datetime), "'date")
 
     return datetime
@@ -936,7 +923,7 @@ lib.browse: func [
         //
         // https://stackoverflow.com/a/11384018/
         //
-        let url = reb.Spell(rebArgR('url'))
+        let url = reb.Spell("url")
 
         if (false) {
             let win = window.open(url, '_blank')
@@ -963,7 +950,7 @@ wait: js-awaiter [
     seconds [integer! decimal!]
 ]{
     return new Promise(function(resolve, reject) {
-        setTimeout(resolve, 1000 * reb.UnboxDecimal(reb.ArgR('seconds')))
+        setTimeout(resolve, 1000 * reb.UnboxDecimal("seconds"))
     })
 }
 
@@ -982,7 +969,7 @@ copy-to-clipboard-helper: js-native [
     // the data, select it, run execCommand(), and then restore the selection.
     //
     const el = document.createElement('textarea')
-    el.value = reb.Spell(reb.ArgR('data'))
+    el.value = reb.Spell("data")
     el.setAttribute('readonly', '')
     el.style.position = 'absolute'
     el.style.left = '-9999px'

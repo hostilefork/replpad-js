@@ -44,8 +44,8 @@ ed-add-underline: js-native [
     to [integer!]
 ] {
     CodeMirror.AddUnderline(
-        reb.UnboxInteger(reb.ArgR("from")),
-        reb.UnboxInteger(reb.ArgR("to"))
+        reb.UnboxInteger("from"),
+        reb.UnboxInteger("to")
     )
 }
 
@@ -53,8 +53,8 @@ ed-select: js-native [
     start [integer!]
     end [integer!]
 ] {
-    let start = reb.UnboxInteger(reb.ArgR("start"))
-    let end = reb.UnboxInteger(reb.ArgR("end"))
+    let start = reb.UnboxInteger("start")
+    let end = reb.UnboxInteger("end")
 
     let EditorSelection = CodeMirror.state.EditorSelection
     cm.dispatch({
@@ -236,8 +236,8 @@ pd-stack-push: js-native [
     /class "CSS class to give to the pushed DIV"
         [text!]
 ] {
-    let text = reb.Spell("spaced", reb.ArgR("line"))
-    let classname = reb.TrySpell("spaced maybe", reb.ArgR("class"))
+    let text = reb.Spell("spaced line")
+    let classname = reb.TrySpell("spaced maybe class")
     let div = load("<div>" + text + "</div>")
     if (classname)
         div.classList.add(classname)
@@ -250,7 +250,7 @@ pd-get-frame: js-native [
     return: [<opt> frame!]
     index [integer!]
 ] {
-    let index = reb.Unbox(reb.ArgR("index"))
+    let index = reb.Unbox("index")
     let div = pd.stack.firstChild
     if (div == null)
         return null

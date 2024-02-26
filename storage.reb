@@ -58,17 +58,13 @@ storage-set: js-native [
     path [text! file!]
     value [text!]
 ] {
-    let store = reb.ArgR('store')
-    let path = reb.ArgR('path')
-    let value = reb.ArgR('value')
-
-    store = reb.Spell(store) == 'session'
+    let store = (reb.Spell("store") == 'session')
         ? sessionStorage
         : localStorage
 
     store.setItem(
-        reb.Spell(path),
-        reb.Spell(value)
+        reb.Spell("path"),
+        reb.Spell("value")
     )
 }
 
@@ -76,17 +72,11 @@ storage-get: js-native [
     store [text!]
     path [text! file!]
 ] {
-    let store = reb.ArgR('store')
-    let path = reb.ArgR('path')
-    let value
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
-    value = store.getItem(
-        reb.Spell(path)
-    )
+    let value = store.getItem(reb.Spell("path"))
 
     return (typeof value !== 'undefined' && value !== null)
         ? reb.Text(value)
@@ -97,17 +87,11 @@ storage-unset: js-native [
     store [text!]
     path [text! file!]
 ] {
-    let store = reb.ArgR('store')
-    let path = reb.ArgR('path')
-    let value
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
-    store.removeItem(
-        reb.Spell(path)
-    )
+    store.removeItem(reb.Spell("path"))
 
     return null
 }
@@ -115,9 +99,7 @@ storage-unset: js-native [
 storage-clear: js-native [
     store [text!]
 ] {
-    let store = reb.ArgR('store')
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
@@ -134,18 +116,16 @@ storage-clear: js-native [
 storage-list: js-native [
     store [text!]
 ] {
-    let store = reb.ArgR('store')
-    let listing = []
-    let offset
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
     console.log(store)
 
+    let listing = []
     listing.push('[')
 
+    let offset
     for (
         offset = 0;
         offset < store.length;
@@ -166,34 +146,30 @@ storage-list-dir: js-native [
     store [text!]
     path [text! file!]
 ] {
-    let store = reb.ArgR('store')
-    let path = reb.ArgR('path')
-    let test
-    let parts
-    let listing = []
-    let offset
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
-    test = new RegExp(
+    let test = new RegExp(
         '\x5E'  // starting caret -- lost when used literally
-        + reb.Spell(path).replace(  // convert path as text to regex blob
+        + reb.Spell("path").replace(  // convert path as text to regex blob
             /[|\\\/{}()[\]\x5E)$+*?.]/g,
             '\\$&'
         )
         + '([\x5E\/]+\/?)$'  // only match non-slash characters
     )
 
+    let listing = []
     listing.push('[')
 
+    let offset
     for (
         offset = 0;
         offset < store.length;
         offset++
     ) {
-        parts = store.key(offset).match(test)  // match each key against our pattern
+        // match each key against our pattern
+        let parts = store.key(offset).match(test)
 
         if (parts && listing.indexOf(parts[1]) == -1) {
             // TODO: need to escape carets
@@ -214,16 +190,13 @@ storage-exists?: js-native [
     store [text!]
     path [text! file!]
 ] {
-    let store = reb.ArgR('store')
-    let path = reb.ArgR('path')
-
-    store = reb.Spell(store) == 'session'
+    let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
 
     return reb.Logic(
         store.hasOwnProperty(
-            reb.Spell(path)
+            reb.Spell("path")
         )
     )
 }

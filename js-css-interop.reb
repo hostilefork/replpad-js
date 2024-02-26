@@ -126,9 +126,9 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     return new Promise(function(resolve, reject) {
         let script = document.createElement('script')
 
-        script.src = reb.Spell(reb.ArgR('url'))
+        script.src = reb.Spell("url")
 
-        if (reb.Truthy(reb.ArgR('module')))
+        if (reb.Truthy("module"))
             script.type = "module"
 
         script.onload = function() {
@@ -203,7 +203,7 @@ js-head-helper: js-awaiter [
     return: [object!]
     url [text!]
 ]{
-    let url = reb.Spell(reb.ArgR('url'))
+    let url = reb.Spell("url")
 
     let response = await fetch(url, {method: 'HEAD'})  // can be relative
 
@@ -246,7 +246,7 @@ css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
     let css = document.createElement('style')
     /* css.id = ... */  // could be good for no duplicates, deleting later
     css.type = 'text/css'
-    css.innerHTML = reb.Spell(reb.ArgR('text'))
+    css.innerHTML = reb.Spell("text")
     document.head.appendChild(css)
 }
 
@@ -258,7 +258,7 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
     link.id = 'testing'
     link.rel = 'stylesheet'
     link.type = 'text/css'
-    link.href = reb.Spell(reb.ArgR('url'))
+    link.href = reb.Spell("url")
     link.media = 'all'
     document.head.appendChild(link)
 }
