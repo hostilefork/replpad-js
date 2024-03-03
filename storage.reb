@@ -346,7 +346,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            query: func [return: [<opt> object!] port [port!]] [
+            query: func [return: [~null~ object!] port [port!]] [
                 switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target

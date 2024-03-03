@@ -178,7 +178,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     {Clear contents of the browser window}
-    return: [<void>]
+    return: [~void~]
 ]{
     replpad.innerHTML = ""
 

@@ -72,7 +72,7 @@ eparse-combinators.('mark): combinator [
     {Run one rule and if it matches, draw a mark across that content}
     return: "Result of one evaluation step"
         [any-atom?]
-    @pending [<opt> block!]
+    @pending [~null~ block!]
     parser [action?]
     <local> subpending rest result'
 ][
@@ -247,7 +247,7 @@ pd-stack-push: js-native [
 
 pd-get-frame: js-native [
     {Return FRAME! associated with given stack level in list (1 is topmost)}
-    return: [<opt> frame!]
+    return: [~null~ frame!]
     index [integer!]
 ] {
     let index = reb.Unbox("index")
