@@ -822,7 +822,7 @@ sys.util.make-scheme [
 
     init: func [return: [~] port] [
         assert [match text! port.spec.path]
-        port.spec.path: split-path port.spec.path
+        port.spec.path: [_ @]: split-path port.spec.path
     ]
 
     actor: [

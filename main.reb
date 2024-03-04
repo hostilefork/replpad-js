@@ -393,7 +393,7 @@ export edit: func [
             [source, "TEXT!"]
         ]
         url! file! [
-            [as text! read source, split-path source]
+            [as text! read source, [_ @]: split-path source]
         ]
     ]
 
