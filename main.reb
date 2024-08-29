@@ -125,7 +125,7 @@ export main: adapt :console [
         return 1
     ]
 
-    if autorun [  ; `?do=foo` suppresses banner and runs `do <foo>`
+    if autorun [  ; `?do=foo` suppresses banner and runs `do @foo`
         ;
         ; !!! @gchiu wants to suppress the loading information for dependent
         ; modules, as well as not show any output from the import itself.
@@ -228,7 +228,7 @@ export watch: func [:arg] [
     ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
     ; but be able to inline WATCH to gather args)
     ;
-    return do compose [watch (:arg)]
+    return eval compose [watch (:arg)]
 ]
 
 

@@ -152,7 +152,7 @@ k: ok: okay: function [
         label: issue!
         try bug: integer!  ; optional GitHub issue number
         description: across [some text!] (print description)
-        try [code: group! (do as block! code)]
+        try [code: group! (eval code)]
         accept <here>
     ] except [
         fail "Problem in STEPS parsing"
