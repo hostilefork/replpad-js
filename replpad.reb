@@ -200,11 +200,11 @@ replpad-write-js: js-awaiter [
 ]{
     let param = reb.Spell("param")
     if (param == "")
-        return reb.Trash()  // no-op if content is empty
+        return  // no-op if content is empty
 
     if (reb.Did("html")) {
         replpad.insertAdjacentHTML('beforeend', param)
-        return reb.Trash()
+        return
     }
 
     let span = EnsureLastLineSpan('stdout')  // write to a stdout span
@@ -231,7 +231,6 @@ replpad-write-js: js-awaiter [
     }
 
     span.innerHTML += pieces.shift()
-    return reb.Trash()
 }
 
 ; There are several issues with escaping to be considered in trying to write
