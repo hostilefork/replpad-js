@@ -710,7 +710,7 @@ function OnEscape() {
     }
 
     console.log("queueing halt")
-    reb.Halt()
+    reb.RequestHalt()
 }
 
 
