@@ -94,7 +94,7 @@ export main: adapt :console [
     ;
     let autorun: null
     let importing: false
-    parse system.options.args [try some [
+    parse system.options.args [opt some [
         ;
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.

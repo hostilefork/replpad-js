@@ -150,9 +150,9 @@ k: ok: okay: function [
 
     steps: parse steps [
         label: issue!
-        try bug: integer!  ; optional GitHub issue number
+        opt bug: integer!  ; optional GitHub issue number
         description: across [some text!] (print description)
-        try [code: group! (eval code)]
+        opt [code: group! (eval code)]
         accept <here>
     ] except [
         fail "Problem in STEPS parsing"

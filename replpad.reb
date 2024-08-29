@@ -276,7 +276,7 @@ replpad-write: func [
     ; https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
 
     let url-rule: [
-        "http" try "s" ":" to ["]" | ")" | {"} | "'" | space | newline | <end>]
+        "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | newline | <end>]
     ]
 
     ; UPARSE is still orders of magnitude slower than native PARSE.  Until that
@@ -284,7 +284,7 @@ replpad-write: func [
 
     let url
     parse3 param: copy param [
-        try some [
+        opt some [
             change '< ("&lt;")
             | change '> ("&gt;")
             | change '& ("&amp;")
@@ -293,7 +293,7 @@ replpad-write: func [
             ; it a "good reason" to use `target='_blank'` to avoid losing work.
             ; https://css-tricks.com/use-target_blank/
             ;
-            | change [copy url url-rule] (
+            | change [url: across url-rule] (
                 unspaced [{<a href='} url {' target='_blank'>} url {</a>}]
             )
 
@@ -305,7 +305,7 @@ replpad-write: func [
             | change '♥ ({<span class='heart'>♥</span>})
             | change '♠ ({<span class='spade'>♠</span>})
 
-            | skip
+            | one
         ]
     ]
 
@@ -387,7 +387,7 @@ CORSify-gitlab-port: func [
         "/"
         emit user: between <here> "/"
         emit repo: between <here> "/"
-        [try "-/"]  ; TBD: figure out what this is for, but skip for now
+        [opt "-/"]  ; TBD: figure out what this is for, but skip for now
         "raw/"
         emit branch: between <here> "/"
         emit file_path: between <here> <end>
