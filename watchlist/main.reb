@@ -123,7 +123,7 @@ watches: []
 
 /update-watches: function [] [
     n: 1
-    for-each w watches [
+    for-each 'w watches [
         result: case [
             ;
             ; The edge-case states for the watches would ideally be in some
