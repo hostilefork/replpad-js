@@ -101,7 +101,7 @@ export /eparse: func [rules [block!] :hook [<unrun> frame!]] [
         return raise e
     ]
 
-    for-each item maybe pending [
+    for-each 'item maybe pending [
         if not pair? item [
             fail "residual non-PAIR! found in EPARSE pending list"
         ]

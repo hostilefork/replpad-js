@@ -72,7 +72,7 @@ use [
                 text? error.message [error.message]
                 block? error.message [
                     collect [
-                        for-each part error.message [
+                        for-each 'part error.message [
                             case [
                                 text? part [keep part]
                                 get-word? part [
@@ -163,7 +163,7 @@ use [
 ; writing to a log URL will still work from any context
 
 log: collect [
-    for-each endpoint [info log warn error] [
+    for-each 'endpoint [info log warn error] [
         keep endpoint
         keep make port! join log:: as text! endpoint
     ]
