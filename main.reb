@@ -17,7 +17,7 @@ Rebol [
     ; It also exports MAIN, which isn't something the user should see.  A
     ; way should be figured out to remove its visibility.
 
-    Description: {
+    Description: --{
         The ReplPad console is a "widget" that tries to have few dependencies,
         but can be integrated into bulkier contexts.  One of those is as a
         panel in Golden Layouts:
@@ -29,7 +29,7 @@ Rebol [
 
         The introduction text is a good example of something not all usages
         would want, so that's an example of something that belongs here.
-    }
+    }--
 ]
 
 replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
@@ -49,31 +49,31 @@ wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
 instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
 
 link: [href label] -> [
-    unspaced [{<a href="} href {" target="_blank">} label {</a>}]
+    unspaced [--{<a href='}-- href --{' target='_blank'>}-- label --{</a>}--]
 ]
 
 intro-note-html: spaced [
-    {<div class='note'>}
+    "<div class='note'>"
 
-    {<p>}
-    {<b><i>Guess what...</i></b> this REPL is actually written in Rebol!}
-    {Check out the} (link replpad-git {bridge to JavaScript})
-    {as well as the} unspaced [(link console-git {Console Module}) "."]
-    {While the techniques are still in early development, they show a}
-    {lot of promise for JavaScript/Rebol interoperability.}
-    {Discuss it on the} unspaced [(link forum {Discourse forum}) "."]
-    {</p>}
+    "<p>"
+    "<b><i>Guess what...</i></b> this REPL is actually written in Rebol!"
+    "Check out the" (link replpad-git "bridge to JavaScript")
+    "as well as the" unspaced [(link console-git "Console Module") "."]
+    "While the techniques are still in early development, they show a"
+    "lot of promise for JavaScript/Rebol interoperability."
+    "Discuss it on the" unspaced [(link forum {Discourse forum}) "."]
+    "</p>"
 
-    {<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>}
-    {</div>}
+    "<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>"
+    "</div>"
 ]
 
 greeting-text:
-{Welcome to Rebol.  For more information please type in the commands below:
+--{Welcome to Rebol.  For more information please type in the commands below:
 
   HELP    - For starting information
   ABOUT   - Information about your Rebol
-  REDBOL  - Experimental emulation of Rebol2/Red conventions}
+  REDBOL  - Experimental emulation of Rebol2/Red conventions}--
 
 
 ; We don't want a deep stack when reporting errors or running user code.  So
@@ -106,7 +106,7 @@ export main: adapt :console [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
         print newline
-        print trim:auto mutable {
+        print trim:auto mutable --{
             OPTIONS ARE:
 
             ?do=scriptname
@@ -121,7 +121,7 @@ export main: adapt :console [
             They may be combined together, e.g.:
 
             ?local&do=scriptname
-        }
+        }--
         return 1
     ]
 
@@ -200,12 +200,12 @@ export main: adapt :console [
 
 export about: does [
     print [
-        {This Rebol is running completely in your browser!  The evaluations}
-        {aren't being sent to a remote server--the interpreter is client side!}
+        "This Rebol is running completely in your browser!  The evaluations"
+        "aren't being sent to a remote server--the interpreter is client side!"
         newline newline
 
-        {Please don't hesitate to submit any improvements, no matter how}
-        {small...and come join the discussion on the forum and chat!}
+        "Please don't hesitate to submit any improvements, no matter how"
+        "small...and come join the discussion on the forum and chat!"
     ]
 ]
 
@@ -312,7 +312,7 @@ export edit: func [
         ;
         js-do:module join replpad-dir %codemirror-interop.js
 
-        css-do {
+        css-do --{
             .cm-editor {  /* https://discuss.codemirror.net/t/2882 */
                 height: 100% !important
             }
@@ -320,11 +320,11 @@ export edit: func [
                 overflow-y: scroll !important;  /* always show */
                 overflow-x: auto
             }
-        }
+        }--
 
         codemirror-loaded: true
 
-        js-eval {
+        js-eval --{
             const { EditorState } = CodeMirror.state
             const { EditorView } = CodeMirror.view
 
@@ -385,7 +385,7 @@ export edit: func [
                 cm = cm_view  // capture last editor in cm
             })
           })
-        }
+        }--
     ]
 
     let [text title]: pack switch:type source [
@@ -398,24 +398,24 @@ export edit: func [
     ]
 
     js-eval [
-        {let text =} spell @text {;}
-        {let title =} spell @title {;}
-        {
+        --{let text =}-- spell @text --{;}--
+        --{let title =}-- spell @title --{;}--
+        --{
             let state = { text: text }
             golden.addComponent('mirror', state, title)
-        }
+        }--
     ]
 ]
 
-export ed-text: js-native [] {  // repeated in %eparse.reb
+export ed-text: js-native [] --{  // repeated in %eparse.reb
     return reb.Text(cm.state.doc.text.join('\n'))
-}
+}--
 
 ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
-    {Clear all underlines from the last activated editor}
-] {
+    "Clear all underlines from the last activated editor"
+] --{
     CodeMirror.ClearUnderlines()
-}
+}--
 
 
 
@@ -439,10 +439,10 @@ export [eparse eparse-debug]
 
 lib.quit: adapt copy :lib.quit [
     replpad-write:html spaced [
-        {<div class='note'>}
-        {<p><b><i>Sorry to see you go...</i></b></p>}
+        "<div class='note'>"
+        "<p><b><i>Sorry to see you go...</i></b></p>"
 
-        {<p><a href=".">click to restart interpreter</a></p>}
+        "<p><a href='.'>click to restart interpreter</a></p>"
         </div>
     ]
 
