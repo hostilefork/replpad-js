@@ -144,7 +144,7 @@ use [
         name: 'log
 
         /init: func [return: [~] port] [
-            [@ port.spec.path]: find:match as text! port.spec.ref log::
+            [# port.spec.path]: find:match as text! port.spec.ref form log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
@@ -823,7 +823,7 @@ sys.util/make-scheme [
 
     /init: func [return: [~] port] [
         assert [match text! port.spec.path]
-        port.spec.path: [_ @]: split-path port.spec.path
+        port.spec.path: split-path port.spec.path
     ]
 
     actor: [
