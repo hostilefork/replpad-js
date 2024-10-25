@@ -84,7 +84,7 @@ use [
                 ]
             ]
             newline "** Where: " error.where
-            newline "** Near: " copy/part mold error.near 80
+            newline "** Near: " copy:part mold error.near 80
             newline "** File: " form error.file
             newline "** Line: " form error.line
         ]
@@ -92,13 +92,13 @@ use [
 
     ; there's still some values that will trip this function up
     form-value: lambda [value] [
-        switch type of get/any 'value [
+        switch type of get:any $value [
             null [
                 "<NULL>"
             ]
 
             bad-word! [
-                mold get/any 'value
+                mold get:any 'value
             ]
 
             block! [
@@ -127,7 +127,7 @@ use [
                 ]
             ]
 
-            (form get/any 'value)
+            (form get:any $value)
         ]
     ]
 
@@ -144,13 +144,13 @@ use [
         name: 'log
 
         init: func [return: [~] port][
-            [@ port.spec.path]: find/match as text! port.spec.ref log::
+            [@ port.spec.path]: find:match as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
         actor: make object! [
             write: append: func [port value] [
-                write-console port.spec.path form-value get/any 'value
+                write-console port.spec.path form-value get:any 'value
                 return port
             ]
         ]
@@ -196,7 +196,7 @@ replpad-write-js: js-awaiter [
 
     return: [~]
     param [<maybe> text!]
-    /html
+    :html
 ]{
     let param = reb.Spell("param")
     if (param == "")
@@ -256,10 +256,10 @@ replpad-write: func [
 
     return: [~]
     param [<maybe> text!]
-    /html
+    :html
 ][
     if html [
-        replpad-write-js/html param
+        replpad-write-js:html param
         return ~
     ]
 
@@ -713,7 +713,7 @@ rfc2616-to-date: func [
 
 info?: func [
     url [url!]
-    /only
+    :only
 ][
     o: js-head url
     if only [return 'file]
@@ -755,7 +755,7 @@ lib.change-dir: func [
     ;
     ; Rather than update the stub we leave this override here for now.
 
-    path: clean-path/dir path
+    path: clean-path:dir path
 
     if all [
         file? path
@@ -775,7 +775,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
 
     filename [file!]
     data [text! binary!]
-    /mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
+    :mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
         [text!]
 ]{
     let filename = reb.Spell("filename")
@@ -848,17 +848,17 @@ sys.util.make-scheme [
 now: js-native [
     {Returns current date and time with timezone adjustment}
 
-    /year "Returns year only"
-    /month "Returns month only"
-    /day "Returns day of the month only"
-    /time "Returns time only"
-    /zone "Returns time zone offset from UCT (GMT) only"
-    /date "Returns date only"
-    /weekday "Returns day of the week as integer (Monday is day 1)"
-    /yearday "Returns day of the year (Julian)"
-    /precise "High precision time"
-    /utc "Universal time (zone +0:00)"
-    /local "Give time in current zone without including the time zone"
+    :year "Returns year only"
+    :month "Returns month only"
+    :day "Returns day of the month only"
+    :time "Returns time only"
+    :zone "Returns time zone offset from UCT (GMT) only"
+    :date "Returns date only"
+    :weekday "Returns day of the week as integer (Monday is day 1)"
+    :yearday "Returns day of the year (Julian)"
+    :precise "High precision time"
+    :utc "Universal time (zone +0:00)"
+    :local "Give time in current zone without including the time zone"
 ]{
     var d = new Date()
 
@@ -899,7 +899,7 @@ now: js-native [
     ")")
 
     // There's no separate generator for making just a date, so workaround
-    // to achieve /DATE by just picking the date out of the datetime.
+    // to achieve :DATE by just picking the date out of the datetime.
 
     if (reb.Did("date"))
         return reb.Value("pick", reb.R(datetime), "'date")
@@ -934,7 +934,7 @@ lib.browse: func [
     ; very useful if they typed BROWSE literally, but if a command tried to
     ; open a window it's the sort of thing that would give them an option.
     ;
-    replpad-write/html unspaced [
+    replpad-write:html unspaced [
         <div class="browse">
         {Click here: <a href="} url {" target="_blank">} url {</a>}
         </div>
@@ -997,7 +997,7 @@ sys.util.make-scheme [  ; no URL form dictated
         write: func [port data] [
             if binary? data [
                 data: either invalid-utf8? data [
-                    enbase/base data 64
+                    enbase:base data 64
                 ][
                     to text! data
                 ]
@@ -1032,7 +1032,7 @@ comment [
     ;
     latest-of: macro [
         {Use LATEST-OF/CACHE to load actual function so HELP is available}
-        /cache
+        :cache
     ][
         latest-of: do @latest-of  ; not packaged as a module, just a function
 

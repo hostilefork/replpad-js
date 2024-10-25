@@ -25,7 +25,7 @@ Rebol [
 ]
 
 ; This may not be running from a console, e.g. it might be run via "?do=" on
-; the URL line.  Hence `system/console` may not be set yet.  We have to let
+; the URL line.  Hence `system.console` may not be set yet.  We have to let
 ; this script fall through to normal console processing, and let the first
 ; run of OKAY capture it.
 ;
@@ -127,14 +127,14 @@ k: ok: okay: function [
     return: [<nihil>]
     <with> steps label description bug saved-print-prompt
 ][
-    ; Console must be started when first OKAY is run, so SYSTEM/CONSOLE should
+    ; Console must be started when first OKAY is run, so SYSTEM.CONSOLE should
     ; be set by that point.  But we only want to set it the first time (other
     ; times it could be purposefully changed by the test code)
     ;
-    saved-print-prompt: default [:system.console.print-prompt]
+    /saved-print-prompt: default [system.console.print-prompt/]
 
     print newline
-    replpad-write/html {<hr>}
+    replpad-write:html {<hr>}
     print newline
 
     ; Always restore the prompt, in case a test changed it.
@@ -169,8 +169,8 @@ nope: function [
 ][
     ; Always restore the prompt, in case a test changed it.
     ;
-    if saved-print-prompt [  ; won't be set if NOPE was the first thing!
-        system.console.print-prompt: :saved-print-prompt
+    if get $saved-print-prompt [  ; won't be set if NOPE was the first thing!
+        system.console.print-prompt: saved-print-prompt/
     ]
 
     print ["O noes." if bug ["Broken, again?!!"] "(✖╭╮✖)"]

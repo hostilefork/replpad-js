@@ -48,7 +48,7 @@ delete-watch: function [
     if n > length of watches [
         fail ["There is no watch in slot" n]
     ]
-    js-do/local [{
+    js-do:local [{
         let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
         tr.parentNode.removeChild(tr)
     }]
@@ -90,7 +90,7 @@ watch: function [
         word? arg [
             append watches arg  ; e.g. length is 1 after first addition
 
-            js-do/local [{
+            js-do:local [{
                 let tbody = document.querySelector("#watchlist > tbody")
                 let tr = load(
                    '<tr onmousedown="RowClick(this,false);"></tr>'
@@ -135,14 +135,14 @@ update-watches: function [] [
             ]
             null? get w ["\null\"]
 
-            true [mold/limit get w 1000]
+            true [mold:limit get w 1000]
         ]
 
         ; We update the result, in the 3rd column.  Because the content can
         ; be arbitrary UTF-8, we set the innerText property via a string
         ; generated via `reb.Spell()` (convenient in the JS-DO dialect)
         ;
-        js-do/local [{
+        js-do:local [{
             let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
             let td = tr.childNodes[2]  // 1-based indexing, so 2 is 3rd column
 

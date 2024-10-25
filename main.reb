@@ -106,7 +106,7 @@ export main: adapt :console [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
         print newline
-        print trim/auto mutable {
+        print trim:auto mutable {
             OPTIONS ARE:
 
             ?do=scriptname
@@ -166,15 +166,15 @@ export main: adapt :console [
         comment [if result = ... [return 0]]
     ]
     else [
-        replpad-write/html intro-note-html
+        replpad-write:html intro-note-html
     ]
 
     ; Fall through to normal CONSOLE loop handling, but use a skin that
     ; gives a custom message (other customizations could be done here,
-    ; prompt/etc., and it's hoped the tutorial itself would be done with
+    ; prompt, etc., and it's hoped the tutorial itself would be done with
     ; such hooks)
 
-    skin: make console! compose [  ; /SKIN is a refinement to CONSOLE
+    skin: make console! compose [  ; :SKIN is a refinement to CONSOLE
         (spread either autorun [
             [print-greeting: does []]
         ][
@@ -216,7 +216,7 @@ export about: does [
 ; delayed-load that waits for the first use.
 ;
 ; Note: When it was being automatically loaded, it was observed that it
-; could not be loaded before REPLPAD-WRITE/HTML.  Investigate.
+; could not be loaded before REPLPAD-WRITE:HTML.  Investigate.
 
 export watch: func [:arg] [
     print "Loading watchlist extension for first use..."
@@ -289,7 +289,7 @@ export ensure-golden-layouts-loaded: func [
     ; The interop is a module that makes `window.golden` available to this
     ; non-modularized code.
     ;
-    js-do/module join replpad-dir %golden-interop.js
+    js-do:module join replpad-dir %golden-interop.js
 
     loaded: true
 ]
@@ -300,7 +300,7 @@ export ensure-golden-layouts-loaded: func [
 export edit: func [
     return: [~]
     source [url! text! file!]
-    /marks
+    :marks
     <static> codemirror-loaded (false)
 ][
     ensure-golden-layouts-loaded
@@ -310,7 +310,7 @@ export edit: func [
         ; The interop is a module that makes `window.CodeMirror` available to
         ; this non-modularized code.
         ;
-        js-do/module join replpad-dir %codemirror-interop.js
+        js-do:module join replpad-dir %codemirror-interop.js
 
         css-do {
             .cm-editor {  /* https://discuss.codemirror.net/t/2882 */
@@ -388,7 +388,7 @@ export edit: func [
         }
     ]
 
-    let [text title]: pack switch/type source [
+    let [text title]: pack switch:type source [
         text! [
             [source, "TEXT!"]
         ]
@@ -438,7 +438,7 @@ export [eparse eparse-debug]
 ; to do different things when quitting.
 
 lib.quit: adapt copy :lib.quit [
-    replpad-write/html spaced [
+    replpad-write:html spaced [
         {<div class='note'>}
         {<p><b><i>Sorry to see you go...</i></b></p>}
 

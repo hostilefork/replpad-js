@@ -215,7 +215,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             if not all [
                 has port.spec 'ref
                 url? port.spec.ref
-                [@ port.spec.path]: find/match form port.spec.ref storage::
+                [@ port.spec.path]: find:match form port.spec.ref storage::
                 find ["local" "session"] port.spec.path
             ][
                 fail "Could not initiate storage port"
@@ -291,7 +291,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
                             any [
-                                attempt [debase/base storage-get port.spec.target form port.spec.ref 64]
+                                attempt [debase:base storage-get port.spec.target form port.spec.ref 64]
                                 as binary! storage-get port.spec.target form port.spec.ref
                             ]
                         ][
@@ -315,7 +315,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
 
                         either exists? dir split-path port.spec.ref [
-                            storage-set port.spec.target form port.spec.ref enbase/base data 64
+                            storage-set port.spec.target form port.spec.ref enbase:base data 64
                             port
                         ][
                             fail "No such file or directory"
@@ -393,7 +393,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
             switch type of port.spec.ref: clean-path port.spec.ref [
                 file! [
-                    extend port.spec 'target either find/match port.spec.ref %/tmp/ [
+                    extend port.spec 'target either find:match port.spec.ref %/tmp/ [
                         "session"
                     ][
                         "local"

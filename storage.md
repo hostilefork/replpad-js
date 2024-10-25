@@ -17,8 +17,8 @@ do %storage.reb
 The Storage scheme maps each storage object to its own port. A **port!** for each object is created upon initiating the Storage module:
 
 ```plain
-storage/local  ; maps to localStorage
-storage/session  ; maps to sessionStorage
+storage.local  ; maps to localStorage
+storage.session  ; maps to sessionStorage
 ```
 
 The storage scheme supports the following methods:
@@ -36,7 +36,7 @@ Used to set a key's value
 <td>
 
 ```plain
-poke storage/session "Key" "Value"
+poke storage.session "Key" "Value"
 ````
 
 <tr><td>
@@ -50,7 +50,7 @@ Used to retrieve a key's value
 <td>
 
 ```plain
-select storage/session "Key"
+select storage.session "Key"
 ````
 
 <tr><td>
@@ -64,7 +64,7 @@ Returns a listing of an object's keys
 <td>
 
 ```plain
-query storage/session
+query storage.session
 ````
 
 <tr><td>
@@ -78,7 +78,7 @@ Clears all stored values of a given obect
 <td>
 
 ```plain
-clear storage/session
+clear storage.session
 ````
 
 </table>

@@ -16,7 +16,7 @@
 (equal? (join what-dir %foo) (clean-path %foo))
 (equal? http://rebol.info/ (clean-path http://rebol.info/.././foo/../..))
 (equal? %/ clean-path %/../)
-(equal? %/tmp/ (clean-path/dir %/abc/../def/../../tmp))
+(equal? %/tmp/ (clean-path:dir %/abc/../def/../../tmp))
 
 ; don't know a way to test these, but they shouldn't create an error:
 (port? write log::error "An Error Message")

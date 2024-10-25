@@ -59,7 +59,7 @@ detect-automime: func [
             hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/"
         ]
         (if hostname <> js-eval "window.location.hostname" [
-            return #  ; cross-origin on GitHub or GitLab, we need /AUTOMIME
+            return #  ; cross-origin on GitHub or GitLab, we need :AUTOMIME
         ] else [
             return null
         ])
@@ -75,7 +75,7 @@ js-do-dialect-helper: func [
     b [block!]
 ][
     return unspaced collect [
-        let keep-transient: func [t /required [word!]] [
+        let keep-transient: func [t :required [word!]] [
             return switch type of t [
                 the-word! the-tuple! [keep api-transient get t]
                 the-group! [keep api-transient reeval as group! t]
@@ -96,13 +96,13 @@ js-do-dialect-helper: func [
                     'spell [
                         keep "reb.Spell("
                         b: next b
-                        keep-transient/required inside b :b.1 'SPELL
+                        keep-transient:required inside b :b.1 'SPELL
                         keep ")"
                     ]
                     'unbox [
                         keep "reb.Unbox("
                         b: next b
-                        keep-transient/required inside b :b.1 'UNBOX
+                        keep-transient:required inside b :b.1 'UNBOX
                         keep ")"
                     ]
                     fail ["Unknown JS-DO dialect keyword:" b.1]
@@ -121,7 +121,7 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     {Run JS URL via a <script> tag}
 
     url [url!] "URL or JavaScript code"
-    /module "Execute code as a module"
+    :module "Execute code as a module"
 ]{
     return new Promise(function(resolve, reject) {
         let script = document.createElement('script')
@@ -147,9 +147,9 @@ js-do: func [
     return: [~]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<maybe> block! text! file! url! tag!]
-    /automime "Subvert incorrect server MIME-type by requesting via fetch()"
-    /local "Run code in a local scope, rather than global"
-    /module "Execute JS code as a module"
+    :automime "Subvert incorrect server MIME-type by requesting via fetch()"
+    :local "Run code in a local scope, rather than global"
+    :module "Execute JS code as a module"
 ][
     if tag? source [
         source: join system.script.path as file! source
@@ -158,7 +158,7 @@ js-do: func [
     if block? source [source: my js-do-dialect-helper]
 
     if text? source [
-        return js-eval*/(if local [/local]) source
+        return js-eval*:(if local [':local]) source
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
@@ -174,10 +174,10 @@ js-do: func [
 
     if automime or local [
         let code: as text! read source
-        return js-eval*/(if local [/local]) code
+        return js-eval*:(if local [':local]) code
     ]
 
-    return apply :js-do-url-helper [source /module module]
+    return apply js-do-url-helper/ [source :module module]
 ]
 
 ; JS-DO runs scripts by URL and generically does not return an evaluative
@@ -195,7 +195,7 @@ js-eval: func [
         [<maybe> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
-    return js-eval*/local/value expression
+    return js-eval*:local:value expression
 ]
 
 
@@ -270,7 +270,7 @@ css-do: func [
     ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
     source "TAG! interpreted as relative to currently running script"
         [text! file! url! tag!]
-    /automime "Subvert incorrect server MIME-type by requesting via fetch()"
+    :automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
     if tag? source [
         source: join system.script.path as file! source

@@ -33,7 +33,7 @@ ensure-underline-extension-loaded: func [
     <static> loaded (false)
 ][
     if not loaded [
-        js-do/module join replpad-dir %underline-extension.js
+        js-do:module join replpad-dir %underline-extension.js
         loaded: true
     ]
 ]
@@ -90,13 +90,13 @@ eparse-combinators.('mark): combinator [
 ; EPARSE is a PARSE variant that implicitly assumes you want to parse the
 ; content of the CodeMirror editor.
 ;
-export eparse: func [rules [block!] /hook [<unrun> frame!]] [
+export eparse: func [rules [block!] :hook [<unrun> frame!]] [
     ensure-underline-extension-loaded
 
     ed-clear-underlines
 
     let [^synthesized' pending]: (
-        parse*/combinators/hook ed-text rules eparse-combinators hook
+        parse*:combinators:hook ed-text rules eparse-combinators hook
     ) except e -> [
         return raise e
     ]
@@ -233,7 +233,7 @@ pd-stack-push: js-native [
     frame [frame!]
     line "Textual content of the DIV"
         [text! block!]
-    /class "CSS class to give to the pushed DIV"
+    :class "CSS class to give to the pushed DIV"
         [text!]
 ] {
     let text = reb.Spell("spaced line")
@@ -331,7 +331,7 @@ wait-for-step: js-awaiter [
 stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
 
 eparse-debug-hook: func [
-    {Called as the /HOOK function for each parser instantiation}
+    {Called as the :HOOK function for each parser instantiation}
     return: [pack?]
     f [frame!]
 ][
@@ -343,7 +343,7 @@ eparse-debug-hook: func [
     if (not stop-frame) and f.rule-start [
         ed-select 0 ((index of f.input) - 1)
 
-        pd-stack-push f [mold spread copy/part f.rule-start f.rule-end]
+        pd-stack-push f [mold spread copy:part f.rule-start f.rule-end]
         pushed: true
 
         let mode: either stop-frame = <run> ["run"] [wait-for-step]
@@ -376,7 +376,7 @@ eparse-debug-hook: func [
 
         if raised? unmeta result' [
             let e: unquasi result'
-            pd-stack-push/class f [
+            pd-stack-push:class f [
                 "**" spaced e.message
             ] "match-failed"
         ]
@@ -390,7 +390,7 @@ eparse-debug-hook: func [
                 is-antiform: false
                 synthesized: unquote synthesized
             ]
-            pd-stack-push/class f [
+            pd-stack-push:class f [
                 "=>" (mold synthesized) if is-antiform ["; anti"]
             ] "match-succeeded"
 
@@ -429,5 +429,5 @@ export eparse-debug: func [
 
     stop-frame: null
 
-    return eparse/hook rules :eparse-debug-hook
+    return eparse:hook rules :eparse-debug-hook
 ]
