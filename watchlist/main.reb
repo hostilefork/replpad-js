@@ -48,15 +48,15 @@ delete-watch: function [
     if n > length of watches [
         fail ["There is no watch in slot" n]
     ]
-    js-do:local [{
-        let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
+    js-do:local [--{
+        let tr = document.querySelectorAll("#watchlist tr")[}-- (n) --{]
         tr.parentNode.removeChild(tr)
-    }]
+    }--]
     remove at watches n
 ]
 
 watch: function [
-    {See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes}
+    "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
     :arg [
         word! get-word! path! get-path!
@@ -71,7 +71,9 @@ watch: function [
         ; !!! Would look better in a GROUP!
         ; https://github.com/metaeducation/ren-c/issues/982
         ;
-        elide js-eval {js_watch_visible(true)}  ; other commands show watchlist
+        elide js-eval -{
+            js_watch_visible(true)
+        }-  ; other commands show watchlist
 
         integer? arg [
             case [
@@ -90,7 +92,7 @@ watch: function [
         word? arg [
             append watches arg  ; e.g. length is 1 after first addition
 
-            js-do:local [{
+            js-do:local [--{
                 let tbody = document.querySelector("#watchlist > tbody")
                 let tr = load(
                    '<tr onmousedown="RowClick(this,false);"></tr>'
@@ -105,13 +107,13 @@ watch: function [
                 // good when making HTML from strings.  Use innerText assign.
                 //
                 let td_name = load("<td></td>")
-                td_name.innerText = } spell @(quote arg) {
+                td_name.innerText = }-- spell @(quote arg) --{
                 tr.appendChild(td_name)
 
                 tr.appendChild(load("<td></td>"))  // UPDATE-WATCHES fills in
 
                 tbody.appendChild(tr)
-            }]
+            }--]
         ]
 
         fail ["Not-yet-implemented WATCH command:" arg]
@@ -142,12 +144,12 @@ update-watches: function [] [
         ; be arbitrary UTF-8, we set the innerText property via a string
         ; generated via `reb.Spell()` (convenient in the JS-DO dialect)
         ;
-        js-do:local [{
-            let tr = document.querySelectorAll("#watchlist tr")[} (n) {]
+        js-do:local [--{
+            let tr = document.querySelectorAll("#watchlist tr")[}-- (n) --{]
             let td = tr.childNodes[2]  // 1-based indexing, so 2 is 3rd column
 
-            td.innerText = } spell @result {
-        }]
+            td.innerText = }-- spell @result --{
+        }--]
         n: n + 1
     ]
 ]
@@ -160,7 +162,7 @@ update-watches: function [] [
 ;
 ; This was the HTML that was in index.html for ReplPad which was taken out.
 ;
-rightclick-menu-html: {
+rightclick-menu-html: --{
     <div id="menu">
       <a href="https://chat.stackoverflow.com/rooms/291/">
         <img src="https://rebolsource.net/favicon.ico" />
@@ -181,7 +183,7 @@ rightclick-menu-html: {
         <span>Ctrl + ?!</span>
       </a>
     </div>
-}
+}--
 
 ; Add in the hook to the console so that when the result is printed, we do
 ; an update of the watches.
@@ -191,7 +193,7 @@ system.console.print-result: enclose :system.console.print-result func [f] [
 
     ; Only update the watches if the watchlist is currently displayed
     ;
-    if "none" <> js-eval {document.getElementById('right').style.display} [
+    if "none" <> js-eval --{document.getElementById('right').style.display}-- [
         update-watches
     ]
     return ~

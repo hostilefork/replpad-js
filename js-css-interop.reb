@@ -7,7 +7,7 @@ Rebol [
     Type: module
     Name: JS-CSS-Interop  ; !!! seems needed to get into system/modules list
 
-    Description: {
+    Description: --{
         This provides CSS-DO and JS-DO for running .js an .css files off of
         CORS-friendly URLs (or directly as TEXT!).
 
@@ -15,9 +15,9 @@ Rebol [
         values directly, without needing to go through strings:
 
         https://forum.rebol.info/t/js-eval-and-js-do/1504
-    }
+    }--
 
-    Notes: {
+    Notes: --{
         * It would technically be possible for DO to recognize a .js or .css
           file by extension.  But having DO be polymorphic in this way isn't
           necessarily a good idea...and that wouldn't answer how to handle
@@ -27,12 +27,12 @@ Rebol [
           that the experiments can be edited without needing to recompile.
           Should they firm up enough to warrant speedy native implementations,
           then they could be added then.
-    }
+    }--
 ]
 
 
 detect-automime: func [
-    {Figure out if a source comes with no MIME type and would break CORS}
+    "Figure out if a source comes with no MIME type and would break CORS"
     return: [~null~ blackhole?]
     source [file! url!]
 ][
@@ -69,7 +69,7 @@ detect-automime: func [
 
 
 js-do-dialect-helper: func [
-    {Allow Rebol to pass API handle values to JS-DO and JS-EVAL}
+    "Allow Rebol to pass API handle values to JS-DO and JS-EVAL"
 
     return: [text!]
     b [block!]
@@ -109,8 +109,8 @@ js-do-dialect-helper: func [
                 ]]
 
                 fail [
-                    {JS-DO dialect supports TEXT!, THE-WORD!, THE-TUPLE!,}
-                    {THE-PATH!...plus the keywords SPELL and UNBOX}
+                    "JS-DO dialect supports TEXT!, THE-WORD!, THE-TUPLE!,"
+                    "THE-PATH!...plus the keywords SPELL and UNBOX"
                 ]
             ]
         ]
@@ -118,11 +118,11 @@ js-do-dialect-helper: func [
 ]
 
 js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
-    {Run JS URL via a <script> tag}
+    "Run JS URL via a <script> tag"
 
     url [url!] "URL or JavaScript code"
     :module "Execute code as a module"
-]{
+] --{
     return new Promise(function(resolve, reject) {
         let script = document.createElement('script')
 
@@ -139,10 +139,10 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 
         document.head.appendChild(script)
     })
-}
+}--
 
 js-do: func [
-    {Execute JavaScript file or evaluate a string of JavaScript source}
+    "Execute JavaScript file or evaluate a string of JavaScript source"
 
     return: [~]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
@@ -188,7 +188,7 @@ js-do: func [
 ; vs. the fire-and-forget JS-DO, and supports the JS-DO dialect.
 ;
 js-eval: func [
-    {Evaluate JavaScript expression in local environment and return result}
+    "Evaluate JavaScript expression in local environment and return result"
 
     return: [~ ~null~ logic? integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
@@ -202,7 +202,7 @@ js-eval: func [
 js-head-helper: js-awaiter [
     return: [object!]
     url [text!]
-]{
+] --{
     let url = reb.Spell("url")
 
     let response = await fetch(url, {method: 'HEAD'})  // can be relative
@@ -223,10 +223,10 @@ js-head-helper: js-awaiter [
         )
     })
     return obj
-}
+}--
 
 js-head: func [
-    {Perform an HTTP HEAD request of an absolute URL! or relative FILE! path}
+    "Perform an HTTP HEAD request of an absolute URL! or relative FILE! path"
     return: "OBJECT! of key=>value response header strings"
         [object!]
     source [url! file!]
@@ -242,17 +242,17 @@ js-head: func [
 
 css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
     text [text!]
-]{
+] --{
     let css = document.createElement('style')
     /* css.id = ... */  // could be good for no duplicates, deleting later
     css.type = 'text/css'
     css.innerHTML = reb.Spell("text")
     document.head.appendChild(css)
-}
+}--
 
 css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
     url [url!]
-]{
+] --{
     let link = document.createElement('link')
     /* link.id = ... */  // could be good for no duplicates, deleting later
     link.id = 'testing'
@@ -261,10 +261,10 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
     link.href = reb.Spell("url")
     link.media = 'all'
     document.head.appendChild(link)
-}
+}--
 
 css-do: func [
-    {Incorporate a CSS file or a snippet of CSS source into the page}
+    "Incorporate a CSS file or a snippet of CSS source into the page"
 
     return: [~]  ; Could return an auto-generated ID for later removing (?)
     ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`

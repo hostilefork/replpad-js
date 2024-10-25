@@ -1,6 +1,6 @@
 Rebol [
     File: %storage.reb
-    Summary: {File "Scheme" for Persistent Browser Storage}
+    Summary: "File Scheme for Persistent Browser Storage"
     Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
     Homepage: https://github.com/hostilefork/replpad-js/
 
@@ -8,20 +8,20 @@ Rebol [
     Name: ReplStorage  ; !!! seems needed to get into system/modules list
     Exports: [storage]
 
-    Rights: {
+    Rights: --{
         Copyright (c) 2021 Christopher Ross-Gill
         See README.md and CREDITS.md for more information
-    }
+    }--
 
-    License: {
+    License: --{
         Licensed under the Lesser GPL, Version 3.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
 
         https://www.gnu.org/licenses/lgpl-3.0.html
-    }
+    }--
 
-    Description: {
+    Description: --{
         In the terminology of URL handling, a "scheme" is the part of the URL
         that precedes the initial colon (e.g. the `http` in `http://whatever`).
 
@@ -29,9 +29,9 @@ Rebol [
         installed for handling READ and WRITE of different schemes.  This
         gives a handler for `file://` style URLs that speaks to the browser
         storage API.
-    }
+    }--
 
-    Notes: {
+    Notes: --{
         "This currently is a very spongey filesystem. Probably better to
         create entries for directories and manage them through MAKE-DIR, etc."
 
@@ -44,20 +44,20 @@ Rebol [
         Long term, it may be desirable to somehow fuse the file:// API with
         the %xxx style of FILE!, so that you can `mount` local storage into
         a virtual hierarchy that coexists with resources on web servers.
-    }
+    }--
 ]
 
-storage-enabled?: js-native [] {
+storage-enabled?: js-native [] --{
     return reb.Logic(
         typeof Storage !== 'undefined'
     )
-}
+}--
 
 storage-set: js-native [
     store [text!]
     path [text! file!]
     value [text!]
-] {
+] --{
     let store = (reb.Spell("store") == 'session')
         ? sessionStorage
         : localStorage
@@ -66,12 +66,12 @@ storage-set: js-native [
         reb.Spell("path"),
         reb.Spell("value")
     )
-}
+}--
 
 storage-get: js-native [
     store [text!]
     path [text! file!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -81,12 +81,12 @@ storage-get: js-native [
     return (typeof value !== 'undefined' && value !== null)
         ? reb.Text(value)
         : null
-}
+}--
 
 storage-unset: js-native [
     store [text!]
     path [text! file!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -94,11 +94,11 @@ storage-unset: js-native [
     store.removeItem(reb.Spell("path"))
 
     return null
-}
+}--
 
 storage-clear: js-native [
     store [text!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -108,14 +108,14 @@ storage-clear: js-native [
     store.clear()
 
     return null
-}
+}--
 
 ; STORAGE-LIST and STORAGE-LIST-DIR are very similar, it may be desirable to
 ; combine the two with some type of generic filter refinement
 
 storage-list: js-native [
     store [text!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -145,7 +145,7 @@ storage-list: js-native [
 storage-list-dir: js-native [
     store [text!]
     path [text! file!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -184,12 +184,12 @@ storage-list-dir: js-native [
     return reb.Value.apply(
         null, listing
     )
-}
+}--
 
 storage-exists?: js-native [
     store [text!]
     path [text! file!]
-] {
+] --{
     let store = reb.Spell("store") == 'session'
         ? sessionStorage
         : localStorage
@@ -199,7 +199,7 @@ storage-exists?: js-native [
             reb.Spell("path")
         )
     )
-}
+}--
 
 storage: [
     local _

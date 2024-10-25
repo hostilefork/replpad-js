@@ -7,20 +7,20 @@ Rebol [
     Type: module
     Name: ReplPad  ; !!! seems needed to get into system.modules list
 
-    Rights: {
+    Rights: --{
         Copyright (c) 2018-2021 hostilefork.com
         See README.md and CREDITS.md for more information
-    }
+    }--
 
-    License: {
+    License: --{
         Licensed under the Lesser GPL, Version 3.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
 
         https://www.gnu.org/licenses/lgpl-3.0.html
-    }
+    }--
 
-    Description: {
+    Description: --{
         This file originated as the first .reb code file that was fetch()'d
         over the web and run in a browser.  It has been an ongoing process to
         try and start factoring the reusable bits out of this into some kind
@@ -35,16 +35,16 @@ Rebol [
         Hence improving the contents of this file and running other programs
         from it using DO is a preferable alternative to trying to factor its
         functionality out too early...
-    }
+    }--
 
-    Notes: {
+    Notes: --{
         * Use `debugger;` for programmatic breakpoints in JavaScript code.
 
         * This project uses contentEditable on purpose, in order to leave room
           in the future for richer formatting than a TEXTAREA would provide.
           It may seem annoying considering it generally does only monospace
           in the code parts...but that's just one application.
-    }
+    }--
 ]
 
 
@@ -54,14 +54,14 @@ Rebol [
 ; is a good last resort...and the last resort should be defined right first.
 
 !!: js-native [
-    {Temporary debug helper, sends to browser console log instead of replpad}
+    "Temporary debug helper, sends to browser console log instead of replpad"
     message
-]{
+] --{
     console.log(
         "@" + reb.Tick() + ": "
         + reb.Spell("mold", reb.R(reb.Arg('message')))
     )
-}
+}--
 
 use [
     form-error form-value write-console
@@ -122,7 +122,7 @@ use [
                             mold body-of :value
                         ]
 
-                        ({[^/    ... native ...^/]})
+                        ("[^/    ... native ...^/]")
                     ]
                 ]
             ]
@@ -135,9 +135,9 @@ use [
         return: []
         type [text!]
         value [element?]
-    ] {
+    ] --{
         console[reb.Spell("type")](reb.Spell("value"))
-    }
+    }--
 
     sys.util.make-scheme [
         title: "Console.log Scheme"
@@ -177,9 +177,9 @@ log: collect [
 ; in it can show output.
 
 cls: clear-screen: js-awaiter [
-    {Clear contents of the browser window}
+    "Clear contents of the browser window"
     return: [~void~]
-]{
+] --{
     replpad.innerHTML = ""
 
     // The output strategy for plain lines (a la PRINT) is to merge content
@@ -189,15 +189,15 @@ cls: clear-screen: js-awaiter [
     // So we now defer adding that first line until it is needed.
 
     return reb.Void()  // tells console to suppress result
-}
+}--
 
 replpad-write-js: js-awaiter [
-    {Output lines of text to the REPLPAD (no automatic newline after)}
+    "Output lines of text to the REPLPAD (no automatic newline after)"
 
     return: [~]
     param [<maybe> text!]
     :html
-]{
+] --{
     let param = reb.Spell("param")
     if (param == "")
         return  // no-op if content is empty
@@ -231,7 +231,7 @@ replpad-write-js: js-awaiter [
     }
 
     span.innerHTML += pieces.shift()
-}
+}--
 
 ; There are several issues with escaping to be considered in trying to write
 ; console strings to a browser. If you want the console text to be boring, it
@@ -252,7 +252,7 @@ replpad-write-js: js-awaiter [
 ; we implement the escaping ourselves.
 ;
 replpad-write: func [
-    {Output a string of text to the REPLPAD (no automatic newline after)}
+    "Output a string of text to the REPLPAD (no automatic newline after)"
 
     return: [~]
     param [<maybe> text!]
@@ -275,7 +275,9 @@ replpad-write: func [
     ; https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
 
     let url-rule: [
-        "http" opt "s" ":" to ["]" | ")" | {"} | "'" | space | newline | <end>]
+        "http" opt "s" ":" to [
+            "]" | ")" | -{"}- | "'" | space | newline | <end>
+        ]
     ]
 
     ; UPARSE is still orders of magnitude slower than native PARSE.  Until that
@@ -293,16 +295,16 @@ replpad-write: func [
             ; https://css-tricks.com/use-target_blank/
             ;
             | change [url: across url-rule] (
-                unspaced [{<a href='} url {' target='_blank'>} url {</a>}]
+                unspaced ["<a href='" url "' target='_blank'>" url "</a>"]
             )
 
             ; This is a little tweak for the bridge code.  There should be
             ; some sort of post-processing hook for this, vs. hardcoding it.
             ;
-            | change '♣ ({<span class='club'>♣</span>})
-            | change '♦ ({<span class='diamond'>♦</span>})
-            | change '♥ ({<span class='heart'>♥</span>})
-            | change '♠ ({<span class='spade'>♠</span>})
+            | change '♣ ("<span class='club'>♣</span>")
+            | change '♦ ("<span class='diamond'>♦</span>")
+            | change '♥ ("<span class='heart'>♥</span>")
+            | change '♠ ("<span class='spade'>♠</span>")
 
             | one
         ]
@@ -312,7 +314,7 @@ replpad-write: func [
 ]
 
 lib.write-stdout: func [
-    {Writes just text to the ReplPad}
+    "Writes just text to the ReplPad"
     text [text! char?]
 ][
     if char? text [text: my to-text]
@@ -324,9 +326,9 @@ lib.write-stdout: func [
 ; exist in LIB...so we export it here.
 ;
 export read-line: js-awaiter [
-    {Read single-line or multi-line input from the user}
+    "Read single-line or multi-line input from the user"
     return: [text!]
-]{
+] --{
     let new_input = EnsureLastLineSpan('input')
     ActivateInput(new_input)
 
@@ -343,7 +345,7 @@ export read-line: js-awaiter [
             resolve(reb.Text(js_text))
         }
     })
-}
+}--
 
 
 === ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3) ===
@@ -413,7 +415,7 @@ CORSify-gitlab-port: func [
 read-url-helper: js-awaiter [
     return: [binary!]
     url [text!]
-]{
+] --{
     let url = reb.Spell("url")
 
     let response = await fetch(url)  // can be relative
@@ -424,7 +426,7 @@ read-url-helper: js-awaiter [
 
     let buffer = await response.arrayBuffer()
     return reb.Binary(buffer)
-}
+}--
 
 sys.util.make-scheme [
     title: "In-Browser HTTP Scheme"
@@ -447,10 +449,10 @@ sys.util.make-scheme [
 
         write: func [port data] [
             fail [
-                {WRITE is not supported in the web console yet, due to the browser's}
-                {imposition of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP POST}
-                {in form submissions.  Get involved if you know how!}
+                "WRITE is not supported in the web console yet, due to the browser's"
+                "imposition of a security model (e.g. no local filesystem access)."
+                "Features may be added in a more limited sense, for doing HTTP POST"
+                "in form submissions.  Get involved if you know how!"
             ]
         ]
     ]
@@ -473,10 +475,10 @@ sys.util.make-scheme [
 
         write: func [port data] [
             fail [
-                {WRITE is not yet supported, due to the browser's imposition}
-                {of a security model (e.g. no local filesystem access).}
-                {Features may be added in a more limited sense, for doing HTTP}
-                {POST in form submissions.  Get involved if you know how!}
+                "WRITE is not yet supported, due to the browser's imposition"
+                "of a security model (e.g. no local filesystem access)."
+                "Features may be added in a more limited sense, for doing HTTP"
+                "POST in form submissions.  Get involved if you know how!"
             ]
         ]
     ]
@@ -690,7 +692,7 @@ export inside [] (adjunct-of interop).exports
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
 rfc2616-to-date: func [
-    {Make DATE! from e.g. `Tue, 15 Nov 1994 12:45:26 GMT`}
+    "Make DATE! from e.g. -{Tue, 15 Nov 1994 12:45:26 GMT}-"
     return: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
         [text!]
@@ -737,7 +739,7 @@ if did select system.contexts.user 'change-dir [
 ]
 
 lib.change-dir: func [
-    {Changes the current path (where scripts with relative paths will be run)}
+    "Changes the current path (where scripts with relative paths will be run)"
     return: [file! url!]
     path [file! url!]
 ][
@@ -771,13 +773,13 @@ lib.change-dir: func [
 === DOWNLOAD SCHEME ===
 
 download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
-    {Triggers a download of data to the user's local disk}
+    "Triggers a download of data to the user's local disk"
 
     filename [file!]
     data [text! binary!]
     :mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
         [text!]
-]{
+] --{
     let filename = reb.Spell("filename")
     let mime_type = reb.TrySpell("mime-type")
 
@@ -810,7 +812,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     a.parentNode.removeChild(a)
 
     window.URL.revokeObjectURL(url)
-}
+}--
 
 ; An alternate interface to the DOWNLOAD function
 ; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
@@ -846,7 +848,7 @@ sys.util.make-scheme [
 ; !!! Review why a time has to be part of a date to have a time zone (?)
 
 now: js-native [
-    {Returns current date and time with timezone adjustment}
+    "Returns current date and time with timezone adjustment"
 
     :year "Returns year only"
     :month "Returns month only"
@@ -859,7 +861,7 @@ now: js-native [
     :precise "High precision time"
     :utc "Universal time (zone +0:00)"
     :local "Give time in current zone without including the time zone"
-]{
+] --{
     var d = new Date()
 
     if (reb.Did("year"))
@@ -905,17 +907,17 @@ now: js-native [
         return reb.Value("pick", reb.R(datetime), "'date")
 
     return datetime
-}
+}--
 
 
 === PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER ===
 
 lib.browse: func [
-    {Provide a clickable link to the user to open in the browser}
+    "Provide a clickable link to the user to open in the browser"
     return: [~]
     url [url!]
 ][
-    comment {
+    comment --{
         // !!! This is how we would open a window in a JS-AWAITER, but it will
         // say popups are blocked.  The user has to configure accepting those,
         // or click on the link we give them.
@@ -928,15 +930,15 @@ lib.browse: func [
             let win = window.open(url, '_blank')
             win.focus()
         }
-    }
+    }--
 
     ; Our alternative is we give a link in the console they can click.  Not
     ; very useful if they typed BROWSE literally, but if a command tried to
     ; open a window it's the sort of thing that would give them an option.
     ;
     replpad-write:html unspaced [
-        <div class="browse">
-        {Click here: <a href="} url {" target="_blank">} url {</a>}
+        <div class='browse'>
+        -{Click here: <a href='}- url -{' target='_blank'>}- url -{</a>}-
         </div>
     ]
 ]
@@ -945,13 +947,13 @@ lib.browse: func [
 === WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout ===
 
 wait: js-awaiter [
-    {Sleep for the requested number of seconds}
+    "Sleep for the requested number of seconds"
     seconds [integer! decimal!]
-]{
+] --{
     return new Promise(function(resolve, reject) {
         setTimeout(resolve, 1000 * reb.UnboxDecimal("seconds"))
     })
-}
+}--
 
 
 === CLIPBOARD SCHEME ===
@@ -960,9 +962,9 @@ wait: js-awaiter [
 ; can write to it if you provoke the app with sufficient interactivity.
 
 copy-to-clipboard-helper: js-native [
-    {https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f}
+    "https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f"
     data [any-value?]
-]{
+] --{
     // interface to clipboard is `execCommand` which copies a selection.  We
     // must preserve the current selection, make an invisible text area with
     // the data, select it, run execCommand(), and then restore the selection.
@@ -983,7 +985,7 @@ copy-to-clipboard-helper: js-native [
         document.getSelection().removeAllRanges()
         document.getSelection().addRange(selected)
     }
-}
+}--
 
 sys.util.make-scheme [  ; no URL form dictated
     title: "In-Browser Clipboard Scheme"
@@ -991,7 +993,7 @@ sys.util.make-scheme [  ; no URL form dictated
 
     actor: [
         read: lambda [port] [
-            fail {READ is not supported in the web console}
+            fail "READ is not supported in the web console"
         ]
 
         write: func [port data] [
@@ -1031,7 +1033,7 @@ comment [
     ; LATEST-OF is exported to the user context it can't be updated.  Review.
     ;
     latest-of: macro [
-        {Use LATEST-OF/CACHE to load actual function so HELP is available}
+        "Use LATEST-OF:CACHE to load actual function so HELP is available"
         :cache
     ][
         latest-of: do @latest-of  ; not packaged as a module, just a function

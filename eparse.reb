@@ -2,13 +2,13 @@ Rebol [
     File: %eparse.reb
     Type: module
     Name: eparse
-    Description: {
+    Description: --{
         This demonstration is set up in a way so that it shows the modularity
         of the approach.  The %underline_extension.js is not loaded unless
         EPARSE is used.  More factoring should push the EPARSE codebase itself
         into something that is loaded on demand (like the watchlist, but the
         technique needs work)
-    }
+    }--
 ]
 
 replpad-dir: what-dir
@@ -18,15 +18,15 @@ replpad-dir: what-dir
 
 ; These expose JavaScript functionality for manipulating the codemirror editor
 
-ed-text: js-native [] {  // repeat of code exported by %main.reb
+ed-text: js-native [] --{  // repeat of code exported by %main.reb
     return reb.Text(cm.state.doc.text.join('\n'))
-}
+}--
 
 ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.reb
-    {Clear all underlines from the last activated editor}
-] {
+    "Clear all underlines from the last activated editor"
+] --{
     CodeMirror.ClearUnderlines()
-}
+}--
 
 ensure-underline-extension-loaded: func [
     return: [~]
@@ -39,20 +39,20 @@ ensure-underline-extension-loaded: func [
 ]
 
 ed-add-underline: js-native [
-    {Add an underline to the last activated editor}
+    "Add an underline to the last activated editor"
     from [integer!]
     to [integer!]
-] {
+] --{
     CodeMirror.AddUnderline(
         reb.UnboxInteger("from"),
         reb.UnboxInteger("to")
     )
-}
+}--
 
 ed-select: js-native [
     start [integer!]
     end [integer!]
-] {
+] --{
     let start = reb.UnboxInteger("start")
     let end = reb.UnboxInteger("end")
 
@@ -63,13 +63,13 @@ ed-select: js-native [
             EditorSelection.cursor(end)
         ], 1)
     })
-}
+}--
 
 
 eparse-combinators: copy default-combinators
 
 eparse-combinators.('mark): combinator [
-    {Run one rule and if it matches, draw a mark across that content}
+    "Run one rule and if it matches, draw a mark across that content"
     return: "Result of one evaluation step"
         [any-atom?]
     @pending [blank! block!]
@@ -126,11 +126,11 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
 pdebug-loaded: false
 
 ensure-debug-panel-loaded: func [
-    {Create GoldenLayout panel with a toolbar and div for stack display}
+    "Create GoldenLayout panel with a toolbar and div for stack display"
 ] [
     if pdebug-loaded [return ~]
 
-  css-do {
+  css-do --{
     .pd-panel {  /* https://discuss.codemirror.net/t/2882 */
         height: 100% !important;
     }
@@ -177,9 +177,9 @@ ensure-debug-panel-loaded: func [
         color: green;
         font-size: smaller;
     }
-  }
+  }--
 
-  js-eval {
+  js-eval --{
     golden.registerComponent('pdebug', function (container, gl_state) {
 
         let pd_view = load("<div class='pd-panel'>"
@@ -212,30 +212,30 @@ ensure-debug-panel-loaded: func [
             pd.view = pd_view  // capture last debugger in pd
         })
     })
-  }
+  }--
 
-  js-eval {
+  js-eval --{
     let state = { something: 1 }
     golden.addComponent('pdebug', state, "DEBUG")
-  }
+  }--
 
     pdebug-loaded: true
 ]
 
 pd-stack-clear: js-native [
-    {Empty the stack component of the parse debug panel}
-] {
+    "Empty the stack component of the parse debug panel"
+] --{
     pd.stack.innerHTML = ""
-}
+}--
 
 pd-stack-push: js-native [
-    {Add a single line DIV to the parse debug stack}
+    "Add a single line DIV to the parse debug stack"
     frame [frame!]
     line "Textual content of the DIV"
         [text! block!]
     :class "CSS class to give to the pushed DIV"
         [text!]
-] {
+] --{
     let text = reb.Spell("spaced line")
     let classname = reb.TrySpell("spaced maybe class")
     let div = load("<div>" + text + "</div>")
@@ -243,13 +243,13 @@ pd-stack-push: js-native [
         div.classList.add(classname)
     div["data-frame"] = reb.Arg("frame").toString()
     pd.stack.insertBefore(div, pd.stack.firstChild)
-}
+}--
 
 pd-get-frame: js-native [
-    {Return FRAME! associated with given stack level in list (1 is topmost)}
+    "Return FRAME! associated with given stack level in list (1 is topmost)"
     return: [~null~ frame!]
     index [integer!]
-] {
+] --{
     let index = reb.Unbox("index")
     let div = pd.stack.firstChild
     if (div == null)
@@ -261,19 +261,19 @@ pd-get-frame: js-native [
     }
     let frame = parseInt(div["data-frame"])
     return reb.Value(frame)  // duplicate API handle
-}
+}--
 
-pd-stack-pop: js-native [] {
+pd-stack-pop: js-native [] --{
     let div = pd.stack.firstChild
     let frame = parseInt(div["data-frame"])
     reb.Release(frame)
     div.remove()
-}
+}--
 
 wait-for-step: js-awaiter [
-    {Add listeners to each toolbar button, wait until one of them resolve()s}
+    "Add listeners to each toolbar button, wait until one of them resolve()s"
     return: [text!]
-] {
+] --{
     let buttons = [
         document.getElementById('step-in'),
         document.getElementById('step-out'),
@@ -298,7 +298,7 @@ wait-for-step: js-awaiter [
     })
 
     return promise  // WAIT-FOR-STEP only returns when resolve() is called
-}
+}--
 
 
 === EPARSE-DEBUG DEMO OF GENERALIZED PARSE HOOKING ===
@@ -331,7 +331,7 @@ wait-for-step: js-awaiter [
 stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
 
 eparse-debug-hook: func [
-    {Called as the :HOOK function for each parser instantiation}
+    "Called as the :HOOK function for each parser instantiation"
     return: [pack?]
     f [frame!]
 ][
@@ -421,7 +421,7 @@ eparse-debug-hook: func [
 
 
 export eparse-debug: func [
-    {Call EPARSE with EPARSE-DEBUG-HOOK (and ensure debug panel is loaded)}
+    "Call EPARSE with EPARSE-DEBUG-HOOK (and ensure debug panel is loaded)"
     rules [block!]
 ][
     ensure-debug-panel-loaded
