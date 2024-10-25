@@ -53,7 +53,7 @@ Rebol [
 ; While it's nice to be able to use PRINT statements to debug, the JS console
 ; is a good last resort...and the last resort should be defined right first.
 
-!!: js-native [
+/!!: js-native [
     "Temporary debug helper, sends to browser console log instead of replpad"
     message
 ] --{
@@ -66,7 +66,7 @@ Rebol [
 use [
     form-error form-value write-console
 ][
-    form-error: func [return: [text!] error [error!]] [
+    /form-error: func [return: [text!] error [error!]] [
         return unspaced [
             "** " form error.type " Error: " case [
                 text? error.message [error.message]
@@ -91,7 +91,7 @@ use [
     ]
 
     ; there's still some values that will trip this function up
-    form-value: lambda [value] [
+    /form-value: lambda [value] [
         switch type of get:any $value [
             null [
                 "<NULL>"
@@ -131,7 +131,7 @@ use [
         ]
     ]
 
-    write-console: js-awaiter [
+    /write-console: js-awaiter [
         return: []
         type [text!]
         value [element?]
@@ -139,17 +139,17 @@ use [
         console[reb.Spell("type")](reb.Spell("value"))
     }--
 
-    sys.util.make-scheme [
+    sys.util/make-scheme [
         title: "Console.log Scheme"
         name: 'log
 
-        init: func [return: [~] port][
+        /init: func [return: [~] port] [
             [@ port.spec.path]: find:match as text! port.spec.ref log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
         actor: make object! [
-            write: append: func [port value] [
+            /write: /append: func [port value] [
                 write-console port.spec.path form-value get:any 'value
                 return port
             ]
@@ -176,7 +176,7 @@ log: collect [
 ; PRINT.  This way non-JavaScript-aware Rebol code that has PRINT statements
 ; in it can show output.
 
-cls: clear-screen: js-awaiter [
+/cls: /clear-screen: js-awaiter [
     "Clear contents of the browser window"
     return: [~void~]
 ] --{
@@ -191,7 +191,7 @@ cls: clear-screen: js-awaiter [
     return reb.Void()  // tells console to suppress result
 }--
 
-replpad-write-js: js-awaiter [
+/replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
     return: [~]
@@ -251,7 +251,7 @@ replpad-write-js: js-awaiter [
 ; back into a BLOCK! of Rebol strings just to apply post-processing.  So
 ; we implement the escaping ourselves.
 ;
-replpad-write: func [
+/replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
     return: [~]
@@ -313,7 +313,7 @@ replpad-write: func [
     return replpad-write-js param
 ]
 
-lib.write-stdout: func [
+/lib.write-stdout: func [
     "Writes just text to the ReplPad"
     text [text! char?]
 ][
@@ -325,7 +325,7 @@ lib.write-stdout: func [
 ; READ-LINE is part of the STDIO extension now, which means it does not
 ; exist in LIB...so we export it here.
 ;
-export read-line: js-awaiter [
+export /read-line: js-awaiter [
     "Read single-line or multi-line input from the user"
     return: [text!]
 ] --{
@@ -361,7 +361,7 @@ export read-line: js-awaiter [
 ; the adjustments removing the various HTML decorations that are known to be
 ; not what you meant *if* you're using DO (plain READ might have wanted them).
 
-CORSify-gitlab-port: func [
+/CORSify-gitlab-port: func [
     return: [port!]
     port [port!]
 ][
@@ -412,7 +412,7 @@ CORSify-gitlab-port: func [
     return port
 ]
 
-read-url-helper: js-awaiter [
+/read-url-helper: js-awaiter [
     return: [binary!]
     url [text!]
 ] --{
@@ -428,14 +428,14 @@ read-url-helper: js-awaiter [
     return reb.Binary(buffer)
 }--
 
-sys.util.make-scheme [
+sys.util/make-scheme [
     title: "In-Browser HTTP Scheme"
     name: 'http
 
     actor: [
         ; could potentially fold in JS-HEAD around an INFO? wrapper
 
-        read: func [port] [
+        /read: func [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
@@ -447,7 +447,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        write: func [port data] [
+        /write: func [port data] [
             fail [
                 "WRITE is not supported in the web console yet, due to the browser's"
                 "imposition of a security model (e.g. no local filesystem access)."
@@ -458,12 +458,12 @@ sys.util.make-scheme [
     ]
 ]
 
-sys.util.make-scheme [
+sys.util/make-scheme [
     title: "In-Browser HTTPS Scheme"
     name: 'https
 
     actor: [
-        read: func [port] [
+        /read: func [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
@@ -473,7 +473,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        write: func [port data] [
+        /write: func [port data] [
             fail [
                 "WRITE is not yet supported, due to the browser's imposition"
                 "of a security model (e.g. no local filesystem access)."
@@ -486,11 +486,11 @@ sys.util.make-scheme [
 
 ; File schemes permit relative file access to HTTP(S) resources
 
-sys.util.make-scheme [
+sys.util/make-scheme [
     title: "File Access"
     name: 'file
 
-    init: func [return: [~] port [port!]] [
+    /init: func [return: [~] port [port!]] [
         case [
             not all [
                 has port.spec 'ref
@@ -520,7 +520,7 @@ sys.util.make-scheme [
     ]
 
     actor: [
-        read: lambda [port] [
+        /read: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -530,7 +530,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        write: lambda [port data] [
+        /write: lambda [port data] [
             switch type of port.spec.ref [
                 file! []
 
@@ -540,7 +540,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        delete: lambda [port] [
+        /delete: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -550,7 +550,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        query: lambda [port] [
+        /query: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -562,7 +562,7 @@ sys.util.make-scheme [
     ]
 ]
 
-sys.util.make-scheme [
+sys.util/make-scheme [
     title: "File Directory Access"
     name: 'dir
 
@@ -597,7 +597,7 @@ sys.util.make-scheme [
     ]
 
     actor: [
-        read: lambda [port] [
+        /read: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -607,7 +607,7 @@ sys.util.make-scheme [
             ]
         ]
 
-        delete: lambda [port] [
+        /delete: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -618,7 +618,7 @@ sys.util.make-scheme [
 
         ]
 
-        query: lambda [port] [
+        /query: lambda [port] [
             switch type of port.spec.ref [
                 file! []
 
@@ -643,7 +643,7 @@ if did select system.contexts.user 'do [
     fail "User context has override of DO, won't inherit lib override."
 ]
 
-lib.do: adapt copy :lib.do [
+/lib.do: adapt copy lib.do/ [
     ;
     ; We go ahead and update LIB's DO directly with an adaptation.  This way,
     ; the Redbol emulation layer keeps the URL interception.
@@ -691,7 +691,7 @@ export inside [] (adjunct-of interop).exports
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
-rfc2616-to-date: func [
+/rfc2616-to-date: func [
     "Make DATE! from e.g. -{Tue, 15 Nov 1994 12:45:26 GMT}-"
     return: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
@@ -713,7 +713,7 @@ rfc2616-to-date: func [
     return to date! unspaced [day "-" month "-" year "/" time zone]
 ]
 
-info?: func [
+/info?: func [
     url [url!]
     :only
 ][
@@ -738,7 +738,7 @@ if did select system.contexts.user 'change-dir [
     fail "User context has override of CHANGE-DIR, won't inherit lib override."
 ]
 
-lib.change-dir: func [
+/lib.change-dir: func [
     "Changes the current path (where scripts with relative paths will be run)"
     return: [file! url!]
     path [file! url!]
@@ -772,7 +772,7 @@ lib.change-dir: func [
 
 === DOWNLOAD SCHEME ===
 
-download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
+/download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     "Triggers a download of data to the user's local disk"
 
     filename [file!]
@@ -817,17 +817,17 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
 ; An alternate interface to the DOWNLOAD function
 ; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
 
-sys.util.make-scheme [
+sys.util/make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    init: func [return: [~] port] [
+    /init: func [return: [~] port] [
         assert [match text! port.spec.path]
         port.spec.path: [_ @]: split-path port.spec.path
     ]
 
     actor: [
-        write: func [port data] [
+        /write: func [port data] [
             download port.spec.path data
             return port
         ]
@@ -847,7 +847,7 @@ sys.util.make-scheme [
 ;
 ; !!! Review why a time has to be part of a date to have a time zone (?)
 
-now: js-native [
+/now: js-native [
     "Returns current date and time with timezone adjustment"
 
     :year "Returns year only"
@@ -912,7 +912,7 @@ now: js-native [
 
 === PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER ===
 
-lib.browse: func [
+browse: func [
     "Provide a clickable link to the user to open in the browser"
     return: [~]
     url [url!]
@@ -946,7 +946,7 @@ lib.browse: func [
 
 === WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout ===
 
-wait: js-awaiter [
+/wait: js-awaiter [
     "Sleep for the requested number of seconds"
     seconds [integer! decimal!]
 ] --{
@@ -961,7 +961,7 @@ wait: js-awaiter [
 ; For security reasons, web applications can't read the clipboard.  But they
 ; can write to it if you provoke the app with sufficient interactivity.
 
-copy-to-clipboard-helper: js-native [
+/copy-to-clipboard-helper: js-native [
     "https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f"
     data [any-value?]
 ] --{
@@ -987,16 +987,16 @@ copy-to-clipboard-helper: js-native [
     }
 }--
 
-sys.util.make-scheme [  ; no URL form dictated
+sys.util/make-scheme [  ; no URL form dictated
     title: "In-Browser Clipboard Scheme"
     name: 'clipboard
 
     actor: [
-        read: lambda [port] [
+        /read: lambda [port] [
             fail "READ is not supported in the web console"
         ]
 
-        write: func [port data] [
+        /write: func [port data] [
             if binary? data [
                 data: either invalid-utf8? data [
                     enbase:base data 64
@@ -1026,9 +1026,9 @@ clipboard: make port! clipboard::general
 ; good to have a workflow for it.  LATEST-OF will even try to detect the
 ; platform from the browser, if used with no arguments.
 
-latest-of: do @latest-of
-
 comment [
+    /latest-of: do @latest-of
+
     ; This caching mechanism doesn't work with modularization, because once
     ; LATEST-OF is exported to the user context it can't be updated.  Review.
     ;
@@ -1054,18 +1054,19 @@ comment [
 ; put in the module's export list.  This is because lib routines like PRINT
 ; which use WRITE-STDOUT are isolated such that they are calling lib's version.
 ; But we want to reuse PRINTs logic and have it use our output to the web page.
-; Blunt overwriting of lib.write-stdout is not the best solution to this kind
+; Blunt overwriting of lib's WRITE-STDOUT isn't the best solution to this kind
 ; of problem (it should be an IO abstraction that is designed to be overridden)
 ; but it's what we have for now.  :-/
 ;
 export [
     !!
 
-    now  ; we didn't include the Time extension, so there is no lib.now
+    now  ; we didn't include the Time extension, so there is no lib/now
     wait
 
     info?
     download
+    browse
 
     ; these are endpoints for objects in ReplPad's environs
     log
@@ -1076,5 +1077,5 @@ export [
 
     replpad-write  ; for clients who want to write HTML, not just PRINT text
 
-    latest-of
+    ; latest-of  ; tempoarily disabled
 ]

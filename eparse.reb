@@ -18,17 +18,17 @@ replpad-dir: what-dir
 
 ; These expose JavaScript functionality for manipulating the codemirror editor
 
-ed-text: js-native [] --{  // repeat of code exported by %main.reb
+/ed-text: js-native [] --{  // repeat of code exported by %main.reb
     return reb.Text(cm.state.doc.text.join('\n'))
 }--
 
-ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.reb
+/ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.reb
     "Clear all underlines from the last activated editor"
 ] --{
     CodeMirror.ClearUnderlines()
 }--
 
-ensure-underline-extension-loaded: func [
+/ensure-underline-extension-loaded: func [
     return: [~]
     <static> loaded (false)
 ][
@@ -38,7 +38,7 @@ ensure-underline-extension-loaded: func [
     ]
 ]
 
-ed-add-underline: js-native [
+/ed-add-underline: js-native [
     "Add an underline to the last activated editor"
     from [integer!]
     to [integer!]
@@ -49,7 +49,7 @@ ed-add-underline: js-native [
     )
 }--
 
-ed-select: js-native [
+/ed-select: js-native [
     start [integer!]
     end [integer!]
 ] --{
@@ -90,7 +90,7 @@ eparse-combinators.('mark): combinator [
 ; EPARSE is a PARSE variant that implicitly assumes you want to parse the
 ; content of the CodeMirror editor.
 ;
-export eparse: func [rules [block!] :hook [<unrun> frame!]] [
+export /eparse: func [rules [block!] :hook [<unrun> frame!]] [
     ensure-underline-extension-loaded
 
     ed-clear-underlines
@@ -125,7 +125,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
 
 pdebug-loaded: false
 
-ensure-debug-panel-loaded: func [
+/ensure-debug-panel-loaded: func [
     "Create GoldenLayout panel with a toolbar and div for stack display"
 ] [
     if pdebug-loaded [return ~]
@@ -222,13 +222,13 @@ ensure-debug-panel-loaded: func [
     pdebug-loaded: true
 ]
 
-pd-stack-clear: js-native [
+/pd-stack-clear: js-native [
     "Empty the stack component of the parse debug panel"
 ] --{
     pd.stack.innerHTML = ""
 }--
 
-pd-stack-push: js-native [
+/pd-stack-push: js-native [
     "Add a single line DIV to the parse debug stack"
     frame [frame!]
     line "Textual content of the DIV"
@@ -245,7 +245,7 @@ pd-stack-push: js-native [
     pd.stack.insertBefore(div, pd.stack.firstChild)
 }--
 
-pd-get-frame: js-native [
+/pd-get-frame: js-native [
     "Return FRAME! associated with given stack level in list (1 is topmost)"
     return: [~null~ frame!]
     index [integer!]
@@ -263,14 +263,14 @@ pd-get-frame: js-native [
     return reb.Value(frame)  // duplicate API handle
 }--
 
-pd-stack-pop: js-native [] --{
+/pd-stack-pop: js-native [] --{
     let div = pd.stack.firstChild
     let frame = parseInt(div["data-frame"])
     reb.Release(frame)
     div.remove()
 }--
 
-wait-for-step: js-awaiter [
+/wait-for-step: js-awaiter [
     "Add listeners to each toolbar button, wait until one of them resolve()s"
     return: [text!]
 ] --{
@@ -330,7 +330,7 @@ wait-for-step: js-awaiter [
 
 stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
 
-eparse-debug-hook: func [
+/eparse-debug-hook: func [
     "Called as the :HOOK function for each parser instantiation"
     return: [pack?]
     f [frame!]
@@ -420,7 +420,7 @@ eparse-debug-hook: func [
 ]
 
 
-export eparse-debug: func [
+export /eparse-debug: func [
     "Call EPARSE with EPARSE-DEBUG-HOOK (and ensure debug panel is loaded)"
     rules [block!]
 ][
@@ -429,5 +429,5 @@ export eparse-debug: func [
 
     stop-frame: null
 
-    return eparse:hook rules :eparse-debug-hook
+    return eparse:hook rules eparse-debug-hook/
 ]

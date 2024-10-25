@@ -47,13 +47,13 @@ Rebol [
     }--
 ]
 
-storage-enabled?: js-native [] --{
+/storage-enabled?: js-native [] --{
     return reb.Logic(
         typeof Storage !== 'undefined'
     )
 }--
 
-storage-set: js-native [
+/storage-set: js-native [
     store [text!]
     path [text! file!]
     value [text!]
@@ -68,7 +68,7 @@ storage-set: js-native [
     )
 }--
 
-storage-get: js-native [
+/storage-get: js-native [
     store [text!]
     path [text! file!]
 ] --{
@@ -83,7 +83,7 @@ storage-get: js-native [
         : null
 }--
 
-storage-unset: js-native [
+/storage-unset: js-native [
     store [text!]
     path [text! file!]
 ] --{
@@ -96,7 +96,7 @@ storage-unset: js-native [
     return null
 }--
 
-storage-clear: js-native [
+/storage-clear: js-native [
     store [text!]
 ] --{
     let store = reb.Spell("store") == 'session'
@@ -113,7 +113,7 @@ storage-clear: js-native [
 ; STORAGE-LIST and STORAGE-LIST-DIR are very similar, it may be desirable to
 ; combine the two with some type of generic filter refinement
 
-storage-list: js-native [
+/storage-list: js-native [
     store [text!]
 ] --{
     let store = reb.Spell("store") == 'session'
@@ -140,9 +140,9 @@ storage-list: js-native [
     return reb.Value.apply(
         null, listing
     )
-}
+}--
 
-storage-list-dir: js-native [
+/storage-list-dir: js-native [
     store [text!]
     path [text! file!]
 ] --{
@@ -186,7 +186,7 @@ storage-list-dir: js-native [
     )
 }--
 
-storage-exists?: js-native [
+/storage-exists?: js-native [
     store [text!]
     path [text! file!]
 ] --{
@@ -207,11 +207,11 @@ storage: [
 ]
 
 if storage-enabled? [  ; Browser reported that it is storage-capable
-    sys.util.make-scheme [
+    sys.util/make-scheme [
         title: "Browser Storage API"
         name: 'storage
 
-        init: func [return: [~] port [port!]] [
+        /init: func [return: [~] port [port!]] [
             if not all [
                 has port.spec 'ref
                 url? port.spec.ref
@@ -223,11 +223,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: make object! [
-            pick: select: lambda [port key] [
+            /pick: /select: lambda [port key] [
                 storage-get port.spec.path form key
             ]
 
-            poke: lambda [port key value] [
+            /poke: lambda [port key value] [
                 either null? :value [
                     storage-unset port.spec.path form key
                 ][
@@ -235,11 +235,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            query: copy: lambda [port] [
+            /query: /copy: lambda [port] [
                 storage-list port.spec.path
             ]
 
-            clear: func [port] [
+            /clear: func [port] [
                 storage-clear port.spec.path
                 return port
             ]
@@ -249,11 +249,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
     storage.local: make port! storage::local
     storage.session: make port! storage::session
 
-    sys.util.make-scheme [
+    sys.util/make-scheme [
         title: "File Access"
         name: 'file
 
-        init: func [return: [~] port [port!]] [
+        /init: func [return: [~] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
@@ -286,7 +286,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: [
-            read: lambda [port] [
+            /read: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
@@ -305,7 +305,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            write: lambda [port data <local> dir] [
+            /write: lambda [port data <local> dir] [
                 switch type of port.spec.ref [
                     file! [
                         ensure [binary! text!] data
@@ -328,7 +328,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            delete: lambda [port] [
+            /delete: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
@@ -346,7 +346,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            query: func [return: [~null~ object!] port [port!]] [
+            /query: func [return: [~null~ object!] port [port!]] [
                 switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target
@@ -357,7 +357,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         return make system.standard.file-info [
                             name: port.spec.ref
                             size: 0
-                            date: lib.now  ; we're in a module in a module
+                            date: lib/now  ; we're in a module in a module
                             type: 'file
                         ]
                     ]
@@ -371,11 +371,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
     ]
 
-    sys.util.make-scheme [
+    sys.util/make-scheme [
         title: "File Directory Access"
         name: 'dir
 
-        init: func [return: [~] port [port!]] [
+        /init: func [return: [~] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
@@ -405,12 +405,12 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     ; and convert to FILE! if using file:// notation
                 ]
 
-                (fail "Cannot resolve file")
+                fail "Cannot resolve file"
             ]
         ]
 
         actor: [
-            read: lambda [port] [
+            /read: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either any [
@@ -437,7 +437,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            create: lambda [port] [
+            /create: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         if any [
@@ -458,7 +458,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
             ]
 
-            delete: lambda [port] [
+            /delete: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         case [
@@ -488,7 +488,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
 
             ]
 
-            query: lambda [port] [
+            /query: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         if any [
@@ -498,7 +498,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             make system.standard.file-info [
                                 name: port.spec.ref
                                 size: 0
-                                date: lib.now  ; we're in a module in a module
+                                date: lib/now  ; we're in a module in a module
                                 type: 'dir
                             ]
                         ]

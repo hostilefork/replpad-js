@@ -38,7 +38,7 @@ replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
 ; into this module.  Instead we use IMPORT* to put the definitions into lib.
 ; This makes them available to any script that's loaded.  Review.
 ;
-sys.util.import* lib %replpad.reb
+sys.util/import* lib %replpad.reb
 
 replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
 console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
@@ -61,7 +61,7 @@ intro-note-html: spaced [
     "as well as the" unspaced [(link console-git "Console Module") "."]
     "While the techniques are still in early development, they show a"
     "lot of promise for JavaScript/Rebol interoperability."
-    "Discuss it on the" unspaced [(link forum {Discourse forum}) "."]
+    "Discuss it on the" unspaced [(link forum "Discourse forum") "."]
     "</p>"
 
     "<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>"
@@ -147,7 +147,7 @@ export main: adapt :console [
             ; https://forum.rebol.info/t/1802
 
             result: import as the-word! autorun
-            sys.util.import* system.contexts.user result
+            sys.util/import* system.contexts.user result
         ]
         else [
             result: do as the-word! autorun  ; may be BAD-WORD!
@@ -218,23 +218,23 @@ export about: does [
 ; Note: When it was being automatically loaded, it was observed that it
 ; could not be loaded before REPLPAD-WRITE:HTML.  Investigate.
 
-export watch: func [:arg] [
+export /watch: func [@arg] [
     print "Loading watchlist extension for first use..."
     import join replpad-dir %watchlist/main.reb
-    let watch: :system.modules.Watchlist.watch
-    system.contexts.user.watch: :watch
 
-    ; !!! Watch hard quotes its argument...need some kind of variadic
-    ; re-triggering mechanism (e.g. this WATCH shouldn't have any arguments,
-    ; but be able to inline WATCH to gather args)
+    extend system.contexts.user [
+        /watch: system.modules.Watchlist.watch/
+    ]
+
+    ; WATCH hard quotes its argument...use APPLY to pass arg we hard-quoted
     ;
-    return eval compose [watch (:arg)]
+    return apply system.modules.Watchlist.watch/ [arg]
 ]
 
 
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
-export redbol: func [return: [~]] [
+export /redbol: func [return: [~]] [
     print delimit LF [
         ""
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
@@ -269,7 +269,7 @@ export redbol: func [return: [~]] [
 
 === GOLDEN LAYOUTS DEMO ===
 
-export ensure-golden-layouts-loaded: func [
+export /ensure-golden-layouts-loaded: func [
     return: [~]
     <static> loaded (false)
 ][
@@ -277,14 +277,14 @@ export ensure-golden-layouts-loaded: func [
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
-    css-do {
+    css-do --{
         h2 {  /* this was in the golden layout simple demo */
             font: 14px Arial, sans-serif;
             color: #fff;
             padding: 10px;
             text-align: center;
         }
-    }
+    }--
 
     ; The interop is a module that makes `window.golden` available to this
     ; non-modularized code.
@@ -297,7 +297,7 @@ export ensure-golden-layouts-loaded: func [
 
 === CODEMIRROR 6 EDITOR DEMO ===
 
-export edit: func [
+export /edit: func [
     return: [~]
     source [url! text! file!]
     :marks
@@ -407,11 +407,11 @@ export edit: func [
     ]
 ]
 
-export ed-text: js-native [] --{  // repeated in %eparse.reb
+export /ed-text: js-native [] --{  // repeated in %eparse.reb
     return reb.Text(cm.state.doc.text.join('\n'))
 }--
 
-ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
+/ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
     "Clear all underlines from the last activated editor"
 ] --{
     CodeMirror.ClearUnderlines()
@@ -432,19 +432,20 @@ export [eparse eparse-debug]
 ; check various balances of state.
 ; https://github.com/hostilefork/replpad-js/issues/17
 ;
-; This is an overwrite of LIB's quit.  It's not clear where the right place
-; for this is (should it be in %replpad.reb?) or what hook to use.  Put it
-; here for now, as it seems different embeddings of the console might want
-; to do different things when quitting.
+; !!! QUIT is now definitional, scripts and modules can only quit themselves.
+; The console offers up its own QUIT, but it's not clear what that should
+; do in the browser or how to hook it.  Review.
 
-lib.quit: adapt copy :lib.quit [
-    replpad-write:html spaced [
-        "<div class='note'>"
-        "<p><b><i>Sorry to see you go...</i></b></p>"
+comment [
+    /lib.quit: adapt copy lib.quit/ [  ; LIB/QUIT a stub saying "too late"
+        replpad-write:html spaced [
+            "<div class='note'>"
+            "<p><b><i>Sorry to see you go...</i></b></p>"
 
-        "<p><a href='.'>click to restart interpreter</a></p>"
-        </div>
+            "<p><a href='.'>click to restart interpreter</a></p>"
+            </div>
+        ]
+
+        ; Fall through to normal QUIT handling
     ]
-
-    ; Fall through to normal QUIT handling
 ]

@@ -131,7 +131,7 @@ steps: [
 
 label: description: bug: _  ; state we need to know about to report error
 
-k: ok: okay: function [
+/k: /ok: /okay: function [
     return: [<nihil>]
     <with> steps label description bug saved-print-prompt
 ][
@@ -172,7 +172,7 @@ k: ok: okay: function [
 ]
 
 
-nope: function [
+/nope: function [
     return: [<nihil>]
 ][
     ; Always restore the prompt, in case a test changed it.
