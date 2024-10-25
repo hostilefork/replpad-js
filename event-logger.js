@@ -62,14 +62,14 @@ function stringify_object(object, depth=0, max_depth=2) {
  */
 
 /*
-    try-get-one-keylog: js-awaiter [] --{
+    /try-get-one-keylog: js-awaiter [] --{
         if (window.keylog.length == 0)
             return null
 
         return reb.Text(JSON.stringify(window.keylog.shift()))
     }--
 
-    export keylog: func [return: [~]] [
+    export /keylog: func [return: [~]] [
         let key
         while [key: try-get-one-keylog] [
             print mold key

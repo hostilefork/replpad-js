@@ -41,7 +41,7 @@ js-do %watchlist.js
 ;
 watches: []
 
-delete-watch: function [
+/delete-watch: function [
     return: [~]
     n [integer!]
 ][
@@ -55,7 +55,7 @@ delete-watch: function [
     remove at watches n
 ]
 
-watch: function [
+/watch: function [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
     :arg [
@@ -121,7 +121,7 @@ watch: function [
 ]
 
 
-update-watches: function [] [
+/update-watches: function [] [
     n: 1
     for-each w watches [
         result: case [
