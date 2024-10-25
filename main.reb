@@ -388,12 +388,12 @@ export /edit: func [
         }--
     ]
 
-    let [text title]: pack switch:type source [
+    let [text title]: switch:type source [
         text! [
-            [source, "TEXT!"]
+            pack [source, "TEXT!"]
         ]
         url! file! [
-            [as text! read source, [_ @]: split-path source]
+            pack [as text! read source, split-path source]
         ]
     ]
 
