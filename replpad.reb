@@ -57,10 +57,7 @@ Rebol [
     "Temporary debug helper, sends to browser console log instead of replpad"
     message
 ] --{
-    console.log(
-        "@" + reb.Tick() + ": "
-        + reb.Spell("mold", reb.R(reb.Arg('message')))
-    )
+    console.log("@" + reb.Tick() + ": " + reb.Spell("mold message"))
 }--
 
 use [
