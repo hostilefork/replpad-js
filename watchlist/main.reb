@@ -4,7 +4,7 @@ REBOL [
     Type: module
     Name: Watchlist
 
-    Description: {
+    Description: --{
         This is a web-based remake of a feature demonstrated in the Qt-Based
         Ren Garden.  It is a Rebol-dialected form of a debugger "watchlist"
         which updates a table of monitored evaluations each time an
@@ -16,7 +16,7 @@ REBOL [
         experimental work in progress.
 
         https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes
-    }
+    }--
 
     Exports: [watch]
 ]
@@ -65,15 +65,10 @@ watches: []
     ]
 ][
     case [
-        arg = /on [js-eval {js_watch_visible(true)}]
-        arg = /off [js-eval {js_watch_visible(false)}]
+        arg = /on [js-eval --{ js_watch_visible(true) }--]
+        arg = /off [js-eval --{ js_watch_visible(false )}--]
 
-        ; !!! Would look better in a GROUP!
-        ; https://github.com/metaeducation/ren-c/issues/982
-        ;
-        elide js-eval -{
-            js_watch_visible(true)
-        }-  ; other commands show watchlist
+        (elide js-eval --{ js_watch_visible(true) }--)  ; other commands show
 
         integer? arg [
             case [
