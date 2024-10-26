@@ -33,7 +33,7 @@ Rebol [
 
 /detect-automime: func [
     "Figure out if a source comes with no MIME type and would break CORS"
-    return: [~null~ blackhole?]
+    return: [logic?]
     source [file! url!]
 ][
     ; GitLab and GitHub raw links are served with no MIME type.  Browsers have
@@ -59,7 +59,7 @@ Rebol [
             hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/"
         ]
         (if hostname <> js-eval "window.location.hostname" [
-            return #  ; cross-origin on GitHub or GitLab, we need :AUTOMIME
+            return okay  ; cross-origin on GitHub or GitLab, we need :AUTOMIME
         ] else [
             return null
         ])
@@ -170,7 +170,7 @@ Rebol [
     ; !!! These used to use MAYBE, review once semantics sort out.
     ;
     (sys.util/adjust-url-for-raw source) then adjusted -> [source: adjusted]
-    (detect-automime source) then detected -> [automime: detected]
+    automime: default [detect-automime source]
 
     if automime or local [
         let code: as text! read source
@@ -289,7 +289,7 @@ Rebol [
     ; !!! These used to use MAYBE, review once semantics sort out.
     ;
     (sys.util/adjust-url-for-raw source) then adjusted -> [source: adjusted]
-    (detect-automime source) then detected -> [automime: detected]
+    automime: default [detect-automime source]
 
     if automime [
         return css-do-text-helper as text! read source
