@@ -30,11 +30,11 @@ replpad-dir: what-dir
 
 /ensure-underline-extension-loaded: func [
     return: [~]
-    <static> loaded (false)
+    <static> loaded (null)
 ][
     if not loaded [
         js-do:module join replpad-dir %underline-extension.js
-        loaded: true
+        loaded: okay
     ]
 ]
 
@@ -123,7 +123,7 @@ export /eparse: func [rules [block!] :hook [<unrun> frame!]] [
 ; JavaScript accesses the Parse Debug panel through the global variable `pd`.
 ;
 
-pdebug-loaded: false
+pdebug-loaded: null
 
 /ensure-debug-panel-loaded: func [
     "Create GoldenLayout panel with a toolbar and div for stack display"
@@ -219,7 +219,7 @@ pdebug-loaded: false
     golden.addComponent('pdebug', state, "DEBUG")
   }--
 
-    pdebug-loaded: true
+    pdebug-loaded: okay
 ]
 
 /pd-stack-clear: js-native [
@@ -337,14 +337,14 @@ stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
 ][
     let state: f.state
 
-    let pushed: false
-    let skipping: false
+    let pushed: null
+    let skipping: null
 
     if (not stop-frame) and f.rule-start [
         ed-select 0 ((index of f.input) - 1)
 
         pd-stack-push f [mold spread copy:part f.rule-start f.rule-end]
-        pushed: true
+        pushed: okay
 
         let mode: either stop-frame = <run> ["run"] [wait-for-step]
 
@@ -357,7 +357,7 @@ stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
                 stop-frame: pd-get-frame 2
             ]
             "skip" [
-                skipping: true
+                skipping: okay
             ]
             "stop" [
                 pd-stack-clear
@@ -384,10 +384,10 @@ stop-frame: null  ; if set, debugger keeps running until it sees this FRAME!
             let synthesized: first unquasi result'
             let is-antiform
             if quasi? synthesized [
-                is-antiform: true
+                is-antiform: null
                 synthesized: unquasi synthesized
             ] else [
-                is-antiform: false
+                is-antiform: okay
                 synthesized: unquote synthesized
             ]
             pd-stack-push:class f [

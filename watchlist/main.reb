@@ -136,8 +136,8 @@ watches: []
                 spaced [mold ^ get/any w space space "; anti"]
             ]
             null? get w ["\null\"]
-
-            true [mold:limit get w 1000]
+        ] else [
+            mold:limit get w 1000
         ]
 
         ; We update the result, in the 3rd column.  Because the content can
