@@ -684,7 +684,7 @@ interop: import ensure url! clean-path %js-css-interop.reb
 ; Use INSIDE to get the words bound to the ReplPad's versions so the export
 ; is legal.
 ;
-export inside [] (adjunct-of interop).exports
+export (inside [] (adjunct-of interop).exports)
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
