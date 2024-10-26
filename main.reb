@@ -93,15 +93,15 @@ export main: adapt :console [
     ; search location as well (may not be in all browsers?)
     ;
     let autorun: null
-    let importing: false
+    let importing: null
     parse system.options.args [opt some [
         ;
         ; local, remote, tracing_on, git_commit not passed through by the
         ; %load-r3.js for easier processing.
         ;
-        ['do:] autorun: text! (importing: false)
+        ['do:] autorun: text! (importing: null)
             |
-        ['import:] autorun: text! (importing: true)
+        ['import:] autorun: text! (importing: okay)
     ]] except [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
@@ -271,7 +271,7 @@ export /redbol: func [return: [~]] [
 
 export /ensure-golden-layouts-loaded: func [
     return: [~]
-    <static> loaded (false)
+    <static> loaded (null)
 ][
     if loaded [return ~]
 
@@ -291,7 +291,7 @@ export /ensure-golden-layouts-loaded: func [
     ;
     js-do:module join replpad-dir %golden-interop.js
 
-    loaded: true
+    loaded: okay
 ]
 
 
@@ -301,7 +301,7 @@ export /edit: func [
     return: [~]
     source [url! text! file!]
     :marks
-    <static> codemirror-loaded (false)
+    <static> codemirror-loaded (null)
 ][
     ensure-golden-layouts-loaded
 
@@ -322,7 +322,7 @@ export /edit: func [
             }
         }--
 
-        codemirror-loaded: true
+        codemirror-loaded: okay
 
         js-eval --{
             const { EditorState } = CodeMirror.state
