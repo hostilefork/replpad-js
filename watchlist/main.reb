@@ -41,7 +41,7 @@ js-do %watchlist.js
 ;
 watches: []
 
-/delete-watch: function [
+/delete-watch: func [
     return: [~]
     n [integer!]
 ][
@@ -55,18 +55,25 @@ watches: []
     remove at watches n
 ]
 
-/watch: function [
+; 1. If we allowed watching unbound words, then they'd either be unbound for
+;    all time in the watchlist -or- we'd have to establish some kind of
+;    context in which to monitor them to see if they popped into existence.
+;    If you want to do that, you should monitor a GROUP! because it will
+;    capture a binding on the group which can be evaluated each time.
+;
+/watch: func [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
-    :arg [
-        word! get-word! path! get-path!
+    @arg [
+        '#on '#off
+        word! tuple!
         block! group!
-        integer! tag! refinement?
+        integer! tag!
     ]
 ][
     case [
-        arg = /on [js-eval --{ js_watch_visible(true) }--]
-        arg = /off [js-eval --{ js_watch_visible(false )}--]
+        arg = #on [js-eval --{ js_watch_visible(true) }--]
+        arg = #off [js-eval --{ js_watch_visible(false )}--]
 
         (elide js-eval --{ js_watch_visible(true) }--)  ; other commands show
 
@@ -84,7 +91,11 @@ watches: []
             ]
         ]
 
-        word? arg [
+        match [word! tuple!] arg [
+            get:any arg except e -> [  ; use GROUP! to monitor nonexistents [1]
+                return raise e
+            ]
+
             append watches arg  ; e.g. length is 1 after first addition
 
             js-do:local [--{
@@ -111,26 +122,20 @@ watches: []
             }--]
         ]
 
-        fail ["Not-yet-implemented WATCH command:" arg]
+        fail ["Not-yet-implemented WATCH command:" @arg]
     ]
 ]
 
 
-/update-watches: function [] [
-    n: 1
+/update-watches: func [] [
+    let n: 1
     for-each 'w watches [
-        result: case [
-            ;
-            ; The edge-case states for the watches would ideally be in some
-            ; different color to call attention to them.
-            ;
-            '~attached~ = binding of w [
-                ">attached<"
-            ]
-            bad-word? ^ get/any w [
-                spaced [mold ^ get/any w space space "; anti"]
-            ]
-            null? get w ["\null\"]
+        ;
+        ; The edge-case states for the watches would ideally be in some
+        ; different color to call attention to them.
+        ;
+        let result: if antiform? get:any w [
+            spaced [mold:limit ^(get:any w) 1000 space space "; anti"]
         ] else [
             mold:limit get w 1000
         ]
@@ -183,8 +188,12 @@ rightclick-menu-html: --{
 ; Add in the hook to the console so that when the result is printed, we do
 ; an update of the watches.
 
-system.console.print-result: enclose :system.console.print-result func [f] [
-    do f  ; let the evaluation result get printed first
+system.console.print-result: enclose system.console.print-result/ func [f] [
+    js-eval* -{console.log("well we got this far")}-
+
+    eval f  ; let the evaluation result get printed first
+
+    js-eval* -{console.log("and the evaluation prints")}-
 
     ; Only update the watches if the watchlist is currently displayed
     ;
