@@ -222,13 +222,15 @@ export /watch: func [@arg] [
     print "Loading watchlist extension for first use..."
     import join replpad-dir %watchlist/main.reb
 
+    /watch: system.modules.Watchlist.watch/  ; replace this stub
+
     extend system.contexts.user [
-        /watch: system.modules.Watchlist.watch/
+        /watch: watch/
     ]
 
     ; WATCH hard quotes its argument...use APPLY to pass arg we hard-quoted
     ;
-    return apply system.modules.Watchlist.watch/ [arg]
+    return apply watch/ [arg]
 ]
 
 
