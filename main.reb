@@ -273,7 +273,9 @@ export /redbol: func [return: [~]] [
 
 export /ensure-golden-layouts-loaded: func [
     return: [~]
-    <static> loaded (null)
+]
+bind construct [
+    loaded: null
 ][
     if loaded [return ~]
 
@@ -303,7 +305,9 @@ export /edit: func [
     return: [~]
     source [url! text! file!]
     :marks
-    <static> codemirror-loaded (null)
+]
+bind construct [
+    codemirror-loaded: null
 ][
     ensure-golden-layouts-loaded
 
