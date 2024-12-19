@@ -30,7 +30,9 @@ replpad-dir: what-dir
 
 /ensure-underline-extension-loaded: func [
     return: [~]
-    <static> loaded (null)
+]
+bind construct [
+    loaded: null
 ][
     if not loaded [
         js-do:module join replpad-dir %underline-extension.js
