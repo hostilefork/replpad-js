@@ -158,7 +158,7 @@ Rebol [
     if block? source [source: my js-do-dialect-helper]
 
     if text? source [
-        return js-eval*:(if local [':local]) source
+        return js-eval* // [source :local local]
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
@@ -174,7 +174,7 @@ Rebol [
 
     if automime or local [
         let code: as text! read source
-        return js-eval*:(if local [':local]) code
+        return js-eval* // [code :local local]
     ]
 
     return apply js-do-url-helper/ [source :module module]
