@@ -85,10 +85,10 @@ Rebol [
             ]
         ]
 
-        iterate b [
+        iterate @b [
             switch type of b.1 [
                 text! [keep b.1]
-                group! [keep reeval b.1]
+                group! [keep reeval inside b b.1]
 
                 the-word! the-path! the-group! [keep-transient b.1]
 
