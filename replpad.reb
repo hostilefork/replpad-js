@@ -175,7 +175,7 @@ log: collect [
 
 /cls: /clear-screen: js-awaiter [
     "Clear contents of the browser window"
-    return: [~void~]
+    return: []
 ] --[
     replpad.innerHTML = ""
 
@@ -185,7 +185,7 @@ log: collect [
     // the top if the first thing inserted was a non-line <div> (e.g. a "Note")
     // So we now defer adding that first line until it is needed.
 
-    return reb.Void()  // tells console to suppress result
+    return reb.Tripwire()  // console suppresses result for trash
 ]--
 
 /replpad-write-js: js-awaiter [
@@ -439,7 +439,7 @@ sys.util/make-scheme [
 
             return read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host
-                    if has port.spec 'port-id [unspaced [":" port.spec.port-id]]
+                    when has port.spec 'port-id [unspaced [":" port.spec.port-id]]
                     port.spec.path
             ]
         ]
@@ -893,8 +893,8 @@ sys.util/make-scheme [
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
         reb.I(seconds),
-        "all [precise", reb.I(nanoseconds), "]",
-        "all [not local", reb.I(0), "]",  // zone
+        "opt all [precise", reb.I(nanoseconds), "]",
+        "opt all [not local", reb.I(0), "]",  // zone
     ")")
 
     // There's no separate generator for making just a date, so workaround
