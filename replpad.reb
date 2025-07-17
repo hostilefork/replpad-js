@@ -141,7 +141,7 @@ use [
         name: 'log
 
         /init: func [return: [~] port] [
-            [# port.spec.path]: find:match as text! port.spec.ref form log::
+            [_ port.spec.path]: find:match as text! port.spec.ref form log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
