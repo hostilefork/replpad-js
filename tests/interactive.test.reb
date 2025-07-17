@@ -152,7 +152,7 @@ label: description: bug: _  ; state we need to know about to report error
     if tail? steps [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
-        steps: head steps
+        steps: head of steps
         return nihil
     ]
 
