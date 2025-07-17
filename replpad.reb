@@ -1,18 +1,18 @@
 Rebol [
-    File: %replpad.reb
-    Summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
-    Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
-    Homepage: https://github.com/hostilefork/replpad-js/
+    file: %replpad.reb
+    summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
+    project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    homepage: https://github.com/hostilefork/replpad-js/
 
-    Type: module
-    Name: ReplPad  ; !!! seems needed to get into system.modules list
+    type: module
+    name: ReplPad  ; !!! seems needed to get into system.modules list
 
-    Rights: --[
+    rights: --[
         Copyright (c) 2018-2021 hostilefork.com
         See README.md and CREDITS.md for more information
     ]--
 
-    License: --[
+    license: --[
         Licensed under the Lesser GPL, Version 3.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
@@ -20,7 +20,7 @@ Rebol [
         https://www.gnu.org/licenses/lgpl-3.0.html
     ]--
 
-    Description: --[
+    description: --[
         This file originated as the first .reb code file that was fetch()'d
         over the web and run in a browser.  It has been an ongoing process to
         try and start factoring the reusable bits out of this into some kind
@@ -37,7 +37,7 @@ Rebol [
         functionality out too early...
     ]--
 
-    Notes: --[
+    notes: --[
         * Use `debugger;` for programmatic breakpoints in JavaScript code.
 
         * This project uses contentEditable on purpose, in order to leave room

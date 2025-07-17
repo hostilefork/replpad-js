@@ -1,13 +1,13 @@
 Rebol [
-    File: %js-css-interop.reb
-    Summary: "Functions for Invoking .js and .css by URL!, TEXT!, or dialect"
-    Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
-    Homepage: https://github.com/hostilefork/replpad-js/
+    file: %js-css-interop.reb
+    summary: "Functions for Invoking .js and .css by URL!, TEXT!, or dialect"
+    project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    homepage: https://github.com/hostilefork/replpad-js/
 
-    Type: module
-    Name: JS-CSS-Interop  ; !!! seems needed to get into system/modules list
+    type: module
+    name: JS-CSS-Interop  ; !!! seems needed to get into system/modules list
 
-    Description: --[
+    description: --[
         This provides CSS-DO and JS-DO for running .js an .css files off of
         CORS-friendly URLs (or directly as TEXT!).
 
@@ -17,7 +17,7 @@ Rebol [
         https://forum.rebol.info/t/js-eval-and-js-do/1504
     ]--
 
-    Notes: --[
+    notes: --[
         * It would technically be possible for DO to recognize a .js or .css
           file by extension.  But having DO be polymorphic in this way isn't
           necessarily a good idea...and that wouldn't answer how to handle

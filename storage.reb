@@ -1,19 +1,19 @@
 Rebol [
-    File: %storage.reb
-    Summary: "File Scheme for Persistent Browser Storage"
-    Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
-    Homepage: https://github.com/hostilefork/replpad-js/
+    file: %storage.reb
+    summary: "File Scheme for Persistent Browser Storage"
+    project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    homepage: https://github.com/hostilefork/replpad-js/
 
-    Type: module
-    Name: ReplStorage  ; !!! seems needed to get into system/modules list
-    Exports: [storage]
+    type: module
+    name: ReplStorage  ; !!! seems needed to get into system/modules list
+    exports: [storage]
 
-    Rights: --[
+    rights: --[
         Copyright (c) 2021 Christopher Ross-Gill
         See README.md and CREDITS.md for more information
     ]--
 
-    License: --[
+    license: --[
         Licensed under the Lesser GPL, Version 3.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
@@ -21,7 +21,7 @@ Rebol [
         https://www.gnu.org/licenses/lgpl-3.0.html
     ]--
 
-    Description: --[
+    description: --[
         In the terminology of URL handling, a "scheme" is the part of the URL
         that precedes the initial colon (e.g. the `http` in `http://whatever`).
 
@@ -31,7 +31,7 @@ Rebol [
         storage API.
     ]--
 
-    Notes: --[
+    notes: --[
         "This currently is a very spongey filesystem. Probably better to
         create entries for directories and manage them through MAKE-DIR, etc."
 
