@@ -41,7 +41,7 @@ js-do %watchlist.js
 ;
 watches: []
 
-/delete-watch: func [
+delete-watch: func [
     return: []
     n [integer!]
 ][
@@ -61,7 +61,7 @@ watches: []
 ;    If you want to do that, you should monitor a GROUP! because it will
 ;    capture a binding on the group which can be evaluated each time.
 ;
-/watch: func [
+watch: func [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
     @arg [
@@ -127,7 +127,7 @@ watches: []
 ]
 
 
-/update-watches: func [] [
+update-watches: func [] [
     let n: 1
     for-each 'w watches [
         ;
