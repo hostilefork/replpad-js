@@ -192,7 +192,7 @@ log: collect [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
     return: []
-    param [<maybe> text!]
+    param [<opt-out> text!]
     :html
 ] --[
     let param = reb.Spell("param")
@@ -252,7 +252,7 @@ log: collect [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
     return: []
-    param [<maybe> text!]
+    param [<opt-out> text!]
     :html
 ][
     if html [

@@ -146,7 +146,7 @@ Rebol [
 
     return: []  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<maybe> block! text! file! url! tag!]
+        [<opt-out> block! text! file! url! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
     :local "Run code in a local scope, rather than global"
     :module "Execute JS code as a module"
@@ -192,7 +192,7 @@ Rebol [
 
     return: [~ ~null~ logic? integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<maybe> block! text!]
+        [<opt-out> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
     return js-eval*:local:value expression
