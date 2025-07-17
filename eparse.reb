@@ -74,7 +74,8 @@ eparse-combinators.('mark): combinator [
     "Run one rule and if it matches, draw a mark across that content"
     return: "Result of one evaluation step"
         [any-atom?]
-    :pending [blank! block!]
+    input [any-series?]
+    :pending [blank? block!]
     parser [action?]
     <local> subpending rest result'
 ][
@@ -97,11 +98,9 @@ export /eparse: func [rules [block!] :hook [<unrun> frame!]] [
 
     ed-clear-underlines
 
-    let [^synthesized' pending]: (
+    let [^synthesized' pending]: trap (
         parse*:combinators:hook ed-text rules eparse-combinators hook
-    ) except e -> [
-        return raise e
-    ]
+    )
 
     for-each 'item maybe pending [
         if not pair? item [
