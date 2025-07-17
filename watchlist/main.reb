@@ -42,7 +42,7 @@ js-do %watchlist.js
 watches: []
 
 /delete-watch: func [
-    return: [~]
+    return: []
     n [integer!]
 ][
     if n > length of watches [

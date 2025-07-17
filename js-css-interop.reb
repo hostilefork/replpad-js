@@ -144,7 +144,7 @@ Rebol [
 /js-do: func [
     "Execute JavaScript file or evaluate a string of JavaScript source"
 
-    return: [~]  ; What useful return result could there be?
+    return: []  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<maybe> block! text! file! url! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
@@ -266,7 +266,7 @@ Rebol [
 /css-do: func [
     "Incorporate a CSS file or a snippet of CSS source into the page"
 
-    return: [~]  ; Could return an auto-generated ID for later removing (?)
+    return: []  ; Could return an auto-generated ID for later removing (?)
     ; 'id [<skip> issue!]  ; Idea: what if you could `css-do #id {...}`
     source "TAG! interpreted as relative to currently running script"
         [text! file! url! tag!]

@@ -29,7 +29,7 @@ replpad-dir: what-dir
 ]--
 
 /ensure-underline-extension-loaded: func [
-    return: [~]
+    return: []
 ]
 bind construct [
     loaded: null
