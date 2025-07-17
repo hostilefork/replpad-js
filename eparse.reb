@@ -102,7 +102,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
         parse*:combinators:hook ed-text rules eparse-combinators hook
     )
 
-    for-each 'item maybe pending [
+    for-each 'item opt pending [
         if not pair? item [
             fail "residual non-PAIR! found in EPARSE pending list"
         ]
@@ -238,7 +238,7 @@ pd-stack-push: js-native [
         [text!]
 ] --[
     let text = reb.Spell("spaced line")
-    let classname = reb.TrySpell("spaced maybe class")
+    let classname = reb.TrySpell("spaced opt class")
     let div = load("<div>" + text + "</div>")
     if (classname)
         div.classList.add(classname)
