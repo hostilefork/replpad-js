@@ -1,8 +1,8 @@
 Rebol [
-    File: %eparse.reb
-    Type: module
-    Name: eparse
-    Description: --[
+    file: %eparse.reb
+    type: module
+    name: eparse
+    description: --[
         This demonstration is set up in a way so that it shows the modularity
         of the approach.  The %underline_extension.js is not loaded unless
         EPARSE is used.  More factoring should push the EPARSE codebase itself

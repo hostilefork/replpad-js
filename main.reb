@@ -1,8 +1,8 @@
 Rebol [
-    File: %main.reb
+    file: %main.reb
 
-    Type: module
-    Name: Main
+    type: module
+    name: Main
 
     ; Things labeled with EXPORT in this module are IMPORT-ed to the user
     ; context due to inclusion in the %index.html via the <script> tag.
@@ -17,7 +17,7 @@ Rebol [
     ; It also exports MAIN, which isn't something the user should see.  A
     ; way should be figured out to remove its visibility.
 
-    Description: --[
+    description: --[
         The ReplPad console is a "widget" that tries to have few dependencies,
         but can be integrated into bulkier contexts.  One of those is as a
         panel in Golden Layouts:

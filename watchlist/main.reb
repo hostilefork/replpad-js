@@ -1,10 +1,10 @@
-REBOL [
-    Title: {Watchlist}
+Rebol [
+    title: {Watchlist}
 
-    Type: module
-    Name: Watchlist
+    type: module
+    name: Watchlist
 
-    Description: --[
+    description: --[
         This is a web-based remake of a feature demonstrated in the Qt-Based
         Ren Garden.  It is a Rebol-dialected form of a debugger "watchlist"
         which updates a table of monitored evaluations each time an
@@ -18,7 +18,7 @@ REBOL [
         https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes
     ]--
 
-    Exports: [watch]
+    exports: [watch]
 ]
 
 import <../replpad.reb>

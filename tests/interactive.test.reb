@@ -1,9 +1,9 @@
 Rebol [
-    Title: "ReplPad Guided Interactive Behavior Test"
+    title: "ReplPad Guided Interactive Behavior Test"
 
-    Type: Module
+    type: Module
 
-    Description: --[
+    description: --[
         While automated testing can check some things, it is not necessarily
         feasible to check *everything* programmatically.  Questions of whether
         or not scroll bars show up, or if you can right click and get the right
@@ -21,7 +21,7 @@ Rebol [
         between the steps.
     ]--
 
-    Exports: [okay ok k nope]
+    exports: [okay ok k nope]
 ]
 
 ; This may not be running from a console, e.g. it might be run via "?do=" on
