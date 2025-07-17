@@ -17,7 +17,7 @@ Rebol [
     ; It also exports MAIN, which isn't something the user should see.  A
     ; way should be figured out to remove its visibility.
 
-    Description: --{
+    Description: --[
         The ReplPad console is a "widget" that tries to have few dependencies,
         but can be integrated into bulkier contexts.  One of those is as a
         panel in Golden Layouts:
@@ -29,7 +29,7 @@ Rebol [
 
         The introduction text is a good example of something not all usages
         would want, so that's an example of something that belongs here.
-    }--
+    ]--
 ]
 
 replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
@@ -49,7 +49,7 @@ wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
 instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
 
 link: [href label] -> [
-    unspaced [--{<a href='}-- href --{' target='_blank'>}-- label --{</a>}--]
+    unspaced [--[<a href=']-- href --[' target='_blank'>]-- label --[</a>]--]
 ]
 
 intro-note-html: spaced [
@@ -69,11 +69,11 @@ intro-note-html: spaced [
 ]
 
 greeting-text:
---{Welcome to Rebol.  For more information please type in the commands below:
+--[Welcome to Rebol.  For more information please type in the commands below:
 
   HELP    - For starting information
   ABOUT   - Information about your Rebol
-  REDBOL  - Experimental emulation of Rebol2/Red conventions}--
+  REDBOL  - Experimental emulation of Rebol2/Red conventions]--
 
 
 ; We don't want a deep stack when reporting errors or running user code.  So
@@ -106,7 +106,7 @@ export main: adapt :console [
         print ["** Bad `window.location.search` string in page URL"]
         print mold system.options.args
         print newline
-        print trim:auto mutable --{
+        print trim:auto mutable --[
             OPTIONS ARE:
 
             ?do=scriptname
@@ -121,7 +121,7 @@ export main: adapt :console [
             They may be combined together, e.g.:
 
             ?local&do=scriptname
-        }--
+        ]--
         return 1
     ]
 
@@ -281,14 +281,14 @@ bind construct [
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
-    css-do --{
+    css-do --[
         h2 {  /* this was in the golden layout simple demo */
             font: 14px Arial, sans-serif;
             color: #fff;
             padding: 10px;
             text-align: center;
         }
-    }--
+    ]--
 
     ; The interop is a module that makes `window.golden` available to this
     ; non-modularized code.
@@ -318,7 +318,7 @@ bind construct [
         ;
         js-do:module join replpad-dir %codemirror-interop.js
 
-        css-do --{
+        css-do --[
             .cm-editor {  /* https://discuss.codemirror.net/t/2882 */
                 height: 100% !important
             }
@@ -326,11 +326,11 @@ bind construct [
                 overflow-y: scroll !important;  /* always show */
                 overflow-x: auto
             }
-        }--
+        ]--
 
         codemirror-loaded: okay
 
-        js-eval --{
+        js-eval --[
             const { EditorState } = CodeMirror.state
             const { EditorView } = CodeMirror.view
 
@@ -391,7 +391,7 @@ bind construct [
                 cm = cm_view  // capture last editor in cm
             })
           })
-        }--
+        ]--
     ]
 
     let [text title]: switch:type source [
@@ -404,24 +404,24 @@ bind construct [
     ]
 
     js-eval [
-        --{let text =}-- spell @text --{;}--
-        --{let title =}-- spell @title --{;}--
-        --{
+        --[let text =]-- spell @text --[;]--
+        --[let title =]-- spell @title --[;]--
+        --[
             let state = { text: text }
             golden.addComponent('mirror', state, title)
-        }--
+        ]--
     ]
 ]
 
-export /ed-text: js-native [] --{  // repeated in %eparse.reb
+export /ed-text: js-native [] --[  // repeated in %eparse.reb
     return reb.Text(cm.state.doc.text.join('\n'))
-}--
+]--
 
 /ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
     "Clear all underlines from the last activated editor"
-] --{
+] --[
     CodeMirror.ClearUnderlines()
-}--
+]--
 
 
 

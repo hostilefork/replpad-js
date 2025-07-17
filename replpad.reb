@@ -7,20 +7,20 @@ Rebol [
     Type: module
     Name: ReplPad  ; !!! seems needed to get into system.modules list
 
-    Rights: --{
+    Rights: --[
         Copyright (c) 2018-2021 hostilefork.com
         See README.md and CREDITS.md for more information
-    }--
+    ]--
 
-    License: --{
+    License: --[
         Licensed under the Lesser GPL, Version 3.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
 
         https://www.gnu.org/licenses/lgpl-3.0.html
-    }--
+    ]--
 
-    Description: --{
+    Description: --[
         This file originated as the first .reb code file that was fetch()'d
         over the web and run in a browser.  It has been an ongoing process to
         try and start factoring the reusable bits out of this into some kind
@@ -35,16 +35,16 @@ Rebol [
         Hence improving the contents of this file and running other programs
         from it using DO is a preferable alternative to trying to factor its
         functionality out too early...
-    }--
+    ]--
 
-    Notes: --{
+    Notes: --[
         * Use `debugger;` for programmatic breakpoints in JavaScript code.
 
         * This project uses contentEditable on purpose, in order to leave room
           in the future for richer formatting than a TEXTAREA would provide.
           It may seem annoying considering it generally does only monospace
           in the code parts...but that's just one application.
-    }--
+    ]--
 ]
 
 
@@ -56,9 +56,9 @@ Rebol [
 /!!: js-native [
     "Temporary debug helper, sends to browser console log instead of replpad"
     message
-] --{
+] --[
     console.log("@" + reb.Tick() + ": " + reb.Spell("mold message"))
-}--
+]--
 
 use [
     form-error form-value write-console
@@ -132,9 +132,9 @@ use [
         return: []
         type [text!]
         value [element?]
-    ] --{
+    ] --[
         console[reb.Spell("type")](reb.Spell("value"))
-    }--
+    ]--
 
     sys.util/make-scheme [
         title: "Console.log Scheme"
@@ -176,7 +176,7 @@ log: collect [
 /cls: /clear-screen: js-awaiter [
     "Clear contents of the browser window"
     return: [~void~]
-] --{
+] --[
     replpad.innerHTML = ""
 
     // The output strategy for plain lines (a la PRINT) is to merge content
@@ -186,7 +186,7 @@ log: collect [
     // So we now defer adding that first line until it is needed.
 
     return reb.Void()  // tells console to suppress result
-}--
+]--
 
 /replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
@@ -194,7 +194,7 @@ log: collect [
     return: [~]
     param [<maybe> text!]
     :html
-] --{
+] --[
     let param = reb.Spell("param")
     if (param == "")
         return  // no-op if content is empty
@@ -228,7 +228,7 @@ log: collect [
     }
 
     span.innerHTML += pieces.shift()
-}--
+]--
 
 ; There are several issues with escaping to be considered in trying to write
 ; console strings to a browser. If you want the console text to be boring, it
@@ -273,7 +273,7 @@ log: collect [
 
     let url-rule: [
         "http" opt "s" ":" to [
-            "]" | ")" | -{"}- | "'" | space | newline | <end>
+            "]" | ")" | -["]- | "'" | space | newline | <end>
         ]
     ]
 
@@ -325,7 +325,7 @@ log: collect [
 export /read-line: js-awaiter [
     "Read single-line or multi-line input from the user"
     return: [text!]
-] --{
+] --[
     let new_input = EnsureLastLineSpan('input')
     ActivateInput(new_input)
 
@@ -342,7 +342,7 @@ export /read-line: js-awaiter [
             resolve(reb.Text(js_text))
         }
     })
-}--
+]--
 
 
 === ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3) ===
@@ -412,7 +412,7 @@ export /read-line: js-awaiter [
 /read-url-helper: js-awaiter [
     return: [binary!]
     url [text!]
-] --{
+] --[
     let url = reb.Spell("url")
 
     let response = await fetch(url)  // can be relative
@@ -423,7 +423,7 @@ export /read-line: js-awaiter [
 
     let buffer = await response.arrayBuffer()
     return reb.Binary(buffer)
-}--
+]--
 
 sys.util/make-scheme [
     title: "In-Browser HTTP Scheme"
@@ -689,7 +689,7 @@ export (inside [] (adjunct-of interop).exports)
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
 /rfc2616-to-date: func [
-    "Make DATE! from e.g. -{Tue, 15 Nov 1994 12:45:26 GMT}-"
+    "Make DATE! from e.g. -[Tue, 15 Nov 1994 12:45:26 GMT]-"
     return: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
         [text!]
@@ -776,7 +776,7 @@ if did select system.contexts.user 'change-dir [
     data [text! binary!]
     :mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
         [text!]
-] --{
+] --[
     let filename = reb.Spell("filename")
     let mime_type = reb.TrySpell("mime-type")
 
@@ -809,7 +809,7 @@ if did select system.contexts.user 'change-dir [
     a.parentNode.removeChild(a)
 
     window.URL.revokeObjectURL(url)
-}--
+]--
 
 ; An alternate interface to the DOWNLOAD function
 ; WRITE DOWNLOADS:///TARGET.TXT "SOME TEXT"
@@ -858,7 +858,7 @@ sys.util/make-scheme [
     :precise "High precision time"
     :utc "Universal time (zone +0:00)"
     :local "Give time in current zone without including the time zone"
-] --{
+] --[
     var d = new Date()
 
     if (reb.Did("year"))
@@ -904,7 +904,7 @@ sys.util/make-scheme [
         return reb.Value("pick", reb.R(datetime), "'date")
 
     return datetime
-}--
+]--
 
 
 === PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER ===
@@ -914,7 +914,7 @@ browse: func [
     return: [~]
     url [url!]
 ][
-    comment --{
+    comment --[
         // !!! This is how we would open a window in a JS-AWAITER, but it will
         // say popups are blocked.  The user has to configure accepting those,
         // or click on the link we give them.
@@ -927,7 +927,7 @@ browse: func [
             let win = window.open(url, '_blank')
             win.focus()
         }
-    }--
+    ]--
 
     ; Our alternative is we give a link in the console they can click.  Not
     ; very useful if they typed BROWSE literally, but if a command tried to
@@ -935,7 +935,7 @@ browse: func [
     ;
     replpad-write:html unspaced [
         <div class='browse'>
-        -{Click here: <a href='}- url -{' target='_blank'>}- url -{</a>}-
+        -[Click here: <a href=']- url -[' target='_blank'>]- url -[</a>]-
         </div>
     ]
 ]
@@ -946,11 +946,11 @@ browse: func [
 /wait: js-awaiter [
     "Sleep for the requested number of seconds"
     seconds [integer! decimal!]
-] --{
+] --[
     return new Promise(function(resolve, reject) {
         setTimeout(resolve, 1000 * reb.UnboxDecimal("seconds"))
     })
-}--
+]--
 
 
 === CLIPBOARD SCHEME ===
@@ -961,7 +961,7 @@ browse: func [
 /copy-to-clipboard-helper: js-native [
     "https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f"
     data [any-value?]
-] --{
+] --[
     // interface to clipboard is `execCommand` which copies a selection.  We
     // must preserve the current selection, make an invisible text area with
     // the data, select it, run execCommand(), and then restore the selection.
@@ -982,7 +982,7 @@ browse: func [
         document.getSelection().removeAllRanges()
         document.getSelection().addRange(selected)
     }
-}--
+]--
 
 sys.util/make-scheme [  ; no URL form dictated
     title: "In-Browser Clipboard Scheme"
