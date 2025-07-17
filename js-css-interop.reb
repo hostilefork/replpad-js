@@ -52,7 +52,7 @@ detect-automime: func [
     ; right MIME types on main site, it's just the raw service with the issue).
     ;
     let hostname
-    try parse (maybe match url! source) [
+    try parse (opt match url! source) [
         "https://" [
             hostname: "raw.githubusercontent.com" "/"
             |
@@ -167,9 +167,8 @@ js-do: func [
 
     ; If URL is decorated source (syntax highlighting, etc.) get raw form.
     ;
-    ; !!! These used to use MAYBE, review once semantics sort out.
-    ;
-    (sys.util/adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    source: maybe sys.util/adjust-url-for-raw source
+
     automime: default [detect-automime source]
 
     if automime or local [
@@ -286,9 +285,8 @@ css-do: func [
 
     ; If URL is decorated source (syntax highlighting, etc.) get raw form.
     ;
-    ; !!! These used to use MAYBE, review once semantics sort out.
-    ;
-    (sys.util/adjust-url-for-raw source) then adjusted -> [source: adjusted]
+    source: maybe sys.util/adjust-url-for-raw source
+
     automime: default [detect-automime source]
 
     if automime [

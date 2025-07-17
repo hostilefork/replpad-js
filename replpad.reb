@@ -654,14 +654,10 @@ if did select system.contexts.user 'do [
     ; The tag registry is maintained remotely, but hook with a few exceptions
     ; here to shorten calling demos and get them out of the root directory.
     ;
-    ; !!! This used to use MAYBE, review once the semantics sort out.
-    ;
-    switch :source [
+    source: maybe switch source [
         @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.reb]
         @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
         @dungeon [https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.reb]
-    ] then url -> [
-        source: url
     ]
 ]
 
