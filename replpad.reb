@@ -285,7 +285,7 @@ log: collect [
         opt some [
             change '< ("&lt;")
             | change '> ("&gt;")
-            | change '& ("&amp;")
+            | change "&" ("&amp;")
 
             ; Make all URL!s printed in the output show as clickable.  Consider
             ; it a "good reason" to use `target='_blank'` to avoid losing work.
