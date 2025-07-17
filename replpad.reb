@@ -140,7 +140,7 @@ use [
         title: "Console.log Scheme"
         name: 'log
 
-        /init: func [return: [~] port] [
+        /init: func [return: [] port] [
             [_ port.spec.path]: find:match as text! port.spec.ref form log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
@@ -191,7 +191,7 @@ log: collect [
 /replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
-    return: [~]
+    return: []
     param [<maybe> text!]
     :html
 ] --[
@@ -251,7 +251,7 @@ log: collect [
 /replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
-    return: [~]
+    return: []
     param [<maybe> text!]
     :html
 ][
@@ -487,7 +487,7 @@ sys.util/make-scheme [
     title: "File Access"
     name: 'file
 
-    /init: func [return: [~] port [port!]] [
+    /init: func [return: [] port [port!]] [
         case [
             not all [
                 has port.spec 'ref
@@ -818,7 +818,7 @@ sys.util/make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    /init: func [return: [~] port] [
+    /init: func [return: [] port] [
         assert [match text! port.spec.path]
         port.spec.path: split-path port.spec.path
     ]
@@ -911,7 +911,7 @@ sys.util/make-scheme [
 
 browse: func [
     "Provide a clickable link to the user to open in the browser"
-    return: [~]
+    return: []
     url [url!]
 ][
     comment --[

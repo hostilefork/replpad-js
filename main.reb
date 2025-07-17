@@ -181,7 +181,7 @@ export main: adapt :console [
             [greeting: greeting-text]
         ])
 
-        print-halted: method [return: [~]] [
+        print-halted: method [return: []] [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
@@ -236,7 +236,7 @@ export /watch: func [@arg] [
 
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
-export /redbol: func [return: [~]] [
+export /redbol: func [return: []] [
     print delimit LF [
         ""
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
@@ -272,7 +272,7 @@ export /redbol: func [return: [~]] [
 === GOLDEN LAYOUTS DEMO ===
 
 export /ensure-golden-layouts-loaded: func [
-    return: [~]
+    return: []
 ]
 bind construct [
     loaded: null
@@ -302,7 +302,7 @@ bind construct [
 === CODEMIRROR 6 EDITOR DEMO ===
 
 export /edit: func [
-    return: [~]
+    return: []
     source [url! text! file!]
     :marks
 ]

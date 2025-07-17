@@ -29,7 +29,7 @@ replpad-dir: what-dir
 ]--
 
 /ensure-underline-extension-loaded: func [
-    return: [~]
+    return: []
 ]
 bind construct [
     loaded: null
@@ -249,7 +249,7 @@ pdebug-loaded: null
 
 /pd-get-frame: js-native [
     "Return FRAME! associated with given stack level in list (1 is topmost)"
-    return: [~null~ frame!]
+    return: [null? frame!]
     index [integer!]
 ] --[
     let index = reb.Unbox("index")

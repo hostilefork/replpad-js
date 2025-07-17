@@ -211,7 +211,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "Browser Storage API"
         name: 'storage
 
-        /init: func [return: [~] port [port!]] [
+        /init: func [return: [] port [port!]] [
             if not all [
                 has port.spec 'ref
                 url? port.spec.ref
@@ -253,7 +253,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Access"
         name: 'file
 
-        /init: func [return: [~] port [port!]] [
+        /init: func [return: [] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
@@ -348,7 +348,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            /query: func [return: [~null~ object!] port [port!]] [
+            /query: func [return: [null? object!] port [port!]] [
                 switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target
@@ -377,7 +377,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Directory Access"
         name: 'dir
 
-        /init: func [return: [~] port [port!]] [
+        /init: func [return: [] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
