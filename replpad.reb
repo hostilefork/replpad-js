@@ -53,7 +53,7 @@ Rebol [
 ; While it's nice to be able to use PRINT statements to debug, the JS console
 ; is a good last resort...and the last resort should be defined right first.
 
-/!!: js-native [
+!!: js-native [
     "Temporary debug helper, sends to browser console log instead of replpad"
     message
 ] --[
@@ -63,7 +63,7 @@ Rebol [
 use [
     form-error form-value write-console
 ][
-    /form-error: func [return: [text!] error [error!]] [
+    form-error: func [return: [text!] error [error!]] [
         return unspaced [
             "** " form error.type " Error: " case [
                 text? error.message [error.message]
@@ -128,7 +128,7 @@ use [
         ]
     ]
 
-    /write-console: js-awaiter [
+    write-console: js-awaiter [
         return: []
         type [text!]
         value [element?]
@@ -140,13 +140,13 @@ use [
         title: "Console.log Scheme"
         name: 'log
 
-        /init: func [return: [] port] [
+        init: func [return: [] port] [
             [_ port.spec.path]: find:match as text! port.spec.ref form log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
         actor: make object! [
-            /write: /append: func [port value] [
+            write: append: func [port value] [
                 write-console port.spec.path form-value get:any 'value
                 return port
             ]
@@ -173,7 +173,7 @@ log: collect [
 ; PRINT.  This way non-JavaScript-aware Rebol code that has PRINT statements
 ; in it can show output.
 
-/cls: /clear-screen: js-awaiter [
+cls: clear-screen: js-awaiter [
     "Clear contents of the browser window"
     return: []
 ] --[
@@ -188,7 +188,7 @@ log: collect [
     return reb.Tripwire()  // console suppresses result for trash
 ]--
 
-/replpad-write-js: js-awaiter [
+replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
     return: []
@@ -248,7 +248,7 @@ log: collect [
 ; back into a BLOCK! of Rebol strings just to apply post-processing.  So
 ; we implement the escaping ourselves.
 ;
-/replpad-write: func [
+replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
     return: []
@@ -310,7 +310,7 @@ log: collect [
     return replpad-write-js param
 ]
 
-/lib.write-stdout: func [
+lib.write-stdout: func [
     "Writes just text to the ReplPad"
     text [text! char?]
 ][
@@ -322,7 +322,7 @@ log: collect [
 ; READ-LINE is part of the STDIO extension now, which means it does not
 ; exist in LIB...so we export it here.
 ;
-export /read-line: js-awaiter [
+export read-line: js-awaiter [
     "Read single-line or multi-line input from the user"
     return: [text!]
 ] --[
@@ -358,7 +358,7 @@ export /read-line: js-awaiter [
 ; the adjustments removing the various HTML decorations that are known to be
 ; not what you meant *if* you're using DO (plain READ might have wanted them).
 
-/CORSify-gitlab-port: func [
+CORSify-gitlab-port: func [
     return: [port!]
     port [port!]
 ][
@@ -409,7 +409,7 @@ export /read-line: js-awaiter [
     return port
 ]
 
-/read-url-helper: js-awaiter [
+read-url-helper: js-awaiter [
     return: [binary!]
     url [text!]
 ] --[
@@ -432,7 +432,7 @@ sys.util/make-scheme [
     actor: [
         ; could potentially fold in JS-HEAD around an INFO? wrapper
 
-        /read: func [port] [
+        read: func [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
@@ -444,7 +444,7 @@ sys.util/make-scheme [
             ]
         ]
 
-        /write: func [port data] [
+        write: func [port data] [
             fail [
                 "WRITE is not supported in the web console yet, due to the browser's"
                 "imposition of a security model (e.g. no local filesystem access)."
@@ -460,7 +460,7 @@ sys.util/make-scheme [
     name: 'https
 
     actor: [
-        /read: func [port] [
+        read: func [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
@@ -470,7 +470,7 @@ sys.util/make-scheme [
             ]
         ]
 
-        /write: func [port data] [
+        write: func [port data] [
             fail [
                 "WRITE is not yet supported, due to the browser's imposition"
                 "of a security model (e.g. no local filesystem access)."
@@ -487,7 +487,7 @@ sys.util/make-scheme [
     title: "File Access"
     name: 'file
 
-    /init: func [return: [] port [port!]] [
+    init: func [return: [] port [port!]] [
         case [
             not all [
                 has port.spec 'ref
@@ -688,7 +688,7 @@ export (inside [] (adjunct-of interop).exports)
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
-/rfc2616-to-date: func [
+rfc2616-to-date: func [
     "Make DATE! from e.g. -[Tue, 15 Nov 1994 12:45:26 GMT]-"
     return: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
@@ -710,7 +710,7 @@ export (inside [] (adjunct-of interop).exports)
     return to date! unspaced [day "-" month "-" year "/" time zone]
 ]
 
-/info?: func [
+info?: func [
     url [url!]
     :only
 ][
@@ -735,7 +735,7 @@ if did select system.contexts.user 'change-dir [
     fail "User context has override of CHANGE-DIR, won't inherit lib override."
 ]
 
-/lib.change-dir: func [
+lib.change-dir: func [
     "Changes the current path (where scripts with relative paths will be run)"
     return: [file! url!]
     path [file! url!]
@@ -769,7 +769,7 @@ if did select system.contexts.user 'change-dir [
 
 === DOWNLOAD SCHEME ===
 
-/download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
+download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     "Triggers a download of data to the user's local disk"
 
     filename [file!]
@@ -818,13 +818,13 @@ sys.util/make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    /init: func [return: [] port] [
+    init: func [return: [] port] [
         assert [match text! port.spec.path]
         port.spec.path: split-path port.spec.path
     ]
 
     actor: [
-        /write: func [port data] [
+        write: func [port data] [
             download port.spec.path data
             return port
         ]
@@ -844,7 +844,7 @@ sys.util/make-scheme [
 ;
 ; !!! Review why a time has to be part of a date to have a time zone (?)
 
-/now: js-native [
+now: js-native [
     "Returns current date and time with timezone adjustment"
 
     :year "Returns year only"
@@ -943,7 +943,7 @@ browse: func [
 
 === WAIT FUNCTION FOR SLEEPING BASED ON JS setTimeout ===
 
-/wait: js-awaiter [
+wait: js-awaiter [
     "Sleep for the requested number of seconds"
     seconds [integer! decimal!]
 ] --[
@@ -958,7 +958,7 @@ browse: func [
 ; For security reasons, web applications can't read the clipboard.  But they
 ; can write to it if you provoke the app with sufficient interactivity.
 
-/copy-to-clipboard-helper: js-native [
+copy-to-clipboard-helper: js-native [
     "https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f"
     data [any-value?]
 ] --[
@@ -989,11 +989,11 @@ sys.util/make-scheme [  ; no URL form dictated
     name: 'clipboard
 
     actor: [
-        /read: lambda [port] [
+        read: lambda [port] [
             fail "READ is not supported in the web console"
         ]
 
-        /write: func [port data] [
+        write: func [port data] [
             if binary? data [
                 data: either invalid-utf8? data [
                     enbase:base data 64

@@ -31,7 +31,7 @@ Rebol [
 ]
 
 
-/detect-automime: func [
+detect-automime: func [
     "Figure out if a source comes with no MIME type and would break CORS"
     return: [logic?]
     source [file! url!]
@@ -68,14 +68,14 @@ Rebol [
 ]
 
 
-/js-do-dialect-helper: func [
+js-do-dialect-helper: func [
     "Allow Rebol to pass API handle values to JS-DO and JS-EVAL"
 
     return: [text!]
     b [block!]
 ][
     return unspaced collect [
-        let /keep-transient: func [t :required [word!]] [
+        let keep-transient: func [t :required [word!]] [
             return switch type of t [
                 the-word! the-tuple! [keep api-transient get t]
                 the-group! [keep api-transient reeval as group! t]
@@ -117,7 +117,7 @@ Rebol [
     ]
 ]
 
-/js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
+js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     "Run JS URL via a <script> tag"
 
     url [url!] "URL or JavaScript code"
@@ -141,7 +141,7 @@ Rebol [
     })
 ]--
 
-/js-do: func [
+js-do: func [
     "Execute JavaScript file or evaluate a string of JavaScript source"
 
     return: []  ; What useful return result could there be?
@@ -187,7 +187,7 @@ Rebol [
 ; functionality.  This higher-level JS-EVAL assumes you want a result back
 ; vs. the fire-and-forget JS-DO, and supports the JS-DO dialect.
 ;
-/js-eval: func [
+js-eval: func [
     "Evaluate JavaScript expression in local environment and return result"
 
     return: [~ ~null~ logic? integer! text!]
@@ -199,7 +199,7 @@ Rebol [
 ]
 
 
-/js-head-helper: js-awaiter [
+js-head-helper: js-awaiter [
     return: [object!]
     url [text!]
 ] --[
@@ -225,7 +225,7 @@ Rebol [
     return obj
 ]--
 
-/js-head: func [
+js-head: func [
     "Perform an HTTP HEAD request of an absolute URL! or relative FILE! path"
     return: "OBJECT! of key=>value response header strings"
         [object!]
@@ -240,7 +240,7 @@ Rebol [
 ]
 
 
-/css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
+css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
     text [text!]
 ] --[
     let css = document.createElement('style')
@@ -250,7 +250,7 @@ Rebol [
     document.head.appendChild(css)
 ]--
 
-/css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
+css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
     url [url!]
 ] --[
     let link = document.createElement('link')
@@ -263,7 +263,7 @@ Rebol [
     document.head.appendChild(link)
 ]--
 
-/css-do: func [
+css-do: func [
     "Incorporate a CSS file or a snippet of CSS source into the page"
 
     return: []  ; Could return an auto-generated ID for later removing (?)

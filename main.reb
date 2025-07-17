@@ -84,7 +84,7 @@ greeting-text:
 ; !!! Has to be an ADAPT of CONSOLE, for some reason--investigate:
 ; https://github.com/hostilefork/replpad-js/issues/10
 ;
-export main: adapt :console [
+export main: adapt console/ [
     !! "MAIN executing (this should show in browser console log)"
 
     clear-screen  ; clears the progress messages displayed during load
@@ -218,14 +218,14 @@ export about: does [
 ; Note: When it was being automatically loaded, it was observed that it
 ; could not be loaded before REPLPAD-WRITE:HTML.  Investigate.
 
-export /watch: func [@arg] [
+export watch: func [@arg] [
     print "Loading watchlist extension for first use..."
     import join replpad-dir %watchlist/main.reb
 
-    /watch: system.modules.Watchlist.watch/  ; replace this stub
+    watch: system.modules.Watchlist.watch/  ; replace this stub
 
     extend system.contexts.user [
-        /watch: watch/
+        watch: watch/
     ]
 
     ; WATCH hard quotes its argument...use APPLY to pass arg we hard-quoted
@@ -236,7 +236,7 @@ export /watch: func [@arg] [
 
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
-export /redbol: func [return: []] [
+export redbol: func [return: []] [
     print delimit LF [
         ""
         "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
@@ -301,7 +301,7 @@ bind construct [
 
 === CODEMIRROR 6 EDITOR DEMO ===
 
-export /edit: func [
+export edit: func [
     return: []
     source [url! text! file!]
     :marks
@@ -413,11 +413,11 @@ bind construct [
     ]
 ]
 
-export /ed-text: js-native [] --[  // repeated in %eparse.reb
+export ed-text: js-native [] --[  // repeated in %eparse.reb
     return reb.Text(cm.state.doc.text.join('\n'))
 ]--
 
-/ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
+ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
     "Clear all underlines from the last activated editor"
 ] --[
     CodeMirror.ClearUnderlines()

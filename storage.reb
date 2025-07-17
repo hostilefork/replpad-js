@@ -47,13 +47,13 @@ Rebol [
     ]--
 ]
 
-/storage-enabled?: js-native [] --[
+storage-enabled?: js-native [] --[
     return reb.Logic(
         typeof Storage !== 'undefined'
     )
 ]--
 
-/storage-set: js-native [
+storage-set: js-native [
     store [text!]
     path [text! file!]
     value [text!]
@@ -68,7 +68,7 @@ Rebol [
     )
 ]--
 
-/storage-get: js-native [
+storage-get: js-native [
     store [text!]
     path [text! file!]
 ] --[
@@ -83,7 +83,7 @@ Rebol [
         : null
 ]--
 
-/storage-unset: js-native [
+storage-unset: js-native [
     store [text!]
     path [text! file!]
 ] --[
@@ -96,7 +96,7 @@ Rebol [
     return null
 ]--
 
-/storage-clear: js-native [
+storage-clear: js-native [
     store [text!]
 ] --[
     let store = reb.Spell("store") == 'session'
@@ -113,7 +113,7 @@ Rebol [
 ; STORAGE-LIST and STORAGE-LIST-DIR are very similar, it may be desirable to
 ; combine the two with some type of generic filter refinement
 
-/storage-list: js-native [
+storage-list: js-native [
     store [text!]
 ] --[
     let store = reb.Spell("store") == 'session'
@@ -142,7 +142,7 @@ Rebol [
     )
 ]--
 
-/storage-list-dir: js-native [
+storage-list-dir: js-native [
     store [text!]
     path [text! file!]
 ] --[
@@ -186,7 +186,7 @@ Rebol [
     )
 ]--
 
-/storage-exists?: js-native [
+storage-exists?: js-native [
     store [text!]
     path [text! file!]
 ] --[
@@ -211,7 +211,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "Browser Storage API"
         name: 'storage
 
-        /init: func [return: [] port [port!]] [
+        init: func [return: [] port [port!]] [
             if not all [
                 has port.spec 'ref
                 url? port.spec.ref
@@ -223,11 +223,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
 
         actor: make object! [
-            /pick: /select: lambda [port key] [
+            pick: select: lambda [port key] [
                 storage-get port.spec.path form key
             ]
 
-            /poke: lambda [port key value] [
+            poke: lambda [port key value] [
                 either null? :value [
                     storage-unset port.spec.path form key
                 ][
@@ -235,11 +235,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            /query: /copy: lambda [port] [
+            query: copy: lambda [port] [
                 storage-list port.spec.path
             ]
 
-            /clear: func [port] [
+            clear: func [port] [
                 storage-clear port.spec.path
                 return port
             ]
@@ -253,7 +253,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Access"
         name: 'file
 
-        /init: func [return: [] port [port!]] [
+        init: func [return: [] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
@@ -330,7 +330,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            /delete: lambda [port] [
+            delete: lambda [port] [
                 switch type of port.spec.ref [
                     file! [
                         either storage-exists? port.spec.target form port.spec.ref [
@@ -348,7 +348,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            /query: func [return: [~null~ object!] port [port!]] [
+            query: func [return: [~null~ object!] port [port!]] [
                 switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target
@@ -377,7 +377,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Directory Access"
         name: 'dir
 
-        /init: func [return: [] port [port!]] [
+        init: func [return: [] port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
