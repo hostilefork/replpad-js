@@ -852,7 +852,7 @@ let rewired = function (old_handler, classname) {
 // object as a parameter, and returns a Promise for a running evaluator.
 //
 // reb.Startup() loads all `<script type="text/rebol" ...>` tags and runs them.
-// Running replpad.reb defines MAIN, which is an adaptation of the CONSOLE
+// Running replpad.r defines MAIN, which is an adaptation of the CONSOLE
 // command from the Console Extension.
 //
 // The entire console session (with many INPUT and PRINT commands) is run in

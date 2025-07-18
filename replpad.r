@@ -1,5 +1,5 @@
 Rebol [
-    file: %replpad.reb
+    file: %replpad.r
     summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
     project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
     homepage: https://github.com/hostilefork/replpad-js/
@@ -21,7 +21,7 @@ Rebol [
     ]--
 
     description: --[
-        This file originated as the first .reb code file that was fetch()'d
+        This file originated as the first .r code file that was fetch()'d
         over the web and run in a browser.  It has been an ongoing process to
         try and start factoring the reusable bits out of this into some kind
         of library which other programs can use.
@@ -347,7 +347,7 @@ export read-line: js-awaiter [
 
 === ENABLE HTTPS READ FROM CORS-FRIENDLY URLs (step 3) ===
 
-; In order to modularize the code into separate .reb files, we need to be able
+; In order to modularize the code into separate .r files, we need to be able
 ; to DO those files.  That requires setting up a scheme for reading `http://`
 ; URLs via the JavaScript fetch() API.  Once this is done, other components
 ; can live in their own modules instead of growing this file indefinitely.
@@ -655,9 +655,9 @@ if did select system.contexts.user 'do [
     ; here to shorten calling demos and get them out of the root directory.
     ;
     source: maybe switch source [
-        @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.reb]
-        @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.reb]
-        @dungeon [https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.reb]
+        @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.r]
+        @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.r]
+        @dungeon [https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.r]
     ]
 ]
 
@@ -666,12 +666,12 @@ if did select system.contexts.user 'do [
 
 ; Now that we can DO files, go ahead and import the JS interop.
 ;
-; !!! In the initial conception of how the replpad worked, %js-css-interop.reb
+; !!! In the initial conception of how the replpad worked, %js-css-interop.r
 ; when passed to DO would be interpreted as a file on the web server (because
 ; it would be appended onto the current directory).  Switching to use schemes
 ; is not taking this interpretation.
 ;
-interop: import ensure url! clean-path %js-css-interop.reb
+interop: import ensure url! clean-path %js-css-interop.r
 
 ; We want clients of replpad to see JS-DO etc.  Should they have to import
 ; those functions explicitly?  Probably, but they didn't have to before.  So
@@ -725,7 +725,7 @@ info?: func [
 
 ; Import scheme for file:// URLs as interpreted as meaning URL storage.
 ;
-import ensure url! clean-path %storage.reb
+import ensure url! clean-path %storage.r
 
 if did select system.contexts.user 'change-dir [
     fail "User context has override of CHANGE-DIR, won't inherit lib override."

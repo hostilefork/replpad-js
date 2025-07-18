@@ -21,7 +21,7 @@ Rebol [
     exports: [watch]
 ]
 
-import <../replpad.reb>
+import <../replpad.r>
 
 ; https://github.com/nathancahill/Split.js
 ;

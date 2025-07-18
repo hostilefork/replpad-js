@@ -1,6 +1,6 @@
 # REPLPAD-JS
 
-Copyright (c) 2018-2020 hostilefork.com
+Copyright (c) 2018-2025 hostilefork.com
 
 This project is an effort to build an interactive GUI console that runs in
 a web browser, for the Ren-C branch of Rebol3:

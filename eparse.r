@@ -1,5 +1,5 @@
 Rebol [
-    file: %eparse.reb
+    file: %eparse.r
     type: module
     name: eparse
     description: --[
@@ -18,11 +18,11 @@ replpad-dir: what-dir
 
 ; These expose JavaScript functionality for manipulating the codemirror editor
 
-ed-text: js-native [] --[  // repeat of code exported by %main.reb
+ed-text: js-native [] --[  // repeat of code exported by %main.r
     return reb.Text(cm.state.doc.text.join('\n'))
 ]--
 
-ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.reb
+ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.r
     "Clear all underlines from the last activated editor"
 ] --[
     CodeMirror.ClearUnderlines()

@@ -1,5 +1,5 @@
 Rebol [
-    file: %main.reb
+    file: %main.r
 
     type: module
     name: Main
@@ -24,8 +24,8 @@ Rebol [
 
           https://golden-layout.com/
 
-        Hence this %main.reb file is an attempt at separating functionality
-        for containers from the %replpad.reb.
+        Hence this %main.r file is an attempt at separating functionality
+        for containers from the %replpad.r
 
         The introduction text is a good example of something not all usages
         would want, so that's an example of something that belongs here.
@@ -38,10 +38,10 @@ replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
 ; into this module.  Instead we use IMPORT* to put the definitions into lib.
 ; This makes them available to any script that's loaded.  Review.
 ;
-sys.util/import* lib %replpad.reb
+sys.util/import* lib %replpad.r
 
-replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.reb
-console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.reb
+replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.r
+console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.r
 chat: https://chat.stackoverflow.com/rooms/291/rebol
 forum: https://forum.rebol.info
 
@@ -141,7 +141,7 @@ export main: adapt console/ [
             ; !!! There's a lot of nuance involved in "adding commands to the
             ; console", because it straddles the line between being a script
             ; and a module.  We have to do some hacking here to push the
-            ; module exports from inside this %main.reb module out to where
+            ; module exports from inside this %main.r module out to where
             ; the console can see them.  Think through this more!
             ;
             ; https://forum.rebol.info/t/1802
@@ -220,7 +220,7 @@ export about: does [
 
 export watch: func [@arg] [
     print "Loading watchlist extension for first use..."
-    import join replpad-dir %watchlist/main.reb
+    import join replpad-dir %watchlist/main.r
 
     watch: system.modules.Watchlist.watch/  ; replace this stub
 
@@ -256,7 +256,7 @@ export redbol: func [return: []] [
         ""
         "Discuss this experiment on the forum--and help if you can!"
     ]
-    print "Fetching %redbol.reb from GitHub..."
+    print "Fetching %redbol.r from GitHub..."
 
     ; !!! If we do just `import @redbol` here we will import it to this main
     ; (which will mess things up).  We want it to go to the user context.  This
@@ -413,11 +413,11 @@ bind construct [
     ]
 ]
 
-export ed-text: js-native [] --[  // repeated in %eparse.reb
+export ed-text: js-native [] --[  // repeated in %eparse.r
     return reb.Text(cm.state.doc.text.join('\n'))
 ]--
 
-ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
+ed-clear-underlines: js-awaiter [  ; repeated in %eparse.r
     "Clear all underlines from the last activated editor"
 ] --[
     CodeMirror.ClearUnderlines()
@@ -427,7 +427,7 @@ ed-clear-underlines: js-awaiter [  ; repeated in %eparse.reb
 
 === "EPARSE" INTEGRATION DEMO OF UPARSE AND CODEMIRROR ===
 
-import ensure url! clean-path %eparse.reb
+import ensure url! clean-path %eparse.r
 
 export [eparse eparse-debug]
 

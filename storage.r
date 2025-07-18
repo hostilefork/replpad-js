@@ -1,5 +1,5 @@
 Rebol [
-    file: %storage.reb
+    file: %storage.r
     summary: "File Scheme for Persistent Browser Storage"
     project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
     homepage: https://github.com/hostilefork/replpad-js/
