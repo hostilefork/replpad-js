@@ -65,7 +65,7 @@ watch: func [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
     @arg [
-        '#on '#off
+        ~(#on #off)~
         word! tuple!
         block! group!
         integer! tag!

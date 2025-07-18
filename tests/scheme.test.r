@@ -7,7 +7,7 @@
 )
 
 ; check to see if the storage module has been loaded
-(did find system.modules 'ReplStorage)
+(did system.modules.ReplStorage)
 (did find read %/ %tmp/)
 (port? write %/test.txt "A Test")
 (#{412054657374} = read %/test.txt)

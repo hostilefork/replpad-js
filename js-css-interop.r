@@ -159,7 +159,8 @@ js-do: func [
     if block? source [source: my js-do-dialect-helper]
 
     if text? source [
-        return js-eval* // [source local: local]
+        js-eval* // [source, local: local]
+        return ~
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
@@ -174,10 +175,11 @@ js-do: func [
 
     if automime or local [
         let code: as text! read source
-        return js-eval* // [code local: local]
+        js-eval* // [code, local: local]
+        return ~
     ]
 
-    return apply js-do-url-helper/ [source module: module]
+    js-do-url-helper // [source module: module]
 ]
 
 ; JS-DO runs scripts by URL and generically does not return an evaluative
