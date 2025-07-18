@@ -128,7 +128,7 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 
         script.src = reb.Spell("url")
 
-        if (reb.Truthy("module"))
+        if (reb.UnboxLogic("module"))
             script.type = "module"
 
         script.onload = function() {
