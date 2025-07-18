@@ -42,31 +42,29 @@ sys.util/import* lib %replpad.r
 
 replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.r
 console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.r
-chat: https://chat.stackoverflow.com/rooms/291/rebol
 forum: https://forum.rebol.info
 
 wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
 instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
 
 link: [href label] -> [
-    unspaced [--[<a href=']-- href --[' target='_blank'>]-- label --[</a>]--]
+    compose "<a href='(href)' target='_blank'>(label)</a>"
 ]
 
-intro-note-html: spaced [
-    "<div class='note'>"
+intro-note-html: trim compose2 '{{}} --[
+    <div class='note'>
 
-    "<p>"
-    "<b><i>Guess what...</i></b> this REPL is actually written in Rebol!"
-    "Check out the" (link replpad-git "bridge to JavaScript")
-    "as well as the" unspaced [(link console-git "Console Module") "."]
-    "While the techniques are still in early development, they show a"
-    "lot of promise for JavaScript/Rebol interoperability."
-    "Discuss it on the" unspaced [(link forum "Discourse forum") "."]
-    "</p>"
+    <p>
+    <b><i>Guess what...</i></b> this REPL is actually written in Rebol!
+    Check out the {{link replpad-git "bridge to JavaScript"}}, as well as the
+    {{link console-git "Console Module"}}.  While the techniques are still in
+    early development, they show a lot of promise for JavaScript/Rebol
+    interoperability.  Discuss it on the {{link forum "Discourse forum"}}.
+    </p>
 
-    "<p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>"
-    "</div>"
-]
+    <p><i>(Note: SHIFT-ENTER for multi-line code, Ctrl-Z to undo)</i></p>
+    </div>
+]--
 
 greeting-text:
 --[Welcome to Rebol.  For more information please type in the commands below:
@@ -236,26 +234,28 @@ export watch: func [@arg] [
 
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
+redbol-message: trim --[
+    Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where OF is an
+    infix version of REFLECT that quotes its left argument to get the property
+    to reflect!)  But nearly all of these changes can be 'skinned' to provide
+    alternative behaviors--including the old ones!
+
+    REDBOL is an experimental emulation of Rebol2/Red conventions.  It uses
+    module isolation so emulated code can run side-by-side with new code.
+    Scripts that wish to use it should `import @redbol`.  (But you just ran
+    the REDBOL command which applies the change irreversibly to the console
+    context, just for trying it out.)
+
+    Note: Redbol PARSE is particularly slow right now, as it's all usermode.
+    That will change as the parser-combinator-based 'UPARSE'" is hardened to
+    be the design for native PARSE.  Stay tuned.
+
+    Discuss this experiment on the forum--and help if you can!
+]--
+
 export redbol: func [return: []] [
-    print delimit LF [
-        ""
-        "Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where"
-        "OF is an infix version of REFLECT that quotes its left argument to"
-        "get the property to reflect!)  But nearly all of these changes can be"
-        "'skinned' to provide alternative behaviors--including the old ones!"
-        ""
-        "REDBOL is an experimental emulation of Rebol2/Red conventions.  It"
-        "uses module isolation so emulated code can run side-by-side with"
-        "new code.  Scripts that wish to use it should `import @redbol`."
-        "(But you just ran the REDBOL command which applies the change"
-        "irreversibly to the console context, just for trying it out.)"
-        ""
-        "Note: Redbol PARSE is particularly slow right now because it's all"
-        "usermode.  That will change as the parser-combinator-based 'UPARSE'"
-        "is hardened into be the design for native PARSE.  Stay tuned."
-        ""
-        "Discuss this experiment on the forum--and help if you can!"
-    ]
+    print redbol-message
+
     print "Fetching %redbol.r from GitHub..."
 
     ; !!! If we do just `import @redbol` here we will import it to this main

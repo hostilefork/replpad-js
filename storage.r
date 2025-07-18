@@ -270,7 +270,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             switch type of port.spec.ref: clean-path port.spec.ref [
                 file! [
                     set extend port.spec 'target (
-                        either find/match port.spec.ref %/tmp/ [
+                        either find:match port.spec.ref %/tmp/ [
                             "session"
                         ][
                             "local"
