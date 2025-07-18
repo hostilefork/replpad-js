@@ -9,7 +9,7 @@ The ReplPad Storage module provides an API to the [**localStorage** and **sessio
 On initiating the module, these schemes are immediately available:
 
 ```plain
-do %storage.reb
+do %storage.r
 ```
 
 ## Storage Scheme
@@ -96,8 +96,8 @@ make-dir %dir/
 change-dir %dir/
 probe what-dir
 probe read %../
-write %hello.reb {Rebol [] print "Hello!"}
-do %hello.reb
+write %hello.r {Rebol [] print "Hello!"}
+do %hello.r
 ```
 
 The **localStorage** object is mounted as `%/` and the **sessionStorage** object is mounted as `%/tmp/`. Any files stored to `%/tmp` will be lost once the current browser session is closed.
