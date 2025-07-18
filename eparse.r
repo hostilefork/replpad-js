@@ -79,14 +79,14 @@ eparse-combinators.('mark): combinator [
     parser [action?]
     <local> subpending rest result'
 ][
-    [^result' remainder subpending]: parser input except e -> [return raise e]
+    [^result remainder subpending]: trap parser input
 
-    pending: glom subpending make pair! :[
+    pending: glom subpending make pair! reduce [
         (index of input) - 1
         (index of remainder) - 1
     ]
 
-    return unmeta result'
+    return ^result
 ]
 
 
@@ -98,7 +98,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
 
     ed-clear-underlines
 
-    let [^synthesized' pending]: trap (
+    let [^synthesized pending]: trap (
         parse*:combinators:hook ed-text rules eparse-combinators hook
     )
 
@@ -108,7 +108,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
         ]
         ed-add-underline first item second item
     ]
-    return unmeta synthesized'
+    return ^synthesized
 ]
 
 
@@ -238,11 +238,13 @@ pd-stack-push: js-native [
         [text!]
 ] --[
     let text = reb.Spell("spaced line")
-    let classname = reb.TrySpell("spaced opt class")
+    let classname = reb.SpellOpt("class")
     let div = load("<div>" + text + "</div>")
     if (classname)
         div.classList.add(classname)
-    div["data-frame"] = reb.Arg("frame").toString()
+    let frame = reb.Value("frame")
+    div["data-frame"] = frame.toString()  // integer heap handle
+    reb.Unmanage(frame)  // will release it when finished with it
     pd.stack.insertBefore(div, pd.stack.firstChild)
 ]--
 
@@ -362,7 +364,7 @@ eparse-debug-hook: func [
             ]
             "stop" [
                 pd-stack-clear
-                unwind state raise "EPARSE Stopped By User"
+                unwind state fail "EPARSE Stopped By User"
             ]
             "run" [
                 stop-frame: <run>
@@ -370,32 +372,24 @@ eparse-debug-hook: func [
         ]
     ]
 
-    let result': either skipping [^ pack [null f.input null]] [^ eval f]
+    try let ^result: either skipping [pack [null f.input blank]] [eval f]
 
     if pushed [
         if f = stop-frame [stop-frame: null]
 
-        if raised? unmeta result' [
-            let e: unquasi result'
+        if error? ^result [
+            let e: disarm ^result
             pd-stack-push:class f [
                 "**" spaced e.message
             ] "match-failed"
         ]
         else [
-            let synthesized: first unquasi result'
-            let is-antiform
-            if quasi? synthesized [
-                is-antiform: null
-                synthesized: unquasi synthesized
-            ] else [
-                is-antiform: okay
-                synthesized: unquote synthesized
-            ]
+            let ^synthesized: unlift first unanti ^result
             pd-stack-push:class f [
-                "=>" (mold synthesized) if is-antiform ["; anti"]
+                "=>" @(lift ^synthesized) when antiform? ^synthesized ["; anti"]
             ] "match-succeeded"
 
-            ed-select 0 ((index of unmeta second unquasi result') - 1)
+            ed-select 0 ((index of unlift second unanti ^result) - 1)
         ]
 
         let mode: either stop-frame = <run> ["run"] [wait-for-step]
@@ -407,7 +401,7 @@ eparse-debug-hook: func [
             ]
             "stop" [
                 pd-stack-clear
-                unwind state raise "EPARSE Stopped By User"
+                unwind state fail "EPARSE Stopped By User"
             ]
             "run" [
                 stop-frame: <run>
@@ -417,7 +411,7 @@ eparse-debug-hook: func [
         pd-stack-pop
     ]
 
-    return unmeta result'
+    return ^result
 ]
 
 

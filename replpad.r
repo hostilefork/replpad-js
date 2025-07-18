@@ -774,7 +774,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
         [text!]
 ] --[
     let filename = reb.Spell("filename")
-    let mime_type = reb.TrySpell("mime-type")
+    let mime_type = reb.SpellOpt("mime-type")
 
     // Blob construction takes *array* of ArrayBuffers (or ArrayBuffer views)
     // It can also include strings in that array.

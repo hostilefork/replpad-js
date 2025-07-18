@@ -93,7 +93,7 @@ watch: func [
 
         match [word! tuple!] arg [
             get:any arg except e -> [  ; use GROUP! to monitor nonexistents [1]
-                return raise e
+                return fail e
             ]
 
             append watches arg  ; e.g. length is 1 after first addition
