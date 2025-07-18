@@ -2,7 +2,7 @@
 (
     all [
         url? system.options.current-path
-        binary? read %storage.r
+        blob? read %storage.r
     ]
 )
 

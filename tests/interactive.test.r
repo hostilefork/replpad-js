@@ -1,7 +1,7 @@
 Rebol [
     title: "ReplPad Guided Interactive Behavior Test"
 
-    type: Module
+    type: module
 
     description: --[
         While automated testing can check some things, it is not necessarily
@@ -129,10 +129,10 @@ steps: [
 ]
 
 
-label: description: bug: _  ; state we need to know about to report error
+code: label: description: bug: ~  ; state we need to know about to report error
 
 k: ok: okay: function [
-    return: [<nihil>]
+    return: []
     <with> steps label description bug saved-print-prompt
 ][
     ; Console must be started when first OKAY is run, so SYSTEM.CONSOLE should
@@ -147,20 +147,20 @@ k: ok: okay: function [
 
     ; Always restore the prompt, in case a test changed it.
     ;
-    system.console.print-prompt: :saved-print-prompt
+    system.console.print-prompt: saved-print-prompt/
 
     if tail? steps [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
         steps: head of steps
-        return nihil
+        return ~
     ]
 
     steps: parse steps [
-        label: issue!
+        label: rune!
         opt bug: integer!  ; optional GitHub issue number
         description: across [some text!] (print description)
-        opt [code: group! (eval code)]
+        opt [code: *in* group! (eval code)]
         accept <here>
     ] except [
         panic "Problem in STEPS parsing"
@@ -168,12 +168,11 @@ k: ok: okay: function [
 
     print newline
     print "    (Type OKAY, K, or OK if it works, NOPE if there's a problem)"
-    return nihil
 ]
 
 
 nope: function [
-    return: [<nihil>]
+    return: []
 ][
     ; Always restore the prompt, in case a test changed it.
     ;
@@ -195,7 +194,6 @@ nope: function [
     ]
 
     print "    (Then type OKAY to continue)"
-    return nihil
 ]
 
 

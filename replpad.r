@@ -781,7 +781,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     //
     let d = reb.Arg('data')
     let blob;
-    if (reb.UnboxLogic("binary?", d)) {
+    if (reb.UnboxLogic("blob?", d)) {
         let uint8_array = reb.Bytes(d)
         blob = new Blob([uint8_array], {type: mime_type || "octet/stream"})
     }
@@ -929,11 +929,11 @@ browse: func [
     ; very useful if they typed BROWSE literally, but if a command tried to
     ; open a window it's the sort of thing that would give them an option.
     ;
-    replpad-write:html unspaced [
+    replpad-write:html trim compose --[
         <div class='browse'>
-        -[Click here: <a href=']- url -[' target='_blank'>]- url -[</a>]-
+        Click here: <a href='(url)' target='_blank'>(url)</a>
         </div>
-    ]
+    ]--
 ]
 
 
@@ -990,7 +990,7 @@ sys.util/make-scheme [  ; no URL form dictated
         ]
 
         write: func [port data] [
-            if binary? data [
+            if blob? data [
                 data: either invalid-utf8? data [
                     enbase:base data 64
                 ][
