@@ -218,7 +218,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 [_ port.spec.path]: find:match form port.spec.ref form storage::
                 find ["local" "session"] port.spec.path
             ][
-                fail "Could not initiate storage port"
+                panic "Could not initiate storage port"
             ]
         ]
 
@@ -259,11 +259,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     has port.spec 'ref
                     file? port.spec.ref
                 ][
-                    fail "File scheme is only accessible through the FILE! datatype"
+                    panic "File scheme is only accessible through the FILE! datatype"
                 ]
 
                 equal? #"/" last port.spec.ref [
-                    fail "File scheme only accesses files, not folders"
+                    panic "File scheme only accesses files, not folders"
                 ]
             ]
 
@@ -283,7 +283,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     ; and convert to FILE! if using file:// notation
                 ]
 
-                (fail "Cannot resolve file")
+                panic "Cannot resolve file"
             ]
         ]
 
@@ -297,7 +297,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                                 as binary! storage-get port.spec.target form port.spec.ref
                             ]
                         ][
-                            fail "No such file or directory"
+                            panic "No such file or directory"
                         ]
                     ]
 
@@ -320,7 +320,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             storage-set port.spec.target form port.spec.ref enbase:base data 64
                             port
                         ][
-                            fail "No such file or directory"
+                            panic "No such file or directory"
                         ]
                     ]
 
@@ -336,7 +336,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         either storage-exists? port.spec.target form port.spec.ref [
                             storage-unset port.spec.target form port.spec.ref
                         ][
-                            fail "No such file or directory"
+                            panic "No such file or directory"
                         ]
 
                         port.spec.ref
@@ -384,11 +384,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     file? port.spec.ref
                     ; equal? #"/" first port.spec.ref
                 ][
-                    fail "File scheme is only accessible through the FILE! datatype"
+                    panic "File scheme is only accessible through the FILE! datatype"
                 ]
 
                 not equal? #"/" last port.spec.ref [
-                    fail "Directory scheme only accesses folders, not files"
+                    panic "Directory scheme only accesses folders, not files"
                 ]
             ]
 
@@ -409,7 +409,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     ; and convert to FILE! if using file:// notation
                 ]
 
-                fail "Cannot resolve file"
+                panic "Cannot resolve file"
             ]
         ]
 
@@ -431,7 +431,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                                 )
                             ]
                         ][
-                            fail "No such file or directory"
+                            panic "No such file or directory"
                         ]
                     ]
 
@@ -448,7 +448,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             find [%/ %/tmp/] port.spec.ref
                             storage-exists? port.spec.target form port.spec.ref
                         ][
-                            fail "Directory already exists"
+                            panic "Directory already exists"
                         ]
 
                         storage-set port.spec.target form port.spec.ref ""
@@ -471,11 +471,11 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             ]
 
                             not storage-exists? port.spec.target form port.spec.ref [
-                                fail "No such file or directory"
+                                panic "No such file or directory"
                             ]
 
                             not empty? read port.spec.ref [
-                                fail "Directory not empty"
+                                panic "Directory not empty"
                             ]
 
                             <else> [

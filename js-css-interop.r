@@ -82,7 +82,7 @@ js-do-dialect-helper: func [
                 group! [keep api-transient eval t]
 
                 assert [required]
-                fail [required "must have its argument as @x, @x.y @(...)"]
+                panic [required "must have its argument as @x, @x.y @(...)"]
             ]
         ]
 
@@ -106,10 +106,10 @@ js-do-dialect-helper: func [
                         keep-transient:required inside b b.1 'UNBOX
                         keep ")"
                     ]
-                    fail ["Unknown JS-DO dialect keyword:" b.1]
+                    panic ["Unknown JS-DO dialect keyword:" b.1]
                 ]]
 
-                fail [
+                panic [
                     "JS-DO dialect supports TEXT!, @WORD!, @TUPLE!,"
                     "@PATH!...plus the keywords SPELL and UNBOX"
                 ]

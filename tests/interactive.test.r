@@ -163,7 +163,7 @@ k: ok: okay: function [
         opt [code: group! (eval code)]
         accept <here>
     ] except [
-        fail "Problem in STEPS parsing"
+        panic "Problem in STEPS parsing"
     ]
 
     print newline

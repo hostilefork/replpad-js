@@ -104,7 +104,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
 
     for-each 'item opt pending [
         if not pair? item [
-            fail "residual non-PAIR! found in EPARSE pending list"
+            panic "residual non-PAIR! found in EPARSE pending list"
         ]
         ed-add-underline first item second item
     ]

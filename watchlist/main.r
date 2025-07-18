@@ -46,7 +46,7 @@ delete-watch: func [
     n [integer!]
 ][
     if n > length of watches [
-        fail ["There is no watch in slot" n]
+        panic ["There is no watch in slot" n]
     ]
     js-do:local [--[
         let tr = document.querySelectorAll("#watchlist tr")[]-- (n) --[]
@@ -81,13 +81,13 @@ watch: func [
             case [
                 positive? arg [  ; request to fetch the material
                     return get (pick watches arg else [
-                        fail ["There is no watch in slot" arg]
+                        panic ["There is no watch in slot" arg]
                     ])
                 ]
                 negative? arg [  ; request to delete a watch
                     delete-watch negate arg
                 ]
-                fail "WATCH 0 has no assigned meaning"
+                panic "WATCH 0 has no assigned meaning"
             ]
         ]
 
@@ -122,7 +122,7 @@ watch: func [
             ]--]
         ]
 
-        fail ["Not-yet-implemented WATCH command:" @arg]
+        panic ["Not-yet-implemented WATCH command:" @arg]
     ]
 ]
 

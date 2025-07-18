@@ -445,7 +445,7 @@ sys.util/make-scheme [
         ]
 
         write: func [port data] [
-            fail [
+            panic [
                 "WRITE is not supported in the web console yet, due to the browser's"
                 "imposition of a security model (e.g. no local filesystem access)."
                 "Features may be added in a more limited sense, for doing HTTP POST"
@@ -471,7 +471,7 @@ sys.util/make-scheme [
         ]
 
         write: func [port data] [
-            fail [
+            panic [
                 "WRITE is not yet supported, due to the browser's imposition"
                 "of a security model (e.g. no local filesystem access)."
                 "Features may be added in a more limited sense, for doing HTTP"
@@ -494,17 +494,17 @@ sys.util/make-scheme [
                 file? port.spec.ref
             ][
                 ; port has been invoked using BLOCK! or FILE:// URL!
-                fail "File scheme is only accessible through the FILE! datatype"
+                panic "File scheme is only accessible through the FILE! datatype"
             ]
 
             equal? #"/" last port.spec.ref [
-                fail "File scheme only accesses files, not folders"
+                panic "File scheme only accesses files, not folders"
             ]
         ]
 
         switch type of port.spec.ref: clean-path port.spec.ref [
             file! [
-                fail "No filesystem currently installed"
+                panic "No filesystem currently installed"
             ]
 
             url! [
@@ -512,7 +512,7 @@ sys.util/make-scheme [
                 ; and convert to FILE! if using FILE:// notation
             ]
 
-            (fail "Cannot resolve file")
+            panic "Cannot resolve file"
         ]
     ]
 
@@ -571,25 +571,25 @@ sys.util/make-scheme [
                 ; equal? #"/" first port.spec.ref
             ][
                 ; port has been invoked using BLOCK! or DIR:// URL!
-                fail "File scheme is only accessible through the FILE! datatype"
+                panic "File scheme is only accessible through the FILE! datatype"
             ]
 
             not equal? #"/" last port.spec.ref [
-                fail "Directory scheme only accesses folders, not files"
+                panic "Directory scheme only accesses folders, not files"
             ]
         ]
 
 
         switch type of port.spec.ref: clean-path port.spec.ref [
             file! [
-                fail "No filesystem currently installed"
+                panic "No filesystem currently installed"
             ]
 
             url! [
                 ; possibly some kind of check here to ensure a scheme exists
             ]
 
-            (fail "Cannot resolve file")
+            panic "Cannot resolve file"
         ]
     ]
 
@@ -637,7 +637,7 @@ sys.util/make-scheme [
 ; needed here.
 
 if did select system.contexts.user 'do [
-    fail "User context has override of DO, won't inherit lib override."
+    panic "User context has override of DO, won't inherit lib override."
 ]
 
 /lib.do: adapt copy lib.do/ [
@@ -700,7 +700,7 @@ rfc2616-to-date: func [
         emit time: between <here> space
         emit zone: between <here>
     ] except [
-        fail ["Invalid RFC2616 date:" idate]
+        panic ["Invalid RFC2616 date:" idate]
     ]
     if zone = "GMT" [zone: copy "+0"]
     return to date! unspaced [day "-" month "-" year "/" time zone]
@@ -728,7 +728,7 @@ info?: func [
 import ensure url! clean-path %storage.r
 
 if did select system.contexts.user 'change-dir [
-    fail "User context has override of CHANGE-DIR, won't inherit lib override."
+    panic "User context has override of CHANGE-DIR, won't inherit lib override."
 ]
 
 lib.change-dir: func [
@@ -756,7 +756,7 @@ lib.change-dir: func [
         file? path
         not exists? path
     ][
-        fail "Path does not exist"
+        panic "Path does not exist"
     ]
 
     return system.options.current-path: path
@@ -986,7 +986,7 @@ sys.util/make-scheme [  ; no URL form dictated
 
     actor: [
         read: lambda [port] [
-            fail "READ is not supported in the web console"
+            panic "READ is not supported in the web console"
         ]
 
         write: func [port data] [
