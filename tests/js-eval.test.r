@@ -4,7 +4,7 @@
 (3 = js-eval "1 + 2")
 ("Hello" = js-eval --["He" + "llo"]--)
 (null? js-eval "null")
-(void? js-eval "undefined")
+(trash? js-eval "undefined")
 
 
 ; Using @ is a way of splicing handles into JS-EVAL or JS-DO expressions
@@ -13,7 +13,7 @@
     text: --[ ykcirT" a s'tI]--
 
     --[It's a "Tricky String"]--
-    == js-eval [--[reb.Spell("reverse",]-- @text --[) + "String" + '"']--]
+    = js-eval [--[reb.Spell("reverse",]-- @text --[) + "String" + '"']--]
 )(
     o: make object! [i: 1020]
     1020 = js-eval [--[reb.Unbox(]-- @o.i --[)]--]

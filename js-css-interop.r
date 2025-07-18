@@ -75,10 +75,11 @@ js-do-dialect-helper: func [
     b [block!]
 ][
     return unspaced collect [
-        let keep-transient: func [t :required [word!]] [
-            return switch type of t [
-                the-word! the-tuple! [keep api-transient get t]
-                the-group! [keep api-transient reeval as group! t]
+        let keep-transient: func [t [pinned!] :required [word!]] [
+            t: unpin t
+            return switch:type t [
+                word! tuple! [keep api-transient get t]
+                group! [keep api-transient eval t]
 
                 assert [required]
                 fail [required "must have its argument as @x, @x.y @(...)"]
@@ -86,31 +87,31 @@ js-do-dialect-helper: func [
         ]
 
         iterate @b [
-            switch type of b.1 [
+            switch:type b.1 [
                 text! [keep b.1]
                 group! [keep reeval inside b b.1]
 
-                the-word! the-path! the-group! [keep-transient b.1]
+                pinned! [keep-transient inside b b.1]
 
                 word! [switch b.1 [
                     'spell [
                         keep "reb.Spell("
                         b: next b
-                        keep-transient:required inside b :b.1 'SPELL
+                        keep-transient:required inside b b.1 'SPELL
                         keep ")"
                     ]
                     'unbox [
                         keep "reb.Unbox("
                         b: next b
-                        keep-transient:required inside b :b.1 'UNBOX
+                        keep-transient:required inside b b.1 'UNBOX
                         keep ")"
                     ]
                     fail ["Unknown JS-DO dialect keyword:" b.1]
                 ]]
 
                 fail [
-                    "JS-DO dialect supports TEXT!, THE-WORD!, THE-TUPLE!,"
-                    "THE-PATH!...plus the keywords SPELL and UNBOX"
+                    "JS-DO dialect supports TEXT!, @WORD!, @TUPLE!,"
+                    "@PATH!...plus the keywords SPELL and UNBOX"
                 ]
             ]
         ]
@@ -194,7 +195,7 @@ js-eval: func [
         [<opt-out> block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
-    return js-eval*:local:value expression
+    return js-eval*:local expression
 ]
 
 
