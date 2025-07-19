@@ -392,7 +392,7 @@ CORSify-gitlab-port: func [
     ]][
         ; https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
 
-        replace/all x.file_path "/" "%2F"  ; API uses slashes for its delimiting
+        replace x.file_path "/" "%2F"  ; API uses slashes for its delimiting
 
         if port.spec.scheme = 'http [
             port.spec.scheme: 'https
