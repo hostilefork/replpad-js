@@ -312,7 +312,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                             data: as blob! data  ; aliases UTF-8 concent
                         ]
 
-                        either exists? dir split-path port.spec.ref [
+                        either exists? dir: split-path port.spec.ref [
                             storage-set port.spec.target form port.spec.ref enbase:base data 64
                             port
                         ][

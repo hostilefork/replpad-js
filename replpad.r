@@ -89,42 +89,36 @@ use [
 
     ; there's still some values that will trip this function up
     form-value: lambda [value] [
-        switch type of get:any $value [
-            null [
-                "<NULL>"
-            ]
+        if action? ^value [
+            return spaced [
+                "func"
+                mold spec-of ^value
+                switch type of body-of ^value [
+                    block! [
+                        mold body-of ^value
+                    ]
 
-            bad-word! [
-                mold get:any 'value
+                    ("[^/    ... native ...^/]")
+                ]
             ]
-
+        ]
+        if antiform? ^value [
+            return join (form lift ^value) --[  ; antiform]--
+        ]
+        switch type of value [
             block! [
                 spaced value
             ]
 
-            error! [
-                form-error :value
+            warning! [
+                form-error value
             ]
 
             port! [
                 mold value.spec
             ]
 
-            action?! [
-                spaced [
-                    "func"
-                    mold spec-of :value
-                    switch type of body-of :value [
-                        block! [
-                            mold body-of :value
-                        ]
-
-                        ("[^/    ... native ...^/]")
-                    ]
-                ]
-            ]
-
-            (form get:any $value)
+            (form value)
         ]
     ]
 
@@ -147,7 +141,7 @@ use [
 
         actor: make object! [
             write: append: func [port value] [
-                write-console port.spec.path form-value get:any 'value
+                write-console port.spec.path form-value ^value
                 return port
             ]
         ]
