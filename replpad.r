@@ -410,7 +410,7 @@ CORSify-gitlab-port: func [
 ]
 
 read-url-helper: js-awaiter [
-    return: [binary!]
+    return: [blob!]
     url [text!]
 ] --[
     let url = reb.Spell("url")
@@ -422,7 +422,7 @@ read-url-helper: js-awaiter [
         throw Error(response.statusText)
 
     let buffer = await response.arrayBuffer()
-    return reb.Binary(buffer)
+    return reb.Blob(buffer)
 ]--
 
 sys.util/make-scheme [
@@ -769,7 +769,7 @@ download: js-native [  ; Method via https://jsfiddle.net/koldev/cW7W5/
     "Triggers a download of data to the user's local disk"
 
     filename [file!]
-    data [text! binary!]
+    data [text! blob!]
     :mime-type "MIME type (defaults to 'text/plain' or 'octet/stream')"
         [text!]
 ] --[

@@ -290,7 +290,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         either storage-exists? port.spec.target form port.spec.ref [
                             any [
                                 attempt [debase:base storage-get port.spec.target form port.spec.ref 64]
-                                as binary! storage-get port.spec.target form port.spec.ref
+                                as blob! storage-get port.spec.target form port.spec.ref
                             ]
                         ][
                             panic "No such file or directory"
@@ -306,10 +306,10 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
             write: lambda [port data <local> dir] [
                 switch type of port.spec.ref [
                     file! [
-                        ensure [binary! text!] data
+                        ensure [blob! text!] data
 
                         if text? data [
-                            data: to binary! data  ; could use AS ?
+                            data: as blob! data  ; aliases UTF-8 concent
                         ]
 
                         either exists? dir split-path port.spec.ref [

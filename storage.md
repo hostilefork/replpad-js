@@ -141,7 +141,7 @@ write %/folder/file.txt "Some Text"
 
 <td>
 
-Read a file's content (returns **binary!**)
+Read a file's content (returns **blob!**)
 
 <td>
 
