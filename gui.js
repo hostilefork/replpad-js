@@ -58,6 +58,23 @@ function removeCharAt(s, pos) {
     return before + after
 }
 
+// Modern replacement for deprecated document.execCommand("insertText")
+//
+function insertTextAtCursor(text) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(text));
+
+        // Move cursor to end of inserted text
+        range.setStartAfter(range.endContainer);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
 
 //=//// FORWARD DECLARATIONS ///////////////////////////////////////////////=//
 //
@@ -211,7 +228,7 @@ replpad.addEventListener("paste", (e) => {
     if (!input.classList.contains("multiline") && -1 != text.indexOf('\n'))
         ExpandMultiline();
 
-    document.execCommand("insertText", false, text);  // insertText is new-ish
+    insertTextAtCursor(text);
 });
 
 replpad.addEventListener('copy', (e) => {
