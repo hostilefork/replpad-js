@@ -137,9 +137,7 @@ storage-list: js-native [
 
     listing.push(']')
 
-    return reb.Value.apply(
-        null, listing
-    )
+    return reb.Value(...listing)  // unpack array as individual args
 ]--
 
 storage-list-dir: js-native [
@@ -181,9 +179,7 @@ storage-list-dir: js-native [
 
     console.log(listing)
 
-    return reb.Value.apply(
-        null, listing
-    )
+    return reb.Value(...listing)  // unpack array as individual args
 ]--
 
 storage-exists?: js-native [
