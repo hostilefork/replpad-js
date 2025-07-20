@@ -866,7 +866,7 @@ now: js-native [
     if (reb.Did("time"))
         return reb.Value("make-time-sn",
             reb.I(seconds),
-            "all [precise", reb.I(nanoseconds), "]"
+            "when precise [", reb.I(nanoseconds), "]"
         )
 
     if (reb.Did("weekday"))
