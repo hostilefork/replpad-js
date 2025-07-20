@@ -342,6 +342,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         delete port.spec.ref
                     ]
                 ]
+                <- port
             ]
 
             query: func [return: [null? object!] port [port!]] [
@@ -455,7 +456,6 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         create port.spec.ref
                     ]
                 ]
-
             ]
 
             delete: lambda [port] [
@@ -485,7 +485,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         delete port.spec.ref
                     ]
                 ]
-
+                <- port
             ]
 
             query: lambda [port] [
