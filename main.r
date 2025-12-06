@@ -144,11 +144,11 @@ export main: adapt console/ [
             ;
             ; https://forum.rebol.info/t/1802
 
-            result: import as the-word! autorun
-            sys.util/import* system.contexts.user result
+            let mod: import pin as word! autorun
+            sys.util/import* system.contexts.user mod
         ]
         else [
-            result: do as the-word! autorun  ; may be BAD-WORD!
+            do pin as word! autorun
         ]
 
         ; !!! Right now, all modules return void.  This is a limitation of
