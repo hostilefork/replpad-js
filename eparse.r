@@ -72,19 +72,20 @@ eparse-combinators: copy default-combinators
 
 eparse-combinators.('mark): combinator [
     "Run one rule and if it matches, draw a mark across that content"
-    return: "Result of one evaluation step"
-        [any-atom?]
+    return: [any-value?]
     input [any-series?]
     :pending [blank? block!]
     parser [action?]
-    <local> subpending rest result'
+    <local> subpending rest ^result
 ][
-    [^result remainder subpending]: trap parser input
+    [^result rest subpending]: trap parser input
 
     pending: glom subpending make pair! reduce [
         (index of input) - 1
-        (index of remainder) - 1
+        (index of rest) - 1
     ]
+
+    input: rest
 
     return ^result
 ]
