@@ -91,9 +91,7 @@ watch: proc [
         ]
 
         match [word! tuple!] arg [
-            get:any arg except e -> [  ; use GROUP! to monitor nonexistents [1]
-                return fail e
-            ]
+            trap get meta arg  ; use GROUP! to monitor nonexistents [1]
 
             append watches arg  ; e.g. length is 1 after first addition
 
@@ -133,8 +131,8 @@ update-watches: proc [] [
         ; The edge-case states for the watches would ideally be in some
         ; different color to call attention to them.
         ;
-        let result: if antiform? get:any w [
-            spaced [mold:limit ^(get:any w) 1000 space space "; anti"]
+        let result: if antiform? get meta w [
+            spaced [mold:limit (lift get meta w) 1000 space space "; anti"]
         ] else [
             mold:limit get w 1000
         ]
