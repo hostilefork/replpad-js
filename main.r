@@ -151,17 +151,12 @@ export main: adapt console/ [
             do pin as word! autorun
         ]
 
-        ; !!! Right now, all modules return void.  This is a limitation of
-        ; having DO be based on IMPORT:
+        ; Right now it falls through to the console regardless of if you
+        ; IMPORT or DO, it doesn't look for any particular signals or
+        ; return results.
         ;
-        ; https://github.com/rebol/rebol-issues/issues/2373
-        ;
-        ; So if *any* modules require falling through to the console, we have
-        ; to make all of them do it.  This should be revisited, but for now
-        ; any script that isn't supposed to drop to the console should never
-        ; terminate.
-        ;
-        comment [if result = ... [return 0]]
+        ; Revisit this.  But for now, any script that isn't supposed to drop
+        ; to the console should never terminate.
     ]
     else [
         replpad-write:html intro-note-html
@@ -179,7 +174,7 @@ export main: adapt console/ [
             [greeting: greeting-text]
         ])
 
-        print-halted: method [return: []] [
+        print-halted: proc [<.>] [
             print "[interrupted by Escape key or HALT instruction]"
         ]
     ]
@@ -253,7 +248,7 @@ redbol-message: trim --[
     Discuss this experiment on the forum--and help if you can!
 ]--
 
-export redbol: func [return: []] [
+export redbol: proc [] [
     print redbol-message
 
     print "Fetching %redbol.r from GitHub..."
@@ -271,13 +266,12 @@ export redbol: func [return: []] [
 
 === GOLDEN LAYOUTS DEMO ===
 
-export /ensure-golden-layouts-loaded: func [
-    return: []
+export ensure-golden-layouts-loaded: proc [
 ]
-bind construct [
+bind {
     loaded: null
-][
-    if loaded [return ~]
+} [
+    if loaded [exit]
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
@@ -301,8 +295,7 @@ bind construct [
 
 === CODEMIRROR 6 EDITOR DEMO ===
 
-export edit: func [
-    return: []
+export edit: proc [
     source [url! text! file!]
     :marks
 ]

@@ -28,10 +28,7 @@ ed-clear-underlines: js-awaiter [  ; repeat of code exported by %main.r
     CodeMirror.ClearUnderlines()
 ]--
 
-/ensure-underline-extension-loaded: func [
-    return: []
-]
-bind construct [
+ensure-underline-extension-loaded: does bind construct [
     loaded: null
 ][
     if not loaded [
@@ -76,7 +73,7 @@ eparse-combinators.('mark): combinator [
     input [any-series?]
     :pending [blank? block!]
     parser [action?]
-    <local> subpending rest ^result
+    {subpending rest ^result}
 ][
     [^result rest subpending]: trap parser input
 
@@ -127,10 +124,10 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
 
 pdebug-loaded: null
 
-ensure-debug-panel-loaded: func [
+ensure-debug-panel-loaded: proc [
     "Create GoldenLayout panel with a toolbar and div for stack display"
 ] [
-    if pdebug-loaded [return ~]
+    if pdebug-loaded [exit]
 
   css-do --[
     .pd-panel {  /* https://discuss.codemirror.net/t/2882 */

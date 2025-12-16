@@ -68,16 +68,15 @@ detect-automime: func [
 ]
 
 
-js-do-dialect-helper: func [
+js-do-dialect-helper: lambda [
     "Allow Rebol to pass API handle values to JS-DO and JS-EVAL"
 
-    return: [text!]
+    []: [text!]
     b [block!]
 ][
-    return unspaced collect [
-        let keep-transient: func [t [pinned!] :required [word!]] [
-            t: unpin t
-            return switch:type t [
+    unspaced collect [
+        let keep-transient: lambda [t [pinned!] :required [word!]] [
+            switch:type t: unpin t [
                 word! tuple! [keep api-transient get t]
                 group! [keep api-transient eval t]
 
@@ -145,7 +144,7 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 js-do: func [
     "Execute JavaScript file or evaluate a string of JavaScript source"
 
-    return: []  ; What useful return result could there be?
+    return: ~  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<opt-out> block! text! file! url! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
@@ -180,6 +179,7 @@ js-do: func [
     ]
 
     js-do-url-helper // [source module: module]
+    return ~
 ]
 
 ; JS-DO runs scripts by URL and generically does not return an evaluative
@@ -228,10 +228,10 @@ js-head-helper: js-awaiter [
 ]--
 
 js-head: func [
-    "Perform an HTTP HEAD request of an absolute URL! or relative FILE! path"
-    return: "OBJECT! of key=>value response header strings"
-        [object!]
-    source [url! file!]
+    "Do HTTP HEAD request, give OBJECT! of key=>value response header strings"
+    return: [object!]
+    source "absolute URL! or relative FILE! path"
+        [url! file!]
 ][
     either file? source [
         source: unspaced [what-dir source]
@@ -268,7 +268,7 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
 css-do: func [
     "Incorporate a CSS file or a snippet of CSS source into the page"
 
-    return: []  ; Could return an auto-generated ID for later removing (?)
+    return: ~  ; Could return an auto-generated ID for later removing (?)
     ; 'id [<skip> rune!]  ; Idea: what if you could `css-do #id {...}`
     source "TAG! interpreted as relative to currently running script"
         [text! file! url! tag!]
@@ -297,6 +297,7 @@ css-do: func [
     ]
 
     css-do-url-helper source
+    return ~
 ]
 
 export [

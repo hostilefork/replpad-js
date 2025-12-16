@@ -41,8 +41,7 @@ js-do %watchlist.js
 ;
 watches: []
 
-delete-watch: func [
-    return: []
+delete-watch: proc [
     n [integer!]
 ][
     if n > length of watches [
@@ -61,7 +60,7 @@ delete-watch: func [
 ;    If you want to do that, you should monitor a GROUP! because it will
 ;    capture a binding on the group which can be evaluated each time.
 ;
-watch: func [
+watch: proc [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
     @arg [
@@ -127,7 +126,7 @@ watch: func [
 ]
 
 
-update-watches: func [] [
+update-watches: proc [] [
     let n: 1
     for-each 'w watches [
         ;
@@ -188,7 +187,7 @@ rightclick-menu-html: --[
 ; Add in the hook to the console so that when the result is printed, we do
 ; an update of the watches.
 
-system.console.print-result: enclose system.console.print-result/ func [f] [
+system.console.print-result: enclose system.console.print-result/ proc [f] [
     js-eval* -[console.log("well we got this far")]-
 
     eval f  ; let the evaluation result get printed first
@@ -200,5 +199,4 @@ system.console.print-result: enclose system.console.print-result/ func [f] [
     if "none" <> js-eval --[document.getElementById('right').style.display]-- [
         update-watches
     ]
-    return ~
 ]

@@ -131,9 +131,8 @@ steps: [
 
 code: label: description: bug: ~  ; state we need to know about to report error
 
-k: ok: okay: function [
-    return: []
-    <with> steps label description bug saved-print-prompt
+k: ok: okay: proc [
+    ; <with> steps label description bug saved-print-prompt
 ][
     ; Console must be started when first OKAY is run, so SYSTEM.CONSOLE should
     ; be set by that point.  But we only want to set it the first time (other
@@ -153,7 +152,7 @@ k: ok: okay: function [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
         steps: head of steps
-        return ~
+        exit
     ]
 
     steps: parse steps [
@@ -171,8 +170,7 @@ k: ok: okay: function [
 ]
 
 
-nope: function [
-    return: []
+nope: proc [
 ][
     ; Always restore the prompt, in case a test changed it.
     ;

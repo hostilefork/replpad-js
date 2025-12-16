@@ -207,7 +207,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "Browser Storage API"
         name: 'storage
 
-        init: func [return: [] port [port!]] [
+        init: proc [port [port!]] [
             if not all [
                 has port.spec 'ref
                 url? port.spec.ref
@@ -235,9 +235,9 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 storage-list port.spec.path
             ]
 
-            clear: func [port] [
+            clear: lambda [port] [
                 storage-clear port.spec.path
-                return port
+                port
             ]
         ]
     ]
@@ -249,7 +249,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Access"
         name: 'file
 
-        init: func [return: [] port [port!]] [
+        init: proc [port [port!]] [
             case [
                 not all [
                     has port.spec 'ref
@@ -303,7 +303,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 ]
             ]
 
-            write: lambda [port data <local> dir] [
+            write: lambda [port data {dir}] [
                 switch type of port.spec.ref [
                     file! [
                         ensure [blob! text!] data
@@ -345,7 +345,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                 <- port
             ]
 
-            query: func [return: [null? object!] port [port!]] [
+            query: func [return: [<null> object!] port [port!]] [
                 switch type of port.spec.ref [
                     file! [
                         let store: port.spec.target
@@ -374,7 +374,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         title: "File Directory Access"
         name: 'dir
 
-        init: func [return: [] port [port!]] [
+        init: proc [port [port!]] [
             case [
                 not all [
                     has port.spec 'ref

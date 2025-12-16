@@ -63,8 +63,8 @@ Rebol [
 use [
     form-error form-value write-console
 ][
-    form-error: func [return: [text!] error [error!]] [
-        return unspaced [
+    form-error: lambda [[]: [text!] error [error!]] [
+        unspaced [
             "** " form error.type " Error: " case [
                 text? error.message [error.message]
                 block? error.message [
@@ -123,7 +123,7 @@ use [
     ]
 
     write-console: js-awaiter [
-        return: []
+        return: ~
         type [text!]
         value [element?]
     ] --[
@@ -134,7 +134,7 @@ use [
         title: "Console.log Scheme"
         name: 'log
 
-        init: func [return: [] port] [
+        init: proc [port] [
             [_ port.spec.path]: find:match as text! port.spec.ref form log::
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
@@ -169,7 +169,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     "Clear contents of the browser window"
-    return: []
+    return: ~
 ] --[
     replpad.innerHTML = ""
 
@@ -185,7 +185,7 @@ cls: clear-screen: js-awaiter [
 replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
-    return: []
+    return: ~
     param [<opt-out> text!]
     :html
 ] --[
@@ -245,7 +245,7 @@ replpad-write-js: js-awaiter [
 replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
-    return: []
+    return: ~
     param [<opt-out> text!]
     :html
 ][
@@ -426,19 +426,19 @@ sys.util/make-scheme [
     actor: [
         ; could potentially fold in JS-HEAD around an INFO? wrapper
 
-        read: func [port] [
+        read: lambda [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
 
-            return read-url-helper unspaced [
+            read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host
                     when has port.spec 'port-id [unspaced [":" port.spec.port-id]]
                     port.spec.path
             ]
         ]
 
-        write: func [port data] [
+        write: diverger [port data] [
             panic [
                 "WRITE is not supported in the web console yet, due to the browser's"
                 "imposition of a security model (e.g. no local filesystem access)."
@@ -454,17 +454,17 @@ sys.util/make-scheme [
     name: 'https
 
     actor: [
-        read: func [port] [
+        read: lambda [port] [
             if port.spec.host = "gitlab.com" [
                 CORSify-gitlab-port port
             ]
 
-            return read-url-helper unspaced [
+            read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host port.spec.path
             ]
         ]
 
-        write: func [port data] [
+        write: diverger [port data] [
             panic [
                 "WRITE is not yet supported, due to the browser's imposition"
                 "of a security model (e.g. no local filesystem access)."
@@ -481,7 +481,7 @@ sys.util/make-scheme [
     title: "File Access"
     name: 'file
 
-    init: func [return: [] port [port!]] [
+    init: proc [port [port!]] [
         case [
             not all [
                 has port.spec 'ref
@@ -557,7 +557,7 @@ sys.util/make-scheme [
     title: "File Directory Access"
     name: 'dir
 
-    init: func [port [port!]] [
+    init: proc [port [port!]] [
         case [
             not all [
                 has port.spec 'ref
@@ -634,7 +634,7 @@ if did select system.contexts.user 'do [
     panic "User context has override of DO, won't inherit lib override."
 ]
 
-/lib.do: adapt copy lib.do/ [
+lib.do: adapt lib.do/ [
     ;
     ; We go ahead and update LIB's DO directly with an adaptation.  This way,
     ; the Redbol emulation layer keeps the URL interception.
@@ -678,9 +678,9 @@ export (inside [] (adjunct-of interop).exports)
 
 ; We bridge the legacy INFO? function (bad name) to be based on JS-HEAD.
 
-rfc2616-to-date: func [
+rfc2616-to-date: lambda [
     "Make DATE! from e.g. -[Tue, 15 Nov 1994 12:45:26 GMT]-"
-    return: [date!]
+    []: [date!]
     idate "https://www.rfc-editor.org/rfc/rfc2616"
         [text!]
 ][
@@ -697,7 +697,7 @@ rfc2616-to-date: func [
         panic ["Invalid RFC2616 date:" idate]
     ]
     if zone = "GMT" [zone: copy "+0"]
-    return to date! unspaced [day "-" month "-" year "/" time zone]
+    to date! unspaced [day "-" month "-" year "/" time zone]
 ]
 
 info?: func [
@@ -808,15 +808,15 @@ sys.util/make-scheme [
     title: "Downloads Scheme"
     name: 'downloads
 
-    init: func [return: [] port] [
+    init: proc [port] [
         assert [match text! port.spec.path]
         port.spec.path: split-path port.spec.path
     ]
 
     actor: [
-        write: func [port data] [
+        write: lambda [port data] [
             download port.spec.path data
-            return port
+            port
         ]
     ]
 ]
@@ -899,9 +899,8 @@ now: js-native [
 
 === PROVIDE CLICKABLE LINK FOR USER TO OPEN IN BROWSER ===
 
-browse: func [
+browse: proc [
     "Provide a clickable link to the user to open in the browser"
-    return: []
     url [url!]
 ][
     comment --[
