@@ -71,7 +71,7 @@ eparse-combinators.('mark): combinator [
     "Run one rule and if it matches, draw a mark across that content"
     return: [any-value?]
     input [any-series?]
-    :pending [blank? block!]
+    :pending [hole? block!]
     parser [action?]
     {subpending rest ^result}
 ][
