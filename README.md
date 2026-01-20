@@ -77,7 +77,7 @@ finished running.  For instance:
     sum: 0
     repeat 5 [
        print "Enter a value:"
-       x: ask integer!
+       x: ask [ "" integer! ]
        sum: sum + x
     ]
     print ["The sum was" sum]
