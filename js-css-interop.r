@@ -31,27 +31,27 @@ Rebol [
 ]
 
 
+; GitLab and GitHub raw links are served with no MIME type.  Browsers have a
+; CORS policy which won't let them load such things with <script> tags or
+; ordinary stylesheets...so we have to fetch() them as text and then fabricate
+; them out of thin air if you are requesting *cross-origin*.
+;
+; Other sites do this too and you have to use :AUTOMIME.  But since GitHub and
+; GitLab serve a lot of code, go ahead and detect their raw links.  Raw links
+; on GitLab look like this where /-/ seems optional:
+;
+;   https://gitlab.com/Zhaoshirong/nzpower/-/raw/master/nzpower.reb
+;
+; Note we shouldn't need to use :AUTOMIME on other GitLab links, e.g. to load
+; JavaScript or CSS off their served site proper (should have the right MIME
+; types on main site, it's just the raw service with the issue).
+;
 detect-automime: func [
     "Figure out if a source comes with no MIME type and would break CORS"
     return: [logic?]
     source [file! url!]
-][
-    ; GitLab and GitHub raw links are served with no MIME type.  Browsers have
-    ; a CORS policy which won't let them load such things with <script> tags
-    ; or ordinary stylesheets...so we have to fetch() them as text and then
-    ; fabricate them out of thin air if you are requesting *cross-origin*.
-    ;
-    ; Other sites do this too and you have to use :AUTOMIME.  But since GitHub
-    ; and GitLab serve a lot of code, go ahead and detect their raw links.
-    ; Raw links on GitLab look like this where /-/ seems optional:
-    ;
-    ;   https://gitlab.com/Zhaoshirong/nzpower/-/raw/master/nzpower.reb
-    ;
-    ; Note we shouldn't need to use :AUTOMIME on other GitLab links, e.g. to
-    ; load JavaScript or CSS off their served site proper (should have the
-    ; right MIME types on main site, it's just the raw service with the issue).
-    ;
-    let hostname
+] {
+    hostname: ()
     try parse (cond match url! source) [
         "https://" [
             hostname: "raw.githubusercontent.com" "/"
@@ -59,13 +59,13 @@ detect-automime: func [
             hostname: "gitlab.com" "/" thru "/" thru "/" try "-/" "raw/"
         ]
         (if hostname <> js-eval "window.location.hostname" [
-            return okay  ; cross-origin on GitHub or GitLab, we need :AUTOMIME
+            return okay  ; cross-origin on GitHub or GitLab need :AUTOMIME
         ] else [
             return null
         ])
     ]
     return null
-]
+}
 
 
 js-do-dialect-helper: lambda [
