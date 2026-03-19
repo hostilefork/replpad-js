@@ -197,9 +197,9 @@ storage-exists?: js-native [
     )
 ]--
 
-storage: [
-    local _
-    session _
+storage: make object! [
+    local: ~
+    session: ~
 ]
 
 if storage-enabled? [  ; Browser reported that it is storage-capable
