@@ -186,7 +186,7 @@ replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
     return: [trash!]
-    param [<opt-out> text!]
+    param [text!]
     :html
 ] --[
     let param = reb.Spell("param")
@@ -246,7 +246,7 @@ replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
     return: [trash!]
-    param [<opt-out> text!]
+    param [text!]
     :html
 ][
     if html [

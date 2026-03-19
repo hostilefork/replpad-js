@@ -52,7 +52,7 @@ detect-automime: func [
     ; right MIME types on main site, it's just the raw service with the issue).
     ;
     let hostname
-    try parse (opt match url! source) [
+    try parse (cond match url! source) [
         "https://" [
             hostname: "raw.githubusercontent.com" "/"
             |
@@ -146,7 +146,7 @@ js-do: func [
 
     return: [trash!]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<opt-out> block! text! file! url! tag!]
+        [block! text! file! url! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
     :local "Run code in a local scope, rather than global"
     :module "Execute JS code as a module"
@@ -194,7 +194,7 @@ js-eval: func [
 
     return: [trash? null? logic? integer! text!]
     expression "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [<opt-out> block! text!]
+        [block! text!]
 ][
     if block? expression [expression: my js-do-dialect-helper]
     return js-eval*:local expression
