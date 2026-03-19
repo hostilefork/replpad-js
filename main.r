@@ -146,8 +146,7 @@ export main: adapt console/ [
 
             let mod: import pin as word! autorun
             sys.util/import* system.contexts.user mod
-        ]
-        else [
+        ] else [
             do pin as word! autorun
         ]
 
@@ -157,8 +156,7 @@ export main: adapt console/ [
         ;
         ; Revisit this.  But for now, any script that isn't supposed to drop
         ; to the console should never terminate.
-    ]
-    else [
+    ] else [
         replpad-write:html intro-note-html
     ]
 

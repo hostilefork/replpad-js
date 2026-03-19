@@ -380,8 +380,7 @@ eparse-debug-hook: func [
             pd-stack-push:class f [
                 "**" spaced e.message
             ] "match-failed"
-        ]
-        else [
+        ] else [
             let ^synthesized: unlift first unanti ^result
             pd-stack-push:class f [
                 "=>" @(lift ^synthesized) when antiform? ^synthesized ["; anti"]
