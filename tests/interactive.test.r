@@ -159,7 +159,7 @@ k: ok: okay: proc [
         label: rune!
         opt bug: integer!  ; optional GitHub issue number
         description: across [some text!] (print description)
-        opt [code: *in* group! (eval code)]
+        opt [code: group! (eval code)]
         accept <here>
     ] except [
         panic "Problem in STEPS parsing"
