@@ -65,7 +65,7 @@ watch: func [
 
     return: [any-value?]  ; e.g. WATCH 1 returns what's in slot 1
     @arg [
-        ~(#on #off)~
+        ~[#on #off]~
         word! tuple!
         block! group!
         integer! tag!
