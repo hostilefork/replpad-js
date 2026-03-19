@@ -80,7 +80,7 @@ watch: func [
         integer? arg [
             case [
                 positive? arg [  ; request to fetch the material
-                    return get (pick watches arg else [
+                    return get (meta pick watches arg else [
                         panic ["There is no watch in slot" arg]
                     ])
                 ]
@@ -128,7 +128,7 @@ watch: func [
 
 update-watches: proc [] [
     let n: 1
-    for-each 'w watches [
+    for-each w watches [
         ;
         ; The edge-case states for the watches would ideally be in some
         ; different color to call attention to them.

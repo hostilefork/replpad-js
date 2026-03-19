@@ -71,18 +71,16 @@ eparse-combinators.('mark): combinator [
     "Run one rule and if it matches, draw a mark across that content"
     return: [any-value?]
     input [any-series?]
-    :pending [hole? block!]
+    {pending}: [none? quoted! block!]
     parser [action?]
-    {subpending rest ^result}
+    {^result}
 ][
-    [^result rest subpending]: trap parser input
+    [^result input pending]: trap parser input
 
-    pending: glom subpending make pair! reduce [
+    glom $pending make pair! reduce [
         (index of input) - 1
         (index of rest) - 1
     ]
-
-    input: rest
 
     return ^result
 ]
@@ -91,7 +89,7 @@ eparse-combinators.('mark): combinator [
 ; EPARSE is a PARSE variant that implicitly assumes you want to parse the
 ; content of the CodeMirror editor.
 ;
-export eparse: func [rules [block!] :hook [<unrun> frame!]] [
+export eparse: func [rules [block!] :hook [frame!]] [
     ensure-underline-extension-loaded
 
     ed-clear-underlines
@@ -100,7 +98,7 @@ export eparse: func [rules [block!] :hook [<unrun> frame!]] [
         parse*:combinators:hook ed-text rules eparse-combinators hook
     )
 
-    for-each 'item opt pending [
+    for-each 'item pending [
         if not pair? item [
             panic "residual non-PAIR! found in EPARSE pending list"
         ]
@@ -335,11 +333,11 @@ eparse-debug-hook: func [
     "Called as the :HOOK function for each parser instantiation"
     return: [pack?]
     f [frame!]
-][
-    let state: f.state
+] {
+    state: f.state
 
-    let pushed: null
-    let skipping: null
+    pushed: null
+    skipping: null
 
     if (not stop-frame) and f.rule-start [
         ed-select 0 ((index of f.input) - 1)
@@ -370,12 +368,12 @@ eparse-debug-hook: func [
         ]
     ]
 
-    try let ^result: either skipping [pack [null f.input blank]] [eval f]
+    try ^result: either skipping [pack [null f.input none]] [eval f]
 
     if pushed [
         if f = stop-frame [stop-frame: null]
 
-        if error? ^result [
+        if failure? ^result [
             let e: disarm ^result
             pd-stack-push:class f [
                 "**" spaced e.message
@@ -409,7 +407,7 @@ eparse-debug-hook: func [
     ]
 
     return ^result
-]
+}
 
 
 export eparse-debug: func [
