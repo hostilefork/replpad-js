@@ -304,6 +304,7 @@ replpad-write: func [
     return replpad-write-js param
 ]
 
+unprotect $lib.write-stdout
 lib.write-stdout: func [
     "Writes just text to the ReplPad"
     text [text! char?]
@@ -634,6 +635,7 @@ if did select system.contexts.user 'do [
     panic "User context has override of DO, won't inherit lib override."
 ]
 
+unprotect $lib.do
 lib.do: adapt lib.do/ [
     ;
     ; We go ahead and update LIB's DO directly with an adaptation.  This way,
