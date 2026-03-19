@@ -264,12 +264,16 @@ export redbol: proc [] [
 
 === GOLDEN LAYOUTS DEMO ===
 
-export ensure-golden-layouts-loaded: proc [
-]
-bind {
-    loaded: null
-} [
+homepage: https://golden-layout.com/
+
+export ensure-golden-layouts-loaded: proc [] {
+    loaded: static [null]
+
     if loaded [return]
+
+    replpad-write:html compose --[<span>
+        ** Loading <a href='(homepage)' target='_blank'>Golden Layouts</a> **
+    </span>]--
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css
@@ -288,7 +292,7 @@ bind {
     js-do:module join replpad-dir %golden-interop.js
 
     loaded: okay
-]
+}
 
 
 === CODEMIRROR 6 EDITOR DEMO ===
@@ -296,10 +300,9 @@ bind {
 export edit: proc [
     source [url! text! file!]
     :marks
-]
-bind construct [
-    codemirror-loaded: null
-][
+] {
+    codemirror-loaded: static [null]
+
     ensure-golden-layouts-loaded
 
     if not codemirror-loaded [
@@ -385,7 +388,7 @@ bind construct [
         ]--
     ]
 
-    let [text title]: switch:type source [
+    [text title]: switch:type source [
         text! [
             pack [source, "TEXT!"]
         ]
@@ -402,7 +405,7 @@ bind construct [
             golden.addComponent('mirror', state, title)
         ]--
     ]
-]
+}
 
 export ed-text: js-native [] --[  // repeated in %eparse.r
     return reb.Text(cm.state.doc.text.join('\n'))
