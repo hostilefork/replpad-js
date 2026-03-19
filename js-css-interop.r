@@ -73,36 +73,38 @@ js-do-dialect-helper: lambda [
 
     []: [text!]
     b [block!]
-][
-    unspaced collect [
-        let keep-transient: lambda [t [pinned!] :required [word!]] [
+] {
+    transient: cache [  ; use STATIC? (wouldn't see changes in b across calls)
+        lambda [t [pinned!] :required [word!]] [
             switch:type t: unpin t [
-                word! tuple! [keep api-transient get t]
-                group! [keep api-transient eval t]
+                word! tuple! [api-transient get t]
+                group! [api-transient eval t]
 
                 assert [required]
                 panic [required "must have its argument as @x, @x.y @(...)"]
             ]
         ]
+    ]
 
-        iterate @b [
+    unspaced collect [
+        iterate $b [
             switch:type b.1 [
                 text! [keep b.1]
-                group! [keep reeval inside b b.1]
+                group! [keep reeval b.1]
 
-                pinned! [keep-transient inside b b.1]
+                pinned! [keep-transient b.1]
 
                 word! [switch b.1 [
                     'spell [
                         keep "reb.Spell("
                         b: next b
-                        keep-transient:required inside b b.1 'SPELL
+                        keep transient:required b.1 'SPELL
                         keep ")"
                     ]
                     'unbox [
                         keep "reb.Unbox("
                         b: next b
-                        keep-transient:required inside b b.1 'UNBOX
+                        keep transient:required b.1 'UNBOX
                         keep ")"
                     ]
                     panic ["Unknown JS-DO dialect keyword:" b.1]
@@ -115,7 +117,7 @@ js-do-dialect-helper: lambda [
             ]
         ]
     ]
-]
+}
 
 js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     "Run JS URL via a <script> tag"
