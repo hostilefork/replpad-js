@@ -123,7 +123,7 @@ use [
     ]
 
     write-console: js-awaiter [
-        return: ~
+        return: [trash!]
         type [text!]
         value [element?]
     ] --[
@@ -169,7 +169,7 @@ log: collect [
 
 cls: clear-screen: js-awaiter [
     "Clear contents of the browser window"
-    return: ~
+    return: [trash!]
 ] --[
     replpad.innerHTML = ""
 
@@ -185,7 +185,7 @@ cls: clear-screen: js-awaiter [
 replpad-write-js: js-awaiter [
     "Output lines of text to the REPLPAD (no automatic newline after)"
 
-    return: ~
+    return: [trash!]
     param [<opt-out> text!]
     :html
 ] --[
@@ -245,13 +245,13 @@ replpad-write-js: js-awaiter [
 replpad-write: func [
     "Output a string of text to the REPLPAD (no automatic newline after)"
 
-    return: ~
+    return: [trash!]
     param [<opt-out> text!]
     :html
 ][
     if html [
         replpad-write-js:html param
-        return ~
+        return
     ]
 
     ; Since we aren't using <pre> or a <textarea>, this initially had some

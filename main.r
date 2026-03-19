@@ -269,7 +269,7 @@ export ensure-golden-layouts-loaded: proc [
 bind {
     loaded: null
 } [
-    if loaded [exit]
+    if loaded [return]
 
     css-do join replpad-dir %libs/golden/css/goldenlayout-base.css
     css-do join replpad-dir %libs/golden/css/themes/goldenlayout-replpad-theme.css

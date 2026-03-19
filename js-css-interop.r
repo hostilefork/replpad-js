@@ -144,7 +144,7 @@ js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
 js-do: func [
     "Execute JavaScript file or evaluate a string of JavaScript source"
 
-    return: ~  ; What useful return result could there be?
+    return: [trash!]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
         [<opt-out> block! text! file! url! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
@@ -159,7 +159,7 @@ js-do: func [
 
     if text? source [
         js-eval* // [source, local: local]
-        return ~
+        return
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
@@ -175,11 +175,11 @@ js-do: func [
     if automime or local [
         let code: as text! read source
         js-eval* // [code, local: local]
-        return ~
+        return
     ]
 
     js-do-url-helper // [source module: module]
-    return ~
+    return
 ]
 
 ; JS-DO runs scripts by URL and generically does not return an evaluative
@@ -268,7 +268,7 @@ css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
 css-do: func [
     "Incorporate a CSS file or a snippet of CSS source into the page"
 
-    return: ~  ; Could return an auto-generated ID for later removing (?)
+    return: [trash!]  ; Could return an auto-generated ID for later removal (?)
     ; 'id [<skip> rune!]  ; Idea: what if you could `css-do #id {...}`
     source "TAG! interpreted as relative to currently running script"
         [text! file! url! tag!]
@@ -297,7 +297,7 @@ css-do: func [
     ]
 
     css-do-url-helper source
-    return ~
+    return
 ]
 
 export [

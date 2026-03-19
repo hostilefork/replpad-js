@@ -152,7 +152,7 @@ k: ok: okay: proc [
         print "CONGRATULATIONS, you are all done."
         print "Type OKAY to restart the checklist."
         steps: head of steps
-        exit
+        return
     ]
 
     steps: parse steps [

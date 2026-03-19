@@ -127,7 +127,7 @@ pdebug-loaded: null
 ensure-debug-panel-loaded: proc [
     "Create GoldenLayout panel with a toolbar and div for stack display"
 ] [
-    if pdebug-loaded [exit]
+    if pdebug-loaded [return]
 
   css-do --[
     .pd-panel {  /* https://discuss.codemirror.net/t/2882 */

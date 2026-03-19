@@ -60,9 +60,10 @@ delete-watch: proc [
 ;    If you want to do that, you should monitor a GROUP! because it will
 ;    capture a binding on the group which can be evaluated each time.
 ;
-watch: proc [
+watch: func [
     "See https://github.com/hostilefork/replpad-js/wiki/WATCH-Dialect-Notes"
 
+    return: [any-value?]  ; e.g. WATCH 1 returns what's in slot 1
     @arg [
         ~(#on #off)~
         word! tuple!
@@ -121,6 +122,7 @@ watch: proc [
 
         panic ["Not-yet-implemented WATCH command:" @arg]
     ]
+    return
 ]
 
 
