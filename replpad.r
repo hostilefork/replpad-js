@@ -433,7 +433,7 @@ sys.util/make-scheme [
 
             read-url-helper unspaced [
                 form port.spec.scheme "://" port.spec.host
-                    when has port.spec 'port-id [unspaced [":" port.spec.port-id]]
+                    if has port.spec 'port-id [unspaced [":" port.spec.port-id]]
                     port.spec.path
             ]
         ]
@@ -866,7 +866,7 @@ now: js-native [
     if (reb.Did("time"))
         return reb.Value("make-time-sn",
             reb.I(seconds),
-            "when precise [", reb.I(nanoseconds), "]"
+            "if precise [", reb.I(nanoseconds), "]"
         )
 
     if (reb.Did("weekday"))
@@ -883,8 +883,8 @@ now: js-native [
         reb.I(d.getMonth() + 1),  // month (add 1 because it's 0-11)
         reb.I(d.getDate()),  // day
         reb.I(seconds),
-        "opt all [precise", reb.I(nanoseconds), "]",
-        "opt all [not local", reb.I(0), "]",  // zone
+        "if precise [", reb.I(nanoseconds), "]",
+        "if local [", reb.I(0), "]",  // zone
     ")")
 
     // There's no separate generator for making just a date, so workaround

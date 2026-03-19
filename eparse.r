@@ -383,7 +383,7 @@ eparse-debug-hook: func [
         ] else [
             let ^synthesized: unlift first unanti ^result
             pd-stack-push:class f [
-                "=>" @(lift ^synthesized) when antiform? ^synthesized ["; anti"]
+                "=>" @(lift ^synthesized) if antiform? ^synthesized ["; anti"]
             ] "match-succeeded"
 
             ed-select 0 ((index of unlift second unanti ^result) - 1)
