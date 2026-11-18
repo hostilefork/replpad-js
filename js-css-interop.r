@@ -49,10 +49,10 @@ Rebol [
 detect-automime: func [
     "Figure out if a source comes with no MIME type and would break CORS"
     return: [logic?]
-    source [file! url!]
+    source [file! tag!]
 ] {
     hostname: ()
-    try parse (cond match url! source) [
+    try parse (cond match tag! source) [
         "https://" [
             hostname: "raw.githubusercontent.com" "/"
             |
@@ -122,7 +122,7 @@ js-do-dialect-helper: lambda [
 js-do-url-helper: js-awaiter [  ; https://stackoverflow.com/a/14521482
     "Run JS URL via a <script> tag"
 
-    url [url!] "URL or JavaScript code"
+    url [tag!] "URL or JavaScript code"
     :module "Execute code as a module"
 ] --[
     return new Promise(function(resolve, reject) {
@@ -148,13 +148,20 @@ js-do: func [
 
     return: [trash!]  ; What useful return result could there be?
     source "If BLOCK!, interpreted in JS-DO dialect (substitutes @-values)"
-        [block! text! file! url! tag!]
+        [block! text! file! tag!]  ; add URL! object?
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
     :local "Run code in a local scope, rather than global"
     :module "Execute JS code as a module"
 ][
     if tag? source [
-        source: join system.script.path as file! source
+        ;
+        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+        ;
+        source: maybe sys.util/adjust-url-for-raw source
+
+        if not try to url! source [
+            source: join system.script.path as file! source
+        ]
     ]
 
     if block? source [source: my js-do-dialect-helper]
@@ -165,12 +172,8 @@ js-do: func [
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
-        source: join (ensure url! what-dir) source
+        source: join (ensure tag! what-dir) source
     ]
-
-    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
-    ;
-    source: maybe sys.util/adjust-url-for-raw source
 
     automime: default [detect-automime source]
 
@@ -233,7 +236,7 @@ js-head: func [
     "Do HTTP HEAD request, give OBJECT! of key=>value response header strings"
     return: [object!]
     source "absolute URL! or relative FILE! path"
-        [url! file!]
+        [tag! file!]
 ][
     either file? source [
         source: unspaced [what-dir source]
@@ -255,7 +258,7 @@ css-do-text-helper: js-native [  ; https://stackoverflow.com/a/707580
 ]--
 
 css-do-url-helper: js-native [  ; https://stackoverflow.com/a/577002
-    url [url!]
+    url [tag!]
 ] --[
     let link = document.createElement('link')
     /* link.id = ... */  // could be good for no duplicates, deleting later
@@ -273,11 +276,18 @@ css-do: func [
     return: [trash!]  ; Could return an auto-generated ID for later removal (?)
     ; 'id [<skip> rune!]  ; Idea: what if you could `css-do #id {...}`
     source "TAG! interpreted as relative to currently running script"
-        [text! file! url! tag!]
+        [text! file! tag!]
     :automime "Subvert incorrect server MIME-type by requesting via fetch()"
 ][
     if tag? source [
-        source: join system.script.path as file! source
+        ;
+        ; If URL is decorated source (syntax highlighting, etc.) get raw form.
+        ;
+        source: maybe sys.util/adjust-url-for-raw source
+
+        if not try to url! source [
+            source: join system.script.path as file! source
+        ]
     ]
 
     if text? source [
@@ -285,12 +295,8 @@ css-do: func [
     ]
 
     if file? source [  ; make absolute w.r.t. *current* script URL location
-        source: join (ensure url! what-dir) source
+        source: join (ensure tag! what-dir) source
     ]
-
-    ; If URL is decorated source (syntax highlighting, etc.) get raw form.
-    ;
-    source: maybe sys.util/adjust-url-for-raw source
 
     automime: default [detect-automime source]
 

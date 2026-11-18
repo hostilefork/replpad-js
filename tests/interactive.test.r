@@ -185,10 +185,10 @@ nope: proc [
 
     if bug [
         print "Since the issue has happened before, add your findings here:"
-        browse join https://github.com/hostilefork/replpad-js/issues/ bug
+        browse join <https://github.com/hostilefork/replpad-js/issues/> bug
     ] else [
         print "This is a new issue, so please open it at:"
-        browse https://github.com/hostilefork/replpad-js/issues/new
+        browse <https://github.com/hostilefork/replpad-js/issues/new>
     ]
 
     print "    (Then type OKAY to continue)"

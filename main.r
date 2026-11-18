@@ -40,12 +40,12 @@ replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
 ;
 sys.util/import* lib %replpad.r
 
-replpad-git: https://github.com/hostilefork/replpad-js/blob/master/replpad.r
-console-git: https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.r
-forum: https://forum.rebol.info
+replpad-git: <https://github.com/hostilefork/replpad-js/blob/master/replpad.r>
+console-git: <https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.r>
+forum: <https://forum.rebol.info>
 
-wasm-threads: https://developers.google.com/web/updates/2018/10/wasm-threads
-instructions: https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads
+wasm-threads: <https://developers.google.com/web/updates/2018/10/wasm-threads>
+instructions: <https://github.com/hostilefork/replpad-js/wiki/Enable-WASM-Threads>
 
 link: [href label] -> [
     compose "<a href='(href)' target='_blank'>(label)</a>"
@@ -144,7 +144,7 @@ export main: adapt console/ [
             ;
             ; https://forum.rebol.info/t/1802
 
-            let mod: import pin as word! autorun
+            let mod: import as rune! autorun
             sys.util/import* system.contexts.user mod
         ] else [
             do pin as word! autorun
@@ -256,7 +256,7 @@ export redbol: proc [] [
     ; is a somewhat sloppy command...people should be doing their own imports.
     ; But it's just to demonstrate.
     ;
-    sys.util.import* system.contexts.user @redbol
+    sys.util.import* system.contexts.user #redbol
 
     system.console.prompt: "redbol>>"
 ]
@@ -264,7 +264,7 @@ export redbol: proc [] [
 
 === GOLDEN LAYOUTS DEMO ===
 
-homepage: https://golden-layout.com/
+homepage: <https://golden-layout.com/>
 
 export ensure-golden-layouts-loaded: proc [] {
     loaded: static [null]
@@ -298,7 +298,7 @@ export ensure-golden-layouts-loaded: proc [] {
 === CODEMIRROR 6 EDITOR DEMO ===
 
 export edit: proc [
-    source [url! text! file!]
+    source [tag! text! file!]
     :marks
 ] {
     codemirror-loaded: static [null]
@@ -392,7 +392,7 @@ export edit: proc [
         text! [
             pack [source, "TEXT!"]
         ]
-        url! file! [
+        tag! file! [
             pack [as text! read source, split-path source]
         ]
     ]
@@ -420,8 +420,7 @@ ed-clear-underlines: js-awaiter [  ; repeated in %eparse.r
 
 
 === "EPARSE" INTEGRATION DEMO OF UPARSE AND CODEMIRROR ===
-
-import ensure url! clean-path %eparse.r
+import ensure tag! clean-path %eparse.r
 
 export [eparse eparse-debug]
 

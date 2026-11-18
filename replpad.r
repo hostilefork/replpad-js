@@ -135,7 +135,7 @@ use [
         name: 'log
 
         init: proc [port] [
-            [_ port.spec.path]: find:match as text! port.spec.ref form log::
+            [_ port.spec.path]: find:match as text! port.spec.ref form <log::>
             assert [find ["info" "log" "warn" "error"] port.spec.path]
         ]
 
@@ -156,7 +156,7 @@ use [
 log: collect [
     for-each 'endpoint [info log warn error] [
         keep endpoint
-        keep make port! join log:: as text! endpoint
+        keep make port! join <log::> as text! endpoint
     ]
 ]
 
@@ -281,7 +281,7 @@ replpad-write: func [
             | change '> ("&gt;")
             | change "&" ("&amp;")
 
-            ; Make all URL!s printed in the output show as clickable.  Consider
+            ; Make all URLs printed in the output show as clickable.  Consider
             ; it a "good reason" to use `target='_blank'` to avoid losing work.
             ; https://css-tricks.com/use-target_blank/
             ;
@@ -488,7 +488,7 @@ sys.util/make-scheme [
                 has port.spec 'ref
                 file? port.spec.ref
             ][
-                ; port has been invoked using BLOCK! or FILE:// URL!
+                ; port has been invoked using BLOCK! or FILE:// URL
                 panic "File scheme is only accessible through the FILE! datatype"
             ]
 
@@ -502,7 +502,7 @@ sys.util/make-scheme [
                 panic "No filesystem currently installed"
             ]
 
-            url! [
+            tag! [
                 ; possibly some kind of check here to ensure a scheme exists
                 ; and convert to FILE! if using FILE:// notation
             ]
@@ -516,7 +516,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     read port.spec.ref
                 ]
             ]
@@ -526,7 +526,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     write port.spec.ref data
                 ]
             ]
@@ -536,7 +536,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     delete port.spec.ref
                 ]
             ]
@@ -546,7 +546,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     query port.spec.ref
                 ]
             ]
@@ -565,7 +565,7 @@ sys.util/make-scheme [
                 file? port.spec.ref
                 ; equal? #"/" first port.spec.ref
             ][
-                ; port has been invoked using BLOCK! or DIR:// URL!
+                ; port has been invoked using BLOCK! or DIR:// URL
                 panic "File scheme is only accessible through the FILE! datatype"
             ]
 
@@ -580,7 +580,7 @@ sys.util/make-scheme [
                 panic "No filesystem currently installed"
             ]
 
-            url! [
+            tag! [
                 ; possibly some kind of check here to ensure a scheme exists
             ]
 
@@ -593,7 +593,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     read port.spec.ref
                 ]
             ]
@@ -603,7 +603,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     delete port.spec.ref
                 ]
             ]
@@ -614,7 +614,7 @@ sys.util/make-scheme [
             switch type of port.spec.ref [
                 file! []
 
-                url! [
+                tag! [
                     query port.spec.ref
                 ]
             ]
@@ -651,9 +651,9 @@ lib.do: adapt lib.do/ [
     ; here to shorten calling demos and get them out of the root directory.
     ;
     source: maybe switch source [
-        @redbol [https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.r]
-        @trello [https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.r]
-        @dungeon [https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.r]
+        @redbol [<https://raw.githubusercontent.com/metaeducation/redbol/master/redbol.r>]
+        @trello [<https://raw.githubusercontent.com/hostilefork/trello-r3web/master/trello.r>]
+        @dungeon [<https://github.com/hostilefork/teenage-coding/blob/master/DUNGEON/dungeon.r>]
     ]
 ]
 
@@ -667,7 +667,7 @@ lib.do: adapt lib.do/ [
 ; it would be appended onto the current directory).  Switching to use schemes
 ; is not taking this interpretation.
 ;
-interop: import ensure url! clean-path %js-css-interop.r
+interop: import ensure tag! clean-path %js-css-interop.r
 
 ; We want clients of replpad to see JS-DO etc.  Should they have to import
 ; those functions explicitly?  Probably, but they didn't have to before.  So
@@ -703,7 +703,7 @@ rfc2616-to-date: lambda [
 ]
 
 info?: func [
-    url [url!]
+    url [tag!]
     :only
 ][
     o: js-head url
@@ -721,7 +721,7 @@ info?: func [
 
 ; Import scheme for file:// URLs as interpreted as meaning URL storage.
 ;
-import ensure url! clean-path %storage.r
+import ensure tag! clean-path %storage.r
 
 if did select system.contexts.user 'change-dir [
     panic "User context has override of CHANGE-DIR, won't inherit lib override."
@@ -729,8 +729,8 @@ if did select system.contexts.user 'change-dir [
 
 lib.change-dir: func [
     "Changes the current path (where scripts with relative paths will be run)"
-    return: [file! url!]
-    path [file! url!]
+    return: [file! tag!]
+    path [file! tag!]
 ][
     ; NOTE: The CHANGE-DIR function has to be aware of filesystems, but the
     ; core does not presume any particular filesystem implementation.  However
@@ -903,7 +903,7 @@ now: js-native [
 
 browse: proc [
     "Provide a clickable link to the user to open in the browser"
-    url [url!]
+    url [tag!]
 ][
     comment --[
         // !!! This is how we would open a window in a JS-AWAITER, but it will
@@ -1003,7 +1003,7 @@ sys.util/make-scheme [  ; no URL form dictated
 ; WRITE CLIPBOARD "CONTENT"
 ; writing to a clipboard URL will still work from any context
 
-clipboard: make port! clipboard::general
+clipboard: make port! <clipboard::general>
 
 
 === INCORPORATE LATEST-OF UTILITY FOR DOWNLOADING BUILDS ===

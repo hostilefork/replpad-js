@@ -210,8 +210,8 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         init: proc [port [port!]] [
             if not all [
                 has port.spec 'ref
-                url? port.spec.ref
-                [_ port.spec.path]: find:match form port.spec.ref form storage::
+                tag? port.spec.ref
+                [_ port.spec.path]: find:match form port.spec.ref form <storage::>
                 find ["local" "session"] port.spec.path
             ][
                 panic "Could not initiate storage port"
@@ -242,8 +242,8 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
         ]
     ]
 
-    storage.local: make port! storage::local
-    storage.session: make port! storage::session
+    storage.local: make port! <storage::local>
+    storage.session: make port! <storage::session>
 
     sys.util/make-scheme [
         title: "File Access"
@@ -274,7 +274,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     )
                 ]
 
-                url! [
+                tag! [
                     ; possibly some kind of check here to ensure a scheme exists
                     ; and convert to FILE! if using file:// notation
                 ]
@@ -297,7 +297,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         read port.spec.ref
                     ]
                 ]
@@ -320,7 +320,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         write port.spec.ref data
                     ]
                 ]
@@ -338,7 +338,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         port.spec.ref
                     ]
 
-                    url! [
+                    tag! [
                         delete port.spec.ref
                     ]
                 ]
@@ -361,7 +361,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         return query port.spec.ref
                     ]
                 ]
@@ -401,7 +401,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                     )
                 ]
 
-                url! [
+                tag! [
                     ; possibly some kind of check here to ensure a scheme exists
                     ; and convert to FILE! if using file:// notation
                 ]
@@ -432,7 +432,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         read port.spec.ref
                     ]
                 ]
@@ -452,7 +452,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         port.spec.ref
                     ]
 
-                    url! [
+                    tag! [
                         create port.spec.ref
                     ]
                 ]
@@ -481,7 +481,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         delete port.spec.ref
                     ]
                 ]
@@ -504,7 +504,7 @@ if storage-enabled? [  ; Browser reported that it is storage-capable
                         ]
                     ]
 
-                    url! [
+                    tag! [
                         query port.spec.ref
                     ]
                 ]
