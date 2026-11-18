@@ -11,7 +11,7 @@
 <!--
  ! File: %index.html
  ! Summary: "Main (and likely only) HTML page for the REPL project"
- ! Project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+ ! Project: "JavaScript REPLpad for Revolt branch of Rebol 3"
  ! Homepage: https://github.com/hostilefork/replpad-js/
  !
  !=============================================================================
@@ -74,7 +74,7 @@
       }
       window.onerror=function(m,u,r,c) {
         if (m.search(/This error.*EMTERPRETIFY_WHITELIST.*to save it:/) >= 0) {
-          fetch('https://raw.githubusercontent.com/metaeducation/ren-c/master/extensions/javascript/emterpreter.whitelist.json')
+          fetch('https://raw.githubusercontent.com/metaeducation/revolt/master/extensions/javascript/emterpreter.whitelist.json')
           .then((res)=>{return res.json()})
           .catch((err)=>{
             alert('error: '+err)

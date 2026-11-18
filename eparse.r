@@ -302,7 +302,7 @@ wait-for-step: js-awaiter [
 
 === EPARSE-DEBUG DEMO OF GENERALIZED PARSE HOOKING ===
 
-; Ren-C's PARSE is based on parser combinators, where the implementation of
+; Revolt's PARSE is based on parser combinators, where the implementation of
 ; each "keyword" (or datatype with behavior, like strings) is done as a
 ; function, that calls other functions generated as their "subparsers".
 ;

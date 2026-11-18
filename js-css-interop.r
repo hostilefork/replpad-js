@@ -1,7 +1,7 @@
 Rebol [
     file: %js-css-interop.r
     summary: "Functions for Invoking .js and .css by URL!, TEXT!, or dialect"
-    project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    project: "JavaScript REPLpad for Revolt branch of Rebol 3"
     homepage: https://github.com/hostilefork/replpad-js/
 
     type: module

@@ -1,7 +1,7 @@
 Rebol [
     file: %replpad.r
     summary: "Read-Eval-Print-Loop implementation and JavaScript interop"
-    project: "JavaScript REPLpad for Ren-C branch of Rebol 3"
+    project: "JavaScript REPLpad for Revolt branch of Rebol 3"
     homepage: https://github.com/hostilefork/replpad-js/
 
     type: module
@@ -28,7 +28,7 @@ Rebol [
 
         HOWEVER--!--the *near-term* (2021) goal for this project is to improve
         the console itself into an online tutorial and demo for the system.
-        This is not to say that making a web framework for arbitrary Ren-C
+        This is not to say that making a web framework for arbitrary Revolt
         programs in WebAssembly isn't interesting.  Just that it is a vast task
         which needs to be approached in a measured way.
 
@@ -641,11 +641,11 @@ lib.do: adapt lib.do/ [
     ; We go ahead and update LIB's DO directly with an adaptation.  This way,
     ; the Redbol emulation layer keeps the URL interception.
     ;
-    ; !!! A Ren-C convention is to use DO <TAG> as a way of looking up scripts
+    ; !!! A Revolt convention is to use DO #RUNE as a way of looking up scripts
     ; by name in a registry.  This is an experimental concept (which was in
     ; line with changing DO to always mean "do code you get from a source" and
     ; not something that should just fall through generically such that
-    ; DO <TAG> would be <TAG>)
+    ; DO #RUNE would be #RUNE)
     ;
     ; The tag registry is maintained remotely, but hook with a few exceptions
     ; here to shorten calling demos and get them out of the root directory.

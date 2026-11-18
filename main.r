@@ -41,7 +41,7 @@ replpad-dir: what-dir  ; %load-r3.js sets directory to URL bar path by default
 sys.util/import* lib %replpad.r
 
 replpad-git: <https://github.com/hostilefork/replpad-js/blob/master/replpad.r>
-console-git: <https://github.com/metaeducation/ren-c/blob/master/extensions/console/ext-console-init.r>
+console-git: <https://github.com/metaeducation/revolt/blob/master/extensions/console/ext-console-init.r>
 forum: <https://forum.rebol.info>
 
 wasm-threads: <https://developers.google.com/web/updates/2018/10/wasm-threads>
@@ -228,7 +228,7 @@ export watch: func [@arg] [
 === COMMAND FOR INVOKING REDBOL (Rebol2/Red Emulation) ===
 
 redbol-message: trim --[
-    Ren-C has many changes (e.g. replacing TYPE? with TYPE OF, where OF is an
+    Revolt has many changes (e.g. replacing TYPE? with TYPE OF, where OF is an
     infix version of REFLECT that quotes its left argument to get the property
     to reflect!)  But nearly all of these changes can be 'skinned' to provide
     alternative behaviors--including the old ones!
